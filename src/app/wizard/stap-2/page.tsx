@@ -378,32 +378,6 @@ export default function MobilitySolutionsPage() {
         </div>
       </div>
       
-      {/* Debug informatie en reset knop */}
-      <div className="bg-gray-100 p-4 rounded-md mb-8">
-        <h3 className="text-lg font-semibold mb-2">Debug Informatie</h3>
-        <p>Geselecteerde oplossingen: {selectedSolutions.length > 0 ? selectedSolutions.join(', ') : 'Geen'}</p>
-        <div className="mt-4 flex space-x-4">
-          <button
-            onClick={() => {
-              setSelectedSolutions([]);
-              console.log("Mobiliteitsoplossingen gereset");
-            }}
-            className="px-3 py-1 text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
-          >
-            Reset selecties
-          </button>
-          <button
-            onClick={() => {
-              resetWizard();
-              console.log("Volledige wizard gereset");
-            }}
-            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-700 hover:bg-red-200"
-          >
-            Reset hele wizard
-          </button>
-        </div>
-      </div>
-      
       {!hasSelectedSolutions && (
         <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-md text-yellow-800 mb-4">
           <div className="flex items-start">

@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useWizardStore } from '../lib/store';
 
 interface Step {
   id: number;
@@ -20,10 +21,26 @@ const STEPS: Step[] = [
 
 export function WizardProgress() {
   const pathname = usePathname();
+  const { selectedSolutions } = useWizardStore();
   
   // Find current step based on pathname
   const currentStep = STEPS.findIndex(step => pathname === step.path);
   const currentStepIndex = currentStep === -1 ? 0 : currentStep; // Default to first step if not found
+  
+  // Check if step navigation should be disabled
+  const isStepNavigationDisabled = (stepIndex: number): boolean => {
+    // Altijd vorige of huidige stappen toestaan
+    if (stepIndex <= currentStepIndex) return false;
+    
+    // Specifieke checks voor stappen na de huidige
+    if (currentStepIndex === 2 && stepIndex > 2 && selectedSolutions.length === 0) {
+      // Blokkeer navigatie naar stap 3 of hoger als er geen mobiliteitsoplossingen zijn geselecteerd
+      return true;
+    }
+    
+    // Sta toe om naar de volgende stap te gaan, maar niet verder
+    return stepIndex > currentStepIndex + 1;
+  };
   
   return (
     <div className="py-6">
@@ -31,25 +48,47 @@ export function WizardProgress() {
         {STEPS.map((step, index) => {
           const isActive = index === currentStepIndex;
           const isCompleted = index < currentStepIndex;
+          const isDisabled = isStepNavigationDisabled(index);
+          
+          // Bepaal het component dat moet worden weergegeven: Link of div
+          const StepItem = ({ children }: { children: React.ReactNode }) => {
+            const baseClasses = `flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
+              isActive
+                ? 'bg-blue-600 text-white'
+                : isCompleted
+                ? 'bg-green-600 text-white'
+                : isDisabled
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-600'
+            } ${index === STEPS.length - 1 ? '' : 'mr-2'}`;
+            
+            if (isDisabled) {
+              return (
+                <div className={baseClasses}>
+                  {children}
+                </div>
+              );
+            }
+            
+            return (
+              <Link
+                href={step.path}
+                className={baseClasses}
+              >
+                {children}
+              </Link>
+            );
+          };
           
           return (
             <li key={step.id} className="flex items-center relative w-full">
-              <Link
-                href={step.path}
-                className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : isCompleted
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                } ${index === STEPS.length - 1 ? '' : 'mr-8'}`}
-              >
+              <StepItem>
                 {isCompleted ? '✓' : step.id}
-              </Link>
+              </StepItem>
               
               {index < STEPS.length - 1 && (
                 <>
-                  <div className="hidden sm:flex w-full bg-gray-200 h-1">
+                  <div className="flex-1 h-1 bg-gray-200 mx-2">
                     <div
                       className={`h-1 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`}
                       style={{ width: '100%' }}
@@ -64,6 +103,8 @@ export function WizardProgress() {
                     ? 'text-blue-600'
                     : isCompleted
                     ? 'text-green-600'
+                    : isDisabled
+                    ? 'text-gray-400'
                     : 'text-gray-500'
                 }`}
                 style={{ 
