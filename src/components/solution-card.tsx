@@ -35,7 +35,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
           
           <div className="flex flex-col gap-2 mb-4">
             <div>
-              <span className="text-sm font-semibold block mb-1">Voordelen:</span>
               <ul className="list-disc pl-5 text-sm text-gray-600">
                 {solution.benefits.map((benefit, index) => (
                   <li key={index}>{benefit}</li>
@@ -44,7 +43,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
             </div>
             
             <div>
-              <span className="text-sm font-semibold block mb-1">Uitdagingen:</span>
               <ul className="list-disc pl-5 text-sm text-gray-600">
                 {solution.challenges.map((challenge, index) => (
                   <li key={index}>{challenge}</li>
@@ -56,21 +54,14 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
           <div className="flex flex-wrap gap-2 mt-4 mb-4">
             <div className="flex items-center">
               <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                Kosten: {solution.costs}
+                {solution.costs}
               </span>
             </div>
             <div className="flex items-center">
               <span className="text-xs font-medium bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                Implementatietijd: {solution.implementationTime}
+                {solution.implementationTime}
               </span>
             </div>
-            {solution.category && (
-              <div className="flex items-center">
-                <span className="text-xs font-medium bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
-                  {solution.category}
-                </span>
-              </div>
-            )}
           </div>
           
           <div className="flex items-center justify-between mt-4 pt-3 border-t">

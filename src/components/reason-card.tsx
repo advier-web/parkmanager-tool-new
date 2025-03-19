@@ -31,14 +31,6 @@ export function ReasonCard({ reason, isSelected, onToggleSelect }: ReasonCardPro
         {reason.summary || reason.description}
       </p>
       
-      {reason.category && (
-        <div className="mt-4">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-            {reason.category}
-          </span>
-        </div>
-      )}
-      
       <div className="mt-4 flex justify-end">
         <input
           type="checkbox"
