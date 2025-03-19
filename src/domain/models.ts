@@ -67,6 +67,10 @@ export interface ImplementationTask {
 
 // Wizard state
 export interface WizardState {
+  // Stap 0: Bedrijventerrein informatie
+  businessParkInfo: BusinessParkInfo;
+  currentGovernanceModelId: string | null;
+  
   // Stap 1: Bedrijfsterrein-redenen
   selectedReasons: string[];
   
@@ -83,4 +87,18 @@ export interface WizardState {
   businessParkName: string;
   contactPerson: string;
   contactEmail: string;
+}
+
+// Nieuwe interface voor bedrijventerrein informatie
+export interface BusinessParkInfo {
+  numberOfCompanies: number;
+  numberOfEmployees: number;
+  trafficTypes: TrafficType[];
+}
+
+// Verkeertype opties
+export enum TrafficType {
+  COMMUTER = 'woon-werkverkeer',
+  BUSINESS = 'zakelijk verkeer',
+  VISITOR = 'bezoekers verkeer'
 } 

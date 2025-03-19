@@ -20,6 +20,8 @@ export default function SummaryPage() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   const {
+    businessParkInfo,
+    currentGovernanceModelId,
     selectedReasons,
     selectedSolutions,
     selectedGovernanceModel,
@@ -51,6 +53,10 @@ export default function SummaryPage() {
     
   const selectedImplementationPlanTitle = implementationPlans && selectedImplementationPlan
     ? implementationPlans.find(plan => plan.id === selectedImplementationPlan)?.title || ''
+    : '';
+    
+  const currentGovernanceModelTitle = governanceModels && currentGovernanceModelId
+    ? governanceModels.find(model => model.id === currentGovernanceModelId)?.title || ''
     : '';
   
   // Handle input changes
@@ -140,6 +146,34 @@ export default function SummaryPage() {
         
         <div className="space-y-6">
           <section>
+            <h3 className="text-xl font-semibold mb-2">Informatie over het bedrijventerrein</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Aantal bedrijven:</p>
+                <p>{businessParkInfo.numberOfCompanies}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Aantal werknemers:</p>
+                <p>{businessParkInfo.numberOfEmployees}</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-500">Verkeerstypen:</p>
+              <ul className="list-disc pl-5">
+                {(businessParkInfo.trafficTypes || []).map(type => (
+                  <li key={type}>{type}</li>
+                ))}
+              </ul>
+            </div>
+            {currentGovernanceModelTitle && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-500">Huidig bestuursmodel:</p>
+                <p>{currentGovernanceModelTitle}</p>
+              </div>
+            )}
+          </section>
+          
+          <section>
             <h3 className="text-xl font-semibold mb-2">Geselecteerde redenen</h3>
             {selectedReasonTitles.length > 0 ? (
               <ul className="list-disc pl-5">
@@ -175,11 +209,11 @@ export default function SummaryPage() {
           </section>
           
           <section>
-            <h3 className="text-xl font-semibold mb-2">Gekozen implementatieplan</h3>
+            <h3 className="text-xl font-semibold mb-2">Implementatieplan</h3>
             {selectedImplementationPlanTitle ? (
               <p>{selectedImplementationPlanTitle}</p>
             ) : (
-              <p className="text-gray-500">Geen implementatieplan geselecteerd.</p>
+              <p className="text-gray-500">Geen implementatieplan beschikbaar.</p>
             )}
           </section>
           

@@ -5,19 +5,56 @@ import { useMobilitySolutions, useBusinessParkReasons } from '../../../hooks/use
 import { useWizardStore } from '../../../lib/store';
 import { SolutionCard } from '../../../components/solution-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
+import { FilterPanel } from '../../../components/filter-panel';
 import { groupBy } from '../../../utils/helper';
+import { MobilitySolution } from '../../../domain/models';
 
 export default function MobilitySolutionsPage() {
-  const { data: solutions, isLoading, error } = useMobilitySolutions();
+  const { data: allSolutions, isLoading, error } = useMobilitySolutions();
   const { data: reasons } = useBusinessParkReasons();
   const { selectedReasons, selectedSolutions, toggleSolution } = useWizardStore();
-  const [groupedSolutions, setGroupedSolutions] = useState<Record<string, typeof solutions>>({});
+  
+  // State voor de filter selectie (standaard alle geselecteerde redenen)
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [filteredSolutions, setFilteredSolutions] = useState<MobilitySolution[] | null>(null);
+  const [groupedSolutions, setGroupedSolutions] = useState<Record<string, typeof filteredSolutions>>({});
+  
+  // Initialiseer activeFilters met de selectedReasons uit stap 1
+  useEffect(() => {
+    // Selecteer standaard de aanleidingen die in stap 1 zijn gekozen
+    setActiveFilters([...selectedReasons]);
+  }, [selectedReasons]);
+  
+  // Filter de oplossingen op basis van geselecteerde redenen (dummy filter logica)
+  useEffect(() => {
+    if (allSolutions) {
+      // Als er actieve filters zijn, filter dan de oplossingen
+      // Dit is een dummy implementatie, in de toekomst komt hier de echte logica van Contentful
+      const filtered = activeFilters.length > 0
+        ? allSolutions.filter((solution, index) => {
+            // DUMMY FILTER LOGICA:
+            // Om te simuleren dat verschillende aanleidingen verschillende oplossingen filteren,
+            // gebruiken we een modulo-bewerking met de index van de oplossing en de lengte van activeFilters
+            // Dit zorgt ervoor dat sommige oplossingen worden gefilterd op basis van de geselecteerde redenen
+            const solutionNumber = index + 1;
+            
+            // Als de aangegeven filter een veelvoud is van het oplossing-nummer, toon dan de oplossing
+            return activeFilters.some((_, filterIndex) => {
+              const filterNumber = filterIndex + 1;
+              return solutionNumber % filterNumber === 0;
+            });
+          })
+        : allSolutions;
+      
+      setFilteredSolutions(filtered);
+    }
+  }, [allSolutions, activeFilters]);
   
   // Group solutions by category when data is loaded
   useEffect(() => {
-    if (solutions) {
+    if (filteredSolutions) {
       // Create a default category for solutions without a category
-      const solutionsWithCategory = solutions.map(solution => ({
+      const solutionsWithCategory = filteredSolutions.map(solution => ({
         ...solution,
         category: solution.category || 'overig'
       }));
@@ -26,17 +63,20 @@ export default function MobilitySolutionsPage() {
       const grouped = groupBy(solutionsWithCategory, 'category');
       setGroupedSolutions(grouped);
     }
-  }, [solutions]);
+  }, [filteredSolutions]);
+  
+  // Handle filter changes
+  const handleFilterChange = (reasonId: string) => {
+    setActiveFilters(prev => {
+      // Toggle het filter
+      return prev.includes(reasonId)
+        ? prev.filter(id => id !== reasonId)
+        : [...prev, reasonId];
+    });
+  };
   
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
-  
-  // Get selected reason titles for display
-  const selectedReasonTitles = reasons
-    ? reasons
-        .filter(reason => selectedReasons.includes(reason.id))
-        .map(reason => reason.title)
-    : [];
   
   return (
     <div className="space-y-8">
@@ -47,51 +87,78 @@ export default function MobilitySolutionsPage() {
           U kunt meerdere oplossingen kiezen.
         </p>
         
-        {selectedReasonTitles.length > 0 && (
-          <div className="bg-blue-50 p-4 rounded-md mb-6">
-            <h3 className="text-md font-semibold mb-2">Uw geselecteerde redenen:</h3>
-            <ul className="list-disc pl-5">
-              {selectedReasonTitles.map((title, index) => (
-                <li key={index} className="text-blue-800">{title}</li>
-              ))}
-            </ul>
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Links: Filter paneel */}
+          <div className="lg:w-1/4">
+            {reasons && (
+              <FilterPanel
+                reasons={reasons}
+                selectedReasonIds={selectedReasons}
+                activeFilterIds={activeFilters}
+                onReasonFilterChange={handleFilterChange}
+              />
+            )}
           </div>
-        )}
-        
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Mobiliteitsoplossingen worden geladen...</p>
-          </div>
-        )}
-        
-        {error && (
-          <div className="bg-red-50 p-4 rounded-md">
-            <p className="text-red-600">Er is een fout opgetreden bij het laden van de mobiliteitsoplossingen.</p>
-          </div>
-        )}
-        
-        {solutions && solutions.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Geen mobiliteitsoplossingen gevonden.</p>
-          </div>
-        )}
-        
-        {Object.entries(groupedSolutions).map(([category, categorySolutions]) => (
-          <div key={category} className="mt-8">
-            <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
-            <div className="grid grid-cols-1 gap-6">
-              {categorySolutions?.map(solution => (
-                <SolutionCard
-                  key={solution.id}
-                  solution={solution}
-                  isSelected={selectedSolutions.includes(solution.id)}
-                  onToggleSelect={toggleSolution}
-                />
-              ))}
+          
+          {/* Rechts: Oplossingen */}
+          <div className="lg:w-3/4">
+            {/* Filter status banner */}
+            <div className="mb-6">
+              {activeFilters.length === 0 ? (
+                <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
+                  <p className="text-yellow-800">
+                    <span className="font-medium">Geen filters actief.</span>{' '}
+                    Gebruik het filter panel links om aanleidingen te selecteren en te zien welke mobiliteitsoplossingen daarbij passen.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+                  <p className="text-blue-800">
+                    <span className="font-medium">
+                      {activeFilters.length} {activeFilters.length === 1 ? 'filter' : 'filters'} actief.
+                    </span>{' '}
+                    {filteredSolutions?.length ?? 0} passende mobiliteitsoplossingen gevonden.
+                  </p>
+                </div>
+              )}
             </div>
+            
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Mobiliteitsoplossingen worden geladen...</p>
+              </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-50 p-4 rounded-md">
+                <p className="text-red-600">Er is een fout opgetreden bij het laden van de mobiliteitsoplossingen.</p>
+              </div>
+            )}
+            
+            {filteredSolutions && filteredSolutions.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Geen mobiliteitsoplossingen gevonden die aan uw criteria voldoen.</p>
+              </div>
+            )}
+            
+            {Object.entries(groupedSolutions).map(([category, categorySolutions]) => (
+              <div key={category} className="mt-8">
+                <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
+                <div className="grid grid-cols-1 gap-6">
+                  {categorySolutions?.map(solution => (
+                    <SolutionCard
+                      key={solution.id}
+                      solution={solution}
+                      isSelected={selectedSolutions.includes(solution.id)}
+                      onToggleSelect={toggleSolution}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
       
       <WizardNavigation

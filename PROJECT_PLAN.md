@@ -25,6 +25,7 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 
 ### Fase 2: Wizard Flow met Dummy Data (✅ Voltooid)
 
+- [x] Stap 0: Bedrijventerrein informatie toevoegen
 - [x] Stap 1: Bedrijfstereinen-redenen implementeren
 - [x] Stap 2: Mobiliteitsoplossingen implementeren
 - [x] Stap 3: Governance modellen implementeren
@@ -167,10 +168,11 @@ export function GovernanceModelList() {
 
 | Feature                  | Dummy Data | Contentful Integratie | Status |
 |--------------------------|------------|----------------------|--------|
+| Bedrijfsterrein informatie | ✅      | ❌                    | Voltooid met verkeerstypes |
 | Bedrijfsterrein-redenen  | ✅         | ❌                    | Voltooid |
-| Mobiliteitsoplossingen   | ✅         | ❌                    | Voltooid |
+| Mobiliteitsoplossingen   | ✅         | ❌                    | Voltooid met filter kolom |
 | Governance modellen      | ✅         | ❌                    | Voltooid |
-| Implementatieplan        | ✅         | ❌                    | Voltooid |
+| Implementatieplan        | ✅         | ❌                    | Aangepast naar infopagina |
 | Samenvatting             | ✅         | ❌                    | Voltooid |
 | PDF Export               | ✅         | ❌                    | Basis implementatie |
 

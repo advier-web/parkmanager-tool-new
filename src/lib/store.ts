@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { WizardState } from '../domain/models';
+import { WizardState, BusinessParkInfo, TrafficType } from '../domain/models';
 
 // Initial state for the wizard
 const initialState: WizardState = {
+  businessParkInfo: {
+    numberOfCompanies: 0,
+    numberOfEmployees: 0,
+    trafficTypes: []
+  },
+  currentGovernanceModelId: null,
   selectedReasons: [],
   selectedSolutions: [],
   selectedGovernanceModel: null,
@@ -15,6 +21,10 @@ const initialState: WizardState = {
 
 // Define the store interface with actions
 interface WizardStore extends WizardState {
+  // Stap 0: Bedrijventerrein informatie
+  setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void;
+  setCurrentGovernanceModel: (modelId: string | null) => void;
+  
   // Stap 1: Bedrijfsterrein-redenen
   setSelectedReasons: (reasons: string[]) => void;
   toggleReason: (reasonId: string) => void;
@@ -41,6 +51,12 @@ export const useWizardStore = create<WizardStore>()(
   persist(
     (set) => ({
       ...initialState,
+      
+      // Stap 0: Bedrijventerrein informatie
+      setBusinessParkInfo: (info) => set((state) => ({
+        businessParkInfo: { ...state.businessParkInfo, ...info }
+      })),
+      setCurrentGovernanceModel: (modelId) => set({ currentGovernanceModelId: modelId }),
       
       // Stap 1: Bedrijfsterrein-redenen
       setSelectedReasons: (reasons) => set({ selectedReasons: reasons }),
@@ -80,7 +96,7 @@ export const useWizardStore = create<WizardStore>()(
     }),
     {
       name: 'parkmanager-wizard-storage',
-      version: 1
+      version: 2
     }
   )
 ); 

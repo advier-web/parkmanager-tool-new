@@ -10,6 +10,7 @@ interface Step {
 }
 
 const STEPS: Step[] = [
+  { id: 0, name: 'Bedrijventerrein', path: '/wizard/bedrijventerrein' },
   { id: 1, name: 'Redenen', path: '/wizard/stap-1' },
   { id: 2, name: 'Oplossingen', path: '/wizard/stap-2' },
   { id: 3, name: 'Governance', path: '/wizard/stap-3' },
@@ -21,14 +22,15 @@ export function WizardProgress() {
   const pathname = usePathname();
   
   // Find current step based on pathname
-  const currentStep = STEPS.findIndex(step => pathname === step.path) + 1;
+  const currentStep = STEPS.findIndex(step => pathname === step.path);
+  const currentStepIndex = currentStep === -1 ? 0 : currentStep; // Default to first step if not found
   
   return (
     <div className="py-6">
       <ol className="flex items-center w-full">
         {STEPS.map((step, index) => {
-          const isActive = index + 1 === currentStep;
-          const isCompleted = index + 1 < currentStep;
+          const isActive = index === currentStepIndex;
+          const isCompleted = index < currentStepIndex;
           
           return (
             <li key={step.id} className="flex items-center relative w-full">
