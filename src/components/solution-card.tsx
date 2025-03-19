@@ -1,12 +1,14 @@
 import { MobilitySolution } from '../domain/models';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
   isSelected: boolean;
   onToggleSelect: (solutionId: string) => void;
+  onMoreInfo?: (solution: MobilitySolution) => void;
 }
 
-export function SolutionCard({ solution, isSelected, onToggleSelect }: SolutionCardProps) {
+export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo }: SolutionCardProps) {
   return (
     <div
       className={`
@@ -69,6 +71,33 @@ export function SolutionCard({ solution, isSelected, onToggleSelect }: SolutionC
                 </span>
               </div>
             )}
+          </div>
+          
+          <div className="flex items-center justify-between mt-4 pt-3 border-t">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onMoreInfo) onMoreInfo(solution);
+              }}
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+            >
+              <InformationCircleIcon className="h-4 w-4 mr-1" />
+              Meer informatie
+            </button>
+            
+            <div className="flex items-center">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                  checked={isSelected}
+                  onChange={() => onToggleSelect(solution.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <span className="ml-2 text-sm text-gray-700">Selecteren</span>
+              </label>
+            </div>
           </div>
         </div>
         

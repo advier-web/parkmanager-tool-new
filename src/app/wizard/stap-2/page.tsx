@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMobilitySolutions, useBusinessParkReasons } from '../../../hooks/use-domain-models';
+import { useMobilitySolutions, useBusinessParkReasons, useGovernanceModels } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { SolutionCard } from '../../../components/solution-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { FilterPanel } from '../../../components/filter-panel';
 import { groupBy } from '../../../utils/helper';
-import { MobilitySolution } from '../../../domain/models';
+import { MobilitySolution, GovernanceModel } from '../../../domain/models';
 import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
 import { shouldUseContentful } from '../../../utils/env';
+import { useDialog } from '../../../contexts/dialog-context';
 
 // Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
 let reasonIdToIdentifierMap: Record<string, string> = {};
@@ -66,131 +67,85 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
   return 0;
 };
 
+// Main component for mobility solutions page
 export default function MobilitySolutionsPage() {
   // Use the debug hook to log content types if using Contentful
   if (shouldUseContentful()) {
     useContentfulContentTypes();
   }
   
-  const { data: allSolutions, isLoading, error } = useMobilitySolutions();
-  const { data: reasons } = useBusinessParkReasons();
+  // State variables
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [groupedSolutions, setGroupedSolutions] = useState<Record<string, MobilitySolution[]>>({});
+  
+  // Get store data
   const { selectedReasons, selectedSolutions, toggleSolution } = useWizardStore();
   
-  // State voor de filter selectie (standaard alle geselecteerde redenen)
-  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  // Fetch mobility solutions and reasons data
+  const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
+  const { data: reasons, isLoading: isLoadingReasons, error: reasonsError } = useBusinessParkReasons();
+  const { data: governanceModels, isLoading: isLoadingModels } = useGovernanceModels();
+  
+  // Access the dialog context
+  const { openDialog } = useDialog();
+  
+  // Show all solutions initially
+  const [showAllSolutions, setShowAllSolutions] = useState(true);
+  
+  // Get the filtered solutions
   const [filteredSolutions, setFilteredSolutions] = useState<MobilitySolution[] | null>(null);
-  const [groupedSolutions, setGroupedSolutions] = useState<Record<string, typeof filteredSolutions>>({});
   
-  // Log error details for debugging
-  useEffect(() => {
-    if (error) {
-      console.error('Mobility solutions error details:', error);
-    }
-  }, [error]);
-  
-  // Bouw de mapping tussen reden ID en identifier wanneer de redenen ingeladen zijn
+  // Build the reason identifier mapping
   useEffect(() => {
     if (reasons) {
-      // Bouw de mapping tussen reden ID en identifier
-      const newMapping: Record<string, string> = {};
-      
-      // DIRECT HARDCODED FIX: Map het specifieke Contentful ID naar gezondheid
-      newMapping['5tKI2Y1ydgJAsj7bGjuTEX'] = 'gezondheid';
-      
+      reasonIdToIdentifierMap = {};
       reasons.forEach(reason => {
-        if (reason.identifier) {
-          // Gebruik de identifier als koppeling naar de mobility solution
-          newMapping[reason.id] = reason.identifier;
-          
-          // Als de identifier spaties bevat, vervang deze door underscores
-          if (reason.identifier.includes(' ')) {
-            const normalizedIdentifier = reason.identifier
-              .toLowerCase()
-              .replace(/\s+/g, '_')
-              .replace(/-/g, '_');
-            
-            newMapping[reason.id] = normalizedIdentifier;
-          }
-          
-          // Als de identifier een hoofdletter heeft, voeg ook een lowercase variant toe
-          if (/[A-Z]/.test(reason.identifier)) {
-            const lowercaseIdentifier = reason.identifier.toLowerCase();
-            newMapping[reason.id] = lowercaseIdentifier;
-          }
-        } else {
-          // Als title aanwezig is, gebruik deze als fallback voor de identifier
-          if (reason.title) {
-            // Zet de title om naar een identifier-achtige string
-            const titleIdentifier = reason.title
-              .toLowerCase()
-              .replace(/\s+/g, '_')
-              .replace(/-/g, '_');
-            
-            newMapping[reason.id] = titleIdentifier;
-            
-            // GEZONDHEID SPECIAL CASE: Als de titel "Gezondheid" is, of er op lijkt
-            if (reason.title.toLowerCase().includes('gezond')) {
-              newMapping[reason.id] = 'gezondheid';
-            }
-          } else {
-            // Fallback voor mock data
-            if (reason.id === 'reason-1') newMapping[reason.id] = 'parkeer_bereikbaarheidsproblemen';
-            else if (reason.id === 'reason-2') newMapping[reason.id] = 'milieuverordening';
-            else if (reason.id === 'reason-3') newMapping[reason.id] = 'parkeer_bereikbaarheidsproblemen';
-            else if (reason.id === 'reason-4') newMapping[reason.id] = 'personeelszorg_en_behoud';
-          }
+        const identifier = reason.identifier || '';
+        if (identifier) {
+          reasonIdToIdentifierMap[reason.id] = identifier.toLowerCase();
         }
       });
-      
-      // Map voor contentful-specifieke velden (hardcoded)
-      const contentfulFieldMap: Record<string, string> = {
-        'Gezondheid': 'gezondheid',
-        'gezondheid': 'gezondheid',
-        'Personeelszorg en -behoud': 'personeelszorg_en_behoud',
-        'personeelszorg_en_behoud': 'personeelszorg_en_behoud',
-        'Parkeer- en bereikbaarheidsprobleem': 'parkeer_bereikbaarheidsproblemen',
-        'parkeer_bereikbaarheidsproblemen': 'parkeer_bereikbaarheidsproblemen',
-        'Imago / MVO': 'imago',
-        'imago': 'imago',
-        'Milieuverordening': 'milieuverordening'
-      };
-      
-      // Ga door alle redenen en kijk of we een contentful-specifieke mapping moeten toevoegen
-      reasons.forEach(reason => {
-        if (reason.title && contentfulFieldMap[reason.title]) {
-          newMapping[reason.id] = contentfulFieldMap[reason.title];
-        }
-      });
-      
-      // Update de mapping
-      reasonIdToIdentifierMap = newMapping;
     }
   }, [reasons]);
   
-  // Initialiseer activeFilters met de selectedReasons uit stap 1
+  // Update filtered solutions when mobility solutions or filters change
   useEffect(() => {
-    if (reasons) {
-      // Alleen selecteren redenen die bestaan in de redenen lijst
-      const validReasonIds = selectedReasons.filter(id => reasons.some(reason => reason.id === id));
-      setActiveFilters(validReasonIds);
-    } else {
-      // Als redenen nog niet geladen zijn, gebruik alle geselecteerde redenen voorlopig
-      setActiveFilters([...selectedReasons]);
-    }
-  }, [selectedReasons, reasons]);
-  
-  // Filter de oplossingen op basis van geselecteerde redenen
-  useEffect(() => {
-    if (allSolutions && reasons) {
+    if (mobilitySolutions && reasons) {
       // Filter out any activeFilters that don't have a corresponding reason
       const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
       
-      // Geen sortering hier, alleen filtering als er geen filters zijn
-      const filtered = allSolutions;
-      
-      setFilteredSolutions(filtered);
+      // Set filtered solutions
+      setFilteredSolutions(mobilitySolutions);
     }
-  }, [allSolutions, activeFilters, reasons]);
+  }, [mobilitySolutions, activeFilters, reasons]);
+  
+  // Handle showing solution details in dialog
+  const handleShowMoreInfo = (solution: MobilitySolution) => {
+    if (!governanceModels) return;
+    
+    // Filter governance models that are compatible with this solution
+    let compatibleModels: GovernanceModel[] = [];
+    
+    if (solution.governanceModels && solution.governanceModels.length > 0) {
+      // Extract governance model IDs from the solution
+      const governanceModelIds = solution.governanceModels.map(model => {
+        if (typeof model === 'string') {
+          return model;
+        } else if (model.sys && model.sys.id) {
+          return model.sys.id;
+        }
+        return '';
+      }).filter(id => id !== '');
+      
+      // Find matching governance models
+      compatibleModels = governanceModels.filter((model: GovernanceModel) => 
+        governanceModelIds.includes(model.id)
+      );
+    }
+    
+    // Open the dialog with solution info and compatible governance models
+    openDialog(solution, compatibleModels);
+  };
   
   // Bereken scores voor oplossingen op basis van geselecteerde redenen
   const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
@@ -288,65 +243,93 @@ export default function MobilitySolutionsPage() {
   
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg p-8 shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Stap 2: Mobiliteitsoplossingen</h2>
-        <p className="mb-6">
-          Op basis van de door u geselecteerde redenen, kunt u hier de gewenste mobiliteitsoplossingen selecteren.
-          U kunt meerdere oplossingen kiezen.
-        </p>
-        
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Links: Filter paneel */}
-          <div className="lg:w-1/4">
-            {reasons && (
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Left Column - Information */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
+              <p className="text-gray-600 text-sm">
+                Mobiliteitsoplossingen helpen uw bedrijventerrein bereikbaar te houden. 
+                Kies oplossingen die passen bij de redenen die u in de vorige stap heeft geselecteerd.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Categorieën</h3>
+              <p className="text-gray-600 text-sm">
+                De oplossingen zijn ingedeeld in categorieën zoals vervoer, infrastructuur, 
+                en gedragsverandering. U ziet de categorie bij elke oplossing vermeld.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Filteren</h3>
+              <p className="text-gray-600 text-sm">
+                Gebruik de filteropties links om de oplossingen te sorteren op 
+                basis van de door u geselecteerde redenen.
+              </p>
+            </div>
+
+            <div className="border-t pt-4 mt-6">
+              <div className="flex items-center text-sm text-blue-600">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Selecteer minimaal één oplossing om door te gaan</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Filter panel */}
+          {reasons && (
+            <div className="mt-6">
               <FilterPanel
                 reasons={reasons}
                 selectedReasonIds={selectedReasons}
                 activeFilterIds={activeFilters}
                 onReasonFilterChange={handleFilterChange}
               />
-            )}
-          </div>
-          
-          {/* Rechts: Oplossingen */}
-          <div className="lg:w-3/4">
-            {/* Filter status banner */}
-            <div className="mb-6">
-              {activeFilters.length === 0 ? (
-                <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
-                  <p className="text-yellow-800">
-                    <span className="font-medium">Geen filters actief.</span>{' '}
-                    Gebruik het filter panel links om aanleidingen te selecteren en te zien welke mobiliteitsoplossingen daarbij passen.
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <p className="text-blue-800">
-                    <span className="font-medium">
-                      {(() => {
-                        const validFilterCount = activeFilters.filter(id => reasons?.some(r => r.id === id)).length;
-                        return `${validFilterCount} ${validFilterCount === 1 ? 'filter' : 'filters'} actief.`;
-                      })()}
-                    </span>{' '}
-                    {filteredSolutions?.length ?? 0} passende mobiliteitsoplossingen gevonden.
-                  </p>
-                </div>
-              )}
             </div>
+          )}
+        </div>
+
+        {/* Right Column - Content */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-lg p-8 shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Stap 2: Mobiliteitsoplossingen</h2>
+            <p className="mb-6">
+              Op basis van de door u geselecteerde redenen, kunt u hier de gewenste mobiliteitsoplossingen selecteren.
+              U kunt meerdere oplossingen kiezen.
+            </p>
             
-            {isLoading && (
+            {isLoadingSolutions && (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
                 <p className="mt-4 text-gray-600">Mobiliteitsoplossingen worden geladen...</p>
               </div>
             )}
             
-            {error && (
+            {solutionsError && (
               <div className="bg-red-50 p-4 rounded-md space-y-2">
                 <p className="text-red-600">Er is een fout opgetreden bij het laden van de mobiliteitsoplossingen.</p>
                 <p className="text-red-500 text-sm">
                   De mobiliteitsoplossingen worden tijdelijk geladen vanuit mock data.
                 </p>
+              </div>
+            )}
+            
+            {selectedReasons.length > 0 && (
+              <div className="bg-blue-50 p-4 rounded-md mb-6">
+                <h3 className="text-md font-semibold mb-2">Uw geselecteerde redenen:</h3>
+                <ul className="list-disc pl-5">
+                  {selectedReasons.map(reasonId => {
+                    const reason = reasons?.find(r => r.id === reasonId);
+                    return reason ? (
+                      <li key={reasonId} className="text-blue-800">{reason.title}</li>
+                    ) : null;
+                  })}
+                </ul>
               </div>
             )}
             
@@ -377,6 +360,7 @@ export default function MobilitySolutionsPage() {
                           solution={solution}
                           isSelected={selectedSolutions.includes(solution.id)}
                           onToggleSelect={toggleSolution}
+                          onMoreInfo={handleShowMoreInfo}
                         />
                       </div>
                     );
