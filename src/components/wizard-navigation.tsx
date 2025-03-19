@@ -1,5 +1,6 @@
+'use client';
+
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 interface WizardNavigationProps {
   previousStep?: string;
@@ -12,8 +13,6 @@ export function WizardNavigation({
   nextStep, 
   isNextDisabled = false 
 }: WizardNavigationProps) {
-  const pathname = usePathname();
-  
   return (
     <div className="flex justify-between mt-8">
       {previousStep ? (

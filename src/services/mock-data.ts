@@ -71,7 +71,7 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     id: 'solution-3',
     title: 'Carpooldatabase',
     description: 'Een platform waarop medewerkers ritten kunnen aanbieden en vinden voor carpoolen.',
-    benefits: ['Eenvoudig te implementeren', 'Lagere kosten voor medewerkers', 'Minder auto\'s'],
+    benefits: ['Eenvoudig te implementeren', 'Lagere kosten voor medewerkers', 'Minder auto&apos;s'],
     challenges: ['Vereist actieve deelname', 'Privacy aspecten'],
     implementationTime: 'kort',
     costs: 'laag',

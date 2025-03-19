@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useGovernanceModels } from '../../../hooks/use-domain-models';
@@ -60,37 +60,6 @@ export default function BusinessParkInfoPage() {
     if (formErrors.trafficTypes) {
       setFormErrors(prev => ({ ...prev, trafficTypes: '' }));
     }
-  };
-  
-  // Validate form
-  const validateForm = () => {
-    const errors = {
-      numberOfCompanies: '',
-      numberOfEmployees: '',
-      currentGovernanceModelId: '',
-      trafficTypes: ''
-    };
-    
-    if (businessParkInfo.numberOfCompanies <= 0) {
-      errors.numberOfCompanies = 'Voer een geldig aantal bedrijven in';
-    }
-    
-    if (businessParkInfo.numberOfEmployees <= 0) {
-      errors.numberOfEmployees = 'Voer een geldig aantal werknemers in';
-    }
-    
-    if (!currentGovernanceModelId) {
-      errors.currentGovernanceModelId = 'Selecteer een bestuursmodel';
-    }
-    
-    if (businessParkInfo.trafficTypes.length === 0) {
-      errors.trafficTypes = 'Selecteer minimaal één verkeerstype';
-    }
-    
-    setFormErrors(errors);
-    
-    // Return true if there are no errors
-    return !Object.values(errors).some(error => error);
   };
   
   // Check if form is valid for navigation

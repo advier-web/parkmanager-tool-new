@@ -54,7 +54,7 @@ export function GovernanceCard({ model, isSelected, onSelect }: GovernanceCardPr
           </div>
           
           <div className="mb-4">
-            <h4 className="text-sm font-semibold mb-1">Toepasselijke scenario's:</h4>
+            <h4 className="text-sm font-semibold mb-1">Toepasselijke scenario&apos;s:</h4>
             <ul className="list-disc pl-5 text-sm text-gray-600">
               {model.applicableScenarios.map((scenario, index) => (
                 <li key={index}>{scenario}</li>

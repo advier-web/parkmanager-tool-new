@@ -13,7 +13,7 @@ interface FetchState<T> {
  */
 export function useFetch<T>(
   fetchFn: () => Promise<T>,
-  dependencies: any[] = []
+  dependencies: React.DependencyList = []
 ): FetchState<T> {
   const [state, setState] = useState<FetchState<T>>({
     data: null,
@@ -49,6 +49,7 @@ export function useFetch<T>(
     return () => {
       isMounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 
   return state;

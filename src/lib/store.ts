@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { WizardState, BusinessParkInfo, TrafficType } from '../domain/models';
+import { WizardState, BusinessParkInfo } from '../domain/models';
 
 // Initial state for the wizard
 const initialState: WizardState = {

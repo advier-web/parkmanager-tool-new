@@ -22,12 +22,17 @@ import {
 export function transformBusinessParkReason(
   entry: Entry<IBusinessParkReason>
 ): BusinessParkReason {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const icon = typeof entry.fields.icon === 'string' ? entry.fields.icon : undefined;
+  const category = typeof entry.fields.category === 'string' ? entry.fields.category : undefined;
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    icon: entry.fields.icon as string | undefined,
-    category: entry.fields.category as string | undefined
+    title,
+    description,
+    icon,
+    category
   };
 }
 
@@ -37,16 +42,26 @@ export function transformBusinessParkReason(
 export function transformMobilitySolution(
   entry: Entry<IMobilitySolution>
 ): MobilitySolution {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const benefits = Array.isArray(entry.fields.benefits) ? entry.fields.benefits : [];
+  const challenges = Array.isArray(entry.fields.challenges) ? entry.fields.challenges : [];
+  const implementationTime = typeof entry.fields.implementationTime === 'string' 
+    ? entry.fields.implementationTime : '';
+  const costs = typeof entry.fields.costs === 'string' ? entry.fields.costs : '';
+  const category = typeof entry.fields.category === 'string' ? entry.fields.category : '';
+  const icon = typeof entry.fields.icon === 'string' ? entry.fields.icon : undefined;
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    benefits: Array.isArray(entry.fields.benefits) ? entry.fields.benefits : [],
-    challenges: Array.isArray(entry.fields.challenges) ? entry.fields.challenges : [],
-    implementationTime: entry.fields.implementationTime || '',
-    costs: entry.fields.costs || '',
-    category: entry.fields.category || '',
-    icon: entry.fields.icon as string | undefined
+    title,
+    description,
+    benefits,
+    challenges,
+    implementationTime,
+    costs,
+    category,
+    icon
   };
 }
 
@@ -56,16 +71,26 @@ export function transformMobilitySolution(
 export function transformGovernanceModel(
   entry: Entry<IGovernanceModel>
 ): GovernanceModel {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const advantages = Array.isArray(entry.fields.advantages) ? entry.fields.advantages : [];
+  const disadvantages = Array.isArray(entry.fields.disadvantages) ? entry.fields.disadvantages : [];
+  const applicableScenarios = Array.isArray(entry.fields.applicableScenarios) ? entry.fields.applicableScenarios : [];
+  const organizationalStructure = typeof entry.fields.organizationalStructure === 'string' 
+    ? entry.fields.organizationalStructure : undefined;
+  const legalForm = typeof entry.fields.legalForm === 'string' ? entry.fields.legalForm : undefined;
+  const stakeholders = Array.isArray(entry.fields.stakeholders) ? entry.fields.stakeholders : undefined;
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    advantages: Array.isArray(entry.fields.advantages) ? entry.fields.advantages : [],
-    disadvantages: Array.isArray(entry.fields.disadvantages) ? entry.fields.disadvantages : [],
-    applicableScenarios: Array.isArray(entry.fields.applicableScenarios) ? entry.fields.applicableScenarios : [],
-    organizationalStructure: entry.fields.organizationalStructure as string | undefined,
-    legalForm: entry.fields.legalForm as string | undefined,
-    stakeholders: Array.isArray(entry.fields.stakeholders) ? entry.fields.stakeholders : undefined
+    title,
+    description,
+    advantages,
+    disadvantages,
+    applicableScenarios,
+    organizationalStructure,
+    legalForm,
+    stakeholders
   };
 }
 
@@ -75,12 +100,17 @@ export function transformGovernanceModel(
 export function transformImplementationTask(
   entry: Entry<IImplementationTask>
 ): ImplementationTask {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const responsible = Array.isArray(entry.fields.responsible) ? entry.fields.responsible : [];
+  const duration = typeof entry.fields.duration === 'string' ? entry.fields.duration : '';
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    responsible: Array.isArray(entry.fields.responsible) ? entry.fields.responsible : [],
-    duration: entry.fields.duration || ''
+    title,
+    description,
+    responsible,
+    duration
   };
 }
 
@@ -92,12 +122,16 @@ export function transformImplementationPhase(
   entry: Entry<IImplementationPhase>,
   tasks: ImplementationTask[] = []
 ): ImplementationPhase {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const duration = typeof entry.fields.duration === 'string' ? entry.fields.duration : '';
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    tasks: tasks,
-    duration: entry.fields.duration || ''
+    title,
+    description,
+    tasks,
+    duration
   };
 }
 
@@ -109,13 +143,19 @@ export function transformImplementationPlan(
   entry: Entry<IImplementationPlan>,
   phases: ImplementationPhase[] = []
 ): ImplementationPlan {
+  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
+  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
+  const estimatedDuration = typeof entry.fields.estimatedDuration === 'string' ? entry.fields.estimatedDuration : '';
+  const requiredResources = Array.isArray(entry.fields.requiredResources) ? entry.fields.requiredResources : [];
+  const keySuccessFactors = Array.isArray(entry.fields.keySuccessFactors) ? entry.fields.keySuccessFactors : [];
+  
   return {
     id: entry.sys.id,
-    title: entry.fields.title || '',
-    description: entry.fields.description || '',
-    phases: phases,
-    estimatedDuration: entry.fields.estimatedDuration || '',
-    requiredResources: Array.isArray(entry.fields.requiredResources) ? entry.fields.requiredResources : [],
-    keySuccessFactors: Array.isArray(entry.fields.keySuccessFactors) ? entry.fields.keySuccessFactors : []
+    title,
+    description,
+    phases,
+    estimatedDuration,
+    requiredResources,
+    keySuccessFactors
   };
 } 
