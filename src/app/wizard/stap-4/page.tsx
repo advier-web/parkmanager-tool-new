@@ -190,7 +190,8 @@ export default function ImplementationPlanPage() {
   
   const { 
     selectedGovernanceModel,
-    selectedSolutions
+    selectedSolutions,
+    currentGovernanceModelId 
   } = useWizardStore();
   
   // Get selected governance model data
@@ -198,6 +199,9 @@ export default function ImplementationPlanPage() {
     ? governanceModels.find(model => model.id === selectedGovernanceModel)
     : null;
     
+  // Check if the selected governance model is the same as the current one
+  const isSameAsCurrentModel = selectedGovernanceModel === currentGovernanceModelId;
+  
   // Log governance model data for debugging
   useEffect(() => {
     if (selectedGovernanceModelData) {
@@ -205,8 +209,9 @@ export default function ImplementationPlanPage() {
       console.log('benodigdhedenOprichting:', selectedGovernanceModelData.benodigdhedenOprichting);
       console.log('links:', selectedGovernanceModelData.links);
       console.log('voorbeeldContracten:', selectedGovernanceModelData.voorbeeldContracten);
+      console.log('Is same as current model:', isSameAsCurrentModel);
     }
-  }, [selectedGovernanceModelData]);
+  }, [selectedGovernanceModelData, isSameAsCurrentModel]);
   
   // Get selected solutions data
   const selectedSolutionsData = mobilitySolutions
@@ -357,152 +362,169 @@ export default function ImplementationPlanPage() {
               </div>
             </div>
             
-            {/* Implementatieplan voor bestuursmodel */}
+            {/* Implementatieplan voor bestuursmodel of melding dat het al geïmplementeerd is */}
             {selectedGovernanceModelData && (
               <div className="border border-gray-200 rounded-lg p-6">
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">
-                  Implementatieplan {selectedGovernanceModelData.title}
+                  {isSameAsCurrentModel 
+                    ? "Governance model" 
+                    : `Implementatieplan ${selectedGovernanceModelData.title}`}
                 </h3>
                 
-                {/* Debug info - remove in production */}
-                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
-                  <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
-                  <p>Links:</p>
-                  <pre>{JSON.stringify({ 
-                    hasLinks: !!selectedGovernanceModelData.links,
-                    linksType: selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined',
-                    isArray: Array.isArray(selectedGovernanceModelData.links),
-                    length: selectedGovernanceModelData.links ? selectedGovernanceModelData.links.length : 0,
-                    linksData: selectedGovernanceModelData.links
-                  }, null, 2)}</pre>
-                  
-                  <p className="mt-2">Benodigdheden:</p>
-                  <pre>{JSON.stringify({ 
-                    hasBenodigdheden: !!selectedGovernanceModelData.benodigdhedenOprichting,
-                    benodigdhedenType: selectedGovernanceModelData.benodigdhedenOprichting 
-                      ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
-                      : 'undefined',
-                    isArray: Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting),
-                    length: selectedGovernanceModelData.benodigdhedenOprichting 
-                      ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
-                        ? selectedGovernanceModelData.benodigdhedenOprichting.length 
-                        : 'not an array') 
-                      : 0,
-                    contentfulData: selectedGovernanceModelData,
-                    fullBenodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
-                  }, null, 2)}</pre>
-                </div>
-                
-                {/* Debug info - remove in production */}
-                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
-                  <h5 className="font-bold">Debug Info - Benodigdheden voor Oprichting</h5>
-                  <p>Type: {typeof selectedGovernanceModelData.benodigdhedenOprichting}</p>
-                  {selectedGovernanceModelData.benodigdhedenOprichting && (
-                    <p>Structure: {
-                      typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
-                        ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType}`
-                        : 'Not a rich text object'
-                    }</p>
-                  )}
-                  <pre className="mt-2 border-t pt-2">{JSON.stringify(selectedGovernanceModelData.benodigdhedenOprichting, null, 2)}</pre>
-                </div>
-                
-                {/* Samenvatting */}
-                {selectedGovernanceModelData.samenvatting && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiInfoCircle className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Samenvatting</h4>
-                    </div>
-                    <div className="text-gray-700 pl-7">
-                      {renderRichContent(selectedGovernanceModelData.samenvatting)}
-                    </div>
+                {isSameAsCurrentModel ? (
+                  <div className="mb-6 bg-green-50 p-4 rounded-md border border-green-200">
+                    <h4 className="text-lg font-semibold text-green-800 mb-2">
+                      Implementatie niet nodig
+                    </h4>
+                    <p className="text-green-700">
+                      U heeft als bestuursmodel gekozen voor de rechtsvorm die momenteel al in gebruik is. 
+                      Er zijn daarom geen implementatiestappen nodig voor het governance model. 
+                      U kunt direct overgaan tot de implementatie van de gekozen mobiliteitsoplossingen.
+                    </p>
                   </div>
+                ) : (
+                  <>
+                    {/* Debug info - remove in production */}
+                    <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
+                      <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
+                      <p>Links:</p>
+                      <pre>{JSON.stringify({ 
+                        hasLinks: !!selectedGovernanceModelData.links,
+                        linksType: selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined',
+                        isArray: Array.isArray(selectedGovernanceModelData.links),
+                        length: selectedGovernanceModelData.links ? selectedGovernanceModelData.links.length : 0,
+                        linksData: selectedGovernanceModelData.links
+                      }, null, 2)}</pre>
+                      
+                      <p className="mt-2">Benodigdheden:</p>
+                      <pre>{JSON.stringify({ 
+                        hasBenodigdheden: !!selectedGovernanceModelData.benodigdhedenOprichting,
+                        benodigdhedenType: selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
+                          : 'undefined',
+                        isArray: Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting),
+                        length: selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
+                            ? selectedGovernanceModelData.benodigdhedenOprichting.length 
+                            : 'not an array') 
+                          : 0,
+                        contentfulData: selectedGovernanceModelData,
+                        fullBenodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
+                      }, null, 2)}</pre>
+                    </div>
+                    
+                    {/* Debug info - remove in production */}
+                    <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
+                      <h5 className="font-bold">Debug Info - Benodigdheden voor Oprichting</h5>
+                      <p>Type: {typeof selectedGovernanceModelData.benodigdhedenOprichting}</p>
+                      {selectedGovernanceModelData.benodigdhedenOprichting && (
+                        <p>Structure: {
+                          typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
+                            ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType}`
+                            : 'Not a rich text object'
+                        }</p>
+                      )}
+                      <pre className="mt-2 border-t pt-2">{JSON.stringify(selectedGovernanceModelData.benodigdhedenOprichting, null, 2)}</pre>
+                    </div>
+                    
+                    {/* Samenvatting */}
+                    {selectedGovernanceModelData.samenvatting && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiInfoCircle className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Samenvatting</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.samenvatting)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Aansprakelijkheid */}
+                    {selectedGovernanceModelData.aansprakelijkheid && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiCheckShield className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.aansprakelijkheid)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Benodigdheden Oprichting */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-2">
+                        <BiListCheck className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
+                      </div>
+                      
+                      <div className="text-gray-700 pl-7">
+                        {selectedGovernanceModelData.benodigdhedenOprichting ? 
+                          renderRichContent(selectedGovernanceModelData.benodigdhedenOprichting) :
+                          <p className="text-gray-500 italic">Geen benodigdheden beschikbaar</p>
+                        }
+                      </div>
+                    </div>
+                    
+                    {/* Doorlooptijd */}
+                    {selectedGovernanceModelData.doorlooptijd && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiTimeFive className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Doorlooptijd</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.doorlooptijd)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Implementatie */}
+                    {selectedGovernanceModelData.implementatie && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiTask className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Implementatie</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.implementatie)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Links - Always show this section */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-2">
+                        <BiLinkExternal className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Links</h4>
+                      </div>
+                      
+                      <div className="text-gray-700 pl-7">
+                        {selectedGovernanceModelData.links ? 
+                          renderRichContent(selectedGovernanceModelData.links) :
+                          <p className="text-gray-500 italic">Geen links beschikbaar</p>
+                        }
+                      </div>
+                    </div>
+                    
+                    {/* Voorbeeld Contracten */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-2">
+                        <BiFile className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
+                      </div>
+                      
+                      <div className="text-gray-700 pl-7">
+                        {selectedGovernanceModelData.voorbeeldContracten ? 
+                          renderRichContent(selectedGovernanceModelData.voorbeeldContracten) :
+                          <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
+                        }
+                      </div>
+                    </div>
+                  </>
                 )}
-                
-                {/* Aansprakelijkheid */}
-                {selectedGovernanceModelData.aansprakelijkheid && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiCheckShield className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
-                    </div>
-                    <div className="text-gray-700 pl-7">
-                      {renderRichContent(selectedGovernanceModelData.aansprakelijkheid)}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Benodigdheden Oprichting */}
-                <div className="mb-6">
-                  <div className="flex items-center mb-2">
-                    <BiListCheck className="text-blue-600 text-xl mr-2" />
-                    <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
-                  </div>
-                  
-                  <div className="text-gray-700 pl-7">
-                    {selectedGovernanceModelData.benodigdhedenOprichting ? 
-                      renderRichContent(selectedGovernanceModelData.benodigdhedenOprichting) :
-                      <p className="text-gray-500 italic">Geen benodigdheden beschikbaar</p>
-                    }
-                  </div>
-                </div>
-                
-                {/* Doorlooptijd */}
-                {selectedGovernanceModelData.doorlooptijd && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiTimeFive className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Doorlooptijd</h4>
-                    </div>
-                    <div className="text-gray-700 pl-7">
-                      {renderRichContent(selectedGovernanceModelData.doorlooptijd)}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Implementatie */}
-                {selectedGovernanceModelData.implementatie && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiTask className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Implementatie</h4>
-                    </div>
-                    <div className="text-gray-700 pl-7">
-                      {renderRichContent(selectedGovernanceModelData.implementatie)}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Links - Always show this section */}
-                <div className="mb-6">
-                  <div className="flex items-center mb-2">
-                    <BiLinkExternal className="text-blue-600 text-xl mr-2" />
-                    <h4 className="text-lg font-semibold">Links</h4>
-                  </div>
-                  
-                  <div className="text-gray-700 pl-7">
-                    {selectedGovernanceModelData.links ? 
-                      renderRichContent(selectedGovernanceModelData.links) :
-                      <p className="text-gray-500 italic">Geen links beschikbaar</p>
-                    }
-                  </div>
-                </div>
-                
-                {/* Voorbeeld Contracten */}
-                <div className="mb-6">
-                  <div className="flex items-center mb-2">
-                    <BiFile className="text-blue-600 text-xl mr-2" />
-                    <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
-                  </div>
-                  
-                  <div className="text-gray-700 pl-7">
-                    {selectedGovernanceModelData.voorbeeldContracten ? 
-                      renderRichContent(selectedGovernanceModelData.voorbeeldContracten) :
-                      <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
-                    }
-                  </div>
-                </div>
               </div>
             )}
             
@@ -548,4 +570,4 @@ export default function ImplementationPlanPage() {
       />
     </div>
   );
-} 
+}
