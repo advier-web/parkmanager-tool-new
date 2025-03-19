@@ -36,21 +36,19 @@ export function GovernanceCard({
         ${isCurrent ? 'border-r-4 border-r-purple-500' : ''}
       `}
     >
-      {isRecommended && (
-        <div className="absolute top-0 right-0">
-          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+      <div className="absolute top-0 right-0 flex">
+        {isRecommended && (
+          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md mr-1">
             Aanbevolen
           </span>
-        </div>
-      )}
-      
-      {isCurrent && (
-        <div className="absolute top-0 right-0 mr-24">
+        )}
+        
+        {isCurrent && (
           <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
             Huidige model
           </span>
-        </div>
-      )}
+        )}
+      </div>
       
       <div className="flex items-start">
         <div className="flex-shrink-0 mt-1">
