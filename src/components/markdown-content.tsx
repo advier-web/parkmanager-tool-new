@@ -33,7 +33,7 @@ export function MarkdownContent({
           ),
           // Styling voor lijsten - schakel list-disc uit als we in een bestaande lijst zijn
           ul: ({ node, ...props }) => (
-            <ul {...props} className={disableListStyles ? "pl-0" : "list-disc pl-5 mb-4"} />
+            <ul {...props} className={disableListStyles ? "pl-0" : "list-disc pl-5 mb-4 mt-4"} />
           ),
           li: ({ node, ...props }) => (
             <li {...props} className="mb-1" />
