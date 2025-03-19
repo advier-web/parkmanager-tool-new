@@ -4,6 +4,7 @@ import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-do
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
+import ReactMarkdown from 'react-markdown';
 
 // Helper function to safely render Contentful data
 function safeRenderContentfulField(field: any): React.ReactNode {
@@ -32,6 +33,15 @@ function safeRenderContentfulField(field: any): React.ReactNode {
   
   return String(field);
 }
+
+// Component to render markdown content
+const MarkdownContent = ({ content }: { content: string }) => {
+  return (
+    <div className="prose prose-blue max-w-none">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
+};
 
 // Helper to check if a field is a non-empty array
 function isNonEmptyArray(field: any): boolean {
@@ -169,7 +179,9 @@ export default function ImplementationPlanPage() {
                       <BiInfoCircle className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Samenvatting</h4>
                     </div>
-                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.samenvatting}</p>
+                    <div className="text-gray-700 pl-7">
+                      <MarkdownContent content={selectedGovernanceModelData.samenvatting} />
+                    </div>
                   </div>
                 )}
                 
@@ -180,7 +192,9 @@ export default function ImplementationPlanPage() {
                       <BiCheckShield className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
                     </div>
-                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.aansprakelijkheid}</p>
+                    <div className="text-gray-700 pl-7">
+                      <MarkdownContent content={selectedGovernanceModelData.aansprakelijkheid} />
+                    </div>
                   </div>
                 )}
                 
@@ -206,7 +220,9 @@ export default function ImplementationPlanPage() {
                       <BiTimeFive className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Doorlooptijd</h4>
                     </div>
-                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.doorlooptijd}</p>
+                    <div className="text-gray-700 pl-7">
+                      <MarkdownContent content={selectedGovernanceModelData.doorlooptijd} />
+                    </div>
                   </div>
                 )}
                 
@@ -217,7 +233,9 @@ export default function ImplementationPlanPage() {
                       <BiTask className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Implementatie</h4>
                     </div>
-                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.implementatie}</p>
+                    <div className="text-gray-700 pl-7">
+                      <MarkdownContent content={selectedGovernanceModelData.implementatie} />
+                    </div>
                   </div>
                 )}
                 
@@ -268,7 +286,9 @@ export default function ImplementationPlanPage() {
                           <BiTask className="text-blue-600 text-xl mr-2" />
                           <h5 className="font-semibold">Implementatie</h5>
                         </div>
-                        <p className="text-gray-700 pl-7">{solution.implementatie}</p>
+                        <div className="text-gray-700 pl-7">
+                          <MarkdownContent content={solution.implementatie} />
+                        </div>
                       </div>
                     ) : (
                       <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
