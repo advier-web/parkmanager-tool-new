@@ -6,14 +6,11 @@ import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
 import ReactMarkdown from 'react-markdown';
 import { useEffect } from 'react';
+import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 
-// Component to render markdown content
-const MarkdownContent = ({ content }: { content: string }) => {
-  return (
-    <div className="prose prose-blue max-w-none">
-      <ReactMarkdown>{content}</ReactMarkdown>
-    </div>
-  );
+// Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
+const MarkdownContentLegacy = ({ content }: { content: string }) => {
+  return <MarkdownContent content={content} />;
 };
 
 // Debugging toggle
@@ -31,6 +28,15 @@ const renderRichContent = (contentfulData: any) => {
   // If it's an empty array, show a message
   if (Array.isArray(contentfulData) && contentfulData.length === 0) {
     return <p className="text-gray-500 italic">Geen inhoud beschikbaar</p>;
+  }
+  
+  // For link entries (assets with a URL)
+  if (contentfulData && contentfulData.sys && contentfulData.sys.type === 'Link') {
+    // For entries that are links to assets
+    if (contentfulData.sys.linkType === 'Asset' && contentfulData.sys.id) {
+      const url = `https://cdn.contentful.com/spaces/${process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID}/assets/${contentfulData.sys.id}`;
+      return <MarkdownContent content={`[Asset link](${url})`} />;
+    }
   }
   
   // Special case for Contentful rich text document
@@ -86,7 +92,7 @@ const renderRichContent = (contentfulData: any) => {
       });
       
       console.log('Extracted Markdown content:', extractedContent.trim());
-      return <MarkdownContent content={extractedContent.trim()} />;
+      return <MarkdownContent content={processMarkdownText(extractedContent.trim())} />;
     } catch (e) {
       console.error('Error extracting content from rich text:', e);
     }
@@ -94,18 +100,14 @@ const renderRichContent = (contentfulData: any) => {
   
   // If it's a string, just render it as markdown
   if (typeof contentfulData === 'string') {
-    return <MarkdownContent content={contentfulData} />;
+    return <MarkdownContent content={processMarkdownText(contentfulData)} />;
   }
   
   // If it's an array of strings (like bullet points)
   if (Array.isArray(contentfulData) && typeof contentfulData[0] === 'string') {
-    return (
-      <ul className="list-disc pl-5">
-        {contentfulData.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
-    );
+    // Converteer de array naar markdown list items and gebruik dan de MarkdownContent component
+    const markdownBullets = contentfulData.map(item => `- ${item}`).join('\n');
+    return <MarkdownContent content={processMarkdownText(markdownBullets)} />;
   }
   
   // For asset references (like PDFs or images)
@@ -118,7 +120,7 @@ const renderRichContent = (contentfulData: any) => {
       const title = contentfulData.fields.title || contentfulData.fields.description || 'Download';
       
       return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
           {title}
         </a>
       );
@@ -128,47 +130,21 @@ const renderRichContent = (contentfulData: any) => {
   // For asset arrays
   if (Array.isArray(contentfulData) && contentfulData.length > 0 && 
       contentfulData[0]?.sys?.type === 'Asset') {
-    return (
-      <ul className="list-disc pl-5">
-        {contentfulData.map((asset, index) => {
-          if (asset?.fields?.file?.url) {
-            const url = asset.fields.file.url.startsWith('//') 
-              ? `https:${asset.fields.file.url}` 
-              : asset.fields.file.url;
-            
-            const title = asset.fields.title || asset.fields.description || `File ${index + 1}`;
-            
-            return (
-              <li key={index}>
-                <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  {title}
-                </a>
-              </li>
-            );
-          }
-          return <li key={index}>Invalid asset</li>;
-        })}
-      </ul>
-    );
-  }
-  
-  // For link entries (assets with a URL)
-  if (contentfulData && contentfulData.sys && contentfulData.sys.type === 'Link') {
-    // For entries that are links to assets
-    if (contentfulData.sys.linkType === 'Asset' && contentfulData.sys.id) {
-      return (
-        <p>
-          <a 
-            href={`https://cdn.contentful.com/spaces/${process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID}/assets/${contentfulData.sys.id}`}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            Asset link
-          </a>
-        </p>
-      );
-    }
+    
+    // Converteer de asset array naar Markdown links and verwerk dan met MarkdownContent
+    const markdownLinks = contentfulData.map(asset => {
+      if (asset?.fields?.file?.url) {
+        const url = asset.fields.file.url.startsWith('//') 
+          ? `https:${asset.fields.file.url}` 
+          : asset.fields.file.url;
+        
+        const title = asset.fields.title || asset.fields.description || `File`;
+        return `- [${title}](${url})`;
+      }
+      return '- Invalid asset';
+    }).join('\n');
+    
+    return <MarkdownContent content={markdownLinks} />;
   }
   
   // Last resort: for complex objects we don't understand yet, show as formatted JSON
@@ -603,10 +579,36 @@ export default function ImplementationPlanPage() {
                           </div>
                           
                           <div className="text-gray-700 pl-7">
-                            {selectedGovernanceModelData.links ? 
-                              renderRichContent(selectedGovernanceModelData.links) :
+                            {selectedGovernanceModelData.links ? (
+                              // Speciale styling voor links
+                              Array.isArray(selectedGovernanceModelData.links) ? (
+                                <ul className="list-disc pl-5">
+                                  {selectedGovernanceModelData.links.map((link, index) => {
+                                    // Check if it's a URL string
+                                    if (typeof link === 'string' && link.match(/^https?:\/\//)) {
+                                      return (
+                                        <li key={index}>
+                                          <a 
+                                            href={link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-blue-600 hover:underline font-medium"
+                                          >
+                                            {link}
+                                          </a>
+                                        </li>
+                                      );
+                                    } else {
+                                      return <li key={index}>{renderRichContent(link)}</li>;
+                                    }
+                                  })}
+                                </ul>
+                              ) : (
+                                renderRichContent(selectedGovernanceModelData.links)
+                              )
+                            ) : (
                               <p className="text-gray-500 italic">Geen links beschikbaar</p>
-                            }
+                            )}
                           </div>
                         </div>
                         
@@ -618,10 +620,42 @@ export default function ImplementationPlanPage() {
                           </div>
                           
                           <div className="text-gray-700 pl-7">
-                            {selectedGovernanceModelData.voorbeeldContracten ? 
-                              renderRichContent(selectedGovernanceModelData.voorbeeldContracten) :
+                            {selectedGovernanceModelData.voorbeeldContracten ? (
+                              // Speciale styling voor documenten
+                              Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? (
+                                <ul className="list-disc pl-5">
+                                  {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => {
+                                    // Check if it's a file asset
+                                    if (contract && contract.fields && contract.fields.file) {
+                                      const url = contract.fields.file.url.startsWith('//') 
+                                        ? `https:${contract.fields.file.url}` 
+                                        : contract.fields.file.url;
+                                      
+                                      const title = contract.fields.title || contract.fields.description || `Contract ${index + 1}`;
+                                      
+                                      return (
+                                        <li key={index}>
+                                          <a 
+                                            href={url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-blue-600 hover:underline font-medium flex items-center"
+                                          >
+                                            <BiFile className="text-blue-600 mr-1" /> {title}
+                                          </a>
+                                        </li>
+                                      );
+                                    } else {
+                                      return <li key={index}>{renderRichContent(contract)}</li>;
+                                    }
+                                  })}
+                                </ul>
+                              ) : (
+                                renderRichContent(selectedGovernanceModelData.voorbeeldContracten)
+                              )
+                            ) : (
                               <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
-                            }
+                            )}
                           </div>
                         </div>
                       </>
