@@ -174,7 +174,22 @@ const renderRichContent = (contentfulData: any) => {
   // Last resort: for complex objects we don't understand yet, show as formatted JSON
   return (
     <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto max-h-40">
-      {JSON.stringify(contentfulData, null, 2)}
+      Type: {typeof contentfulData}
+      {typeof contentfulData === 'object' ? (
+        <>
+          <br />Keys: {contentfulData ? Object.keys(contentfulData).join(', ') : 'none'}
+          {contentfulData && Array.isArray(contentfulData) && (
+            <>
+              <br />Array Length: {contentfulData.length}
+              <br />First few items: {contentfulData.slice(0, 3).map(i => 
+                typeof i === 'string' ? i.substring(0, 30) : typeof i
+              ).join(', ')}
+            </>
+          )}
+        </>
+      ) : (
+        contentfulData?.toString?.() || String(contentfulData)
+      )}
     </pre>
   );
 };
@@ -294,7 +309,8 @@ export default function ImplementationPlanPage() {
       text = item;
     } else if (item && typeof item === 'object') {
       if (item.fields) {
-        text = item.fields.title || item.fields.name || item.fields.value || JSON.stringify(item);
+        text = item.fields.title || item.fields.name || item.fields.value || 
+          `[Object met velden: ${Object.keys(item.fields).join(', ')}]`;
       } else if (item.content) {
         // Handle rich text content format
         text = item.content?.map((c: any) => c.content?.[0]?.value || '').join(' ');
@@ -302,7 +318,7 @@ export default function ImplementationPlanPage() {
         // Another rich text format
         text = 'Rich text content'; // Use a placeholder for rich text
       } else {
-        text = JSON.stringify(item);
+        text = `[Object met eigenschappen: ${Object.keys(item).join(', ')}]`;
       }
     } else {
       text = String(item);
@@ -429,29 +445,30 @@ export default function ImplementationPlanPage() {
                         <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
                           <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
                           <p>Links:</p>
-                          <pre>{JSON.stringify({ 
-                            hasLinks: !!selectedGovernanceModelData.links,
-                            linksType: selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined',
-                            isArray: Array.isArray(selectedGovernanceModelData.links),
-                            length: selectedGovernanceModelData.links ? selectedGovernanceModelData.links.length : 0,
-                            linksData: selectedGovernanceModelData.links
-                          }, null, 2)}</pre>
+                          <pre>
+                            hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
+                            linksType: {selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined'}
+                            isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
+                            length: {selectedGovernanceModelData.links ? 
+                              (Array.isArray(selectedGovernanceModelData.links) ? 
+                                selectedGovernanceModelData.links.length.toString() : 
+                                'not an array') : 
+                              '0'}
+                          </pre>
                           
                           <p className="mt-2">Benodigdheden:</p>
-                          <pre>{JSON.stringify({ 
-                            hasBenodigdheden: !!selectedGovernanceModelData.benodigdhedenOprichting,
-                            benodigdhedenType: selectedGovernanceModelData.benodigdhedenOprichting 
+                          <pre>
+                            hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
+                            benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
                               ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
-                              : 'undefined',
-                            isArray: Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting),
-                            length: selectedGovernanceModelData.benodigdhedenOprichting 
+                              : 'undefined'}
+                            isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
+                            length: {selectedGovernanceModelData.benodigdhedenOprichting 
                               ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
-                                ? selectedGovernanceModelData.benodigdhedenOprichting.length 
+                                ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
                                 : 'not an array') 
-                              : 0,
-                            contentfulData: selectedGovernanceModelData,
-                            fullBenodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
-                          }, null, 2)}</pre>
+                              : '0'}
+                          </pre>
                         </div>
                         
                         {/* Debug info - remove in production */}
@@ -461,11 +478,54 @@ export default function ImplementationPlanPage() {
                           {selectedGovernanceModelData.benodigdhedenOprichting && (
                             <p>Structure: {
                               typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
-                                ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType}`
+                                ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType || 'unknown'}`
                                 : 'Not a rich text object'
                             }</p>
                           )}
-                          <pre className="mt-2 border-t pt-2">{JSON.stringify(selectedGovernanceModelData.benodigdhedenOprichting, null, 2)}</pre>
+                          
+                          <p className="mt-2">Links info:</p>
+                          <pre>
+                            hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
+                            linksType: {typeof selectedGovernanceModelData.links}
+                            isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
+                            length: {selectedGovernanceModelData.links ? 
+                              (Array.isArray(selectedGovernanceModelData.links) ? 
+                                selectedGovernanceModelData.links.length.toString() : 
+                                'not an array') : 
+                              '0'}
+                          </pre>
+                          
+                          <p className="mt-2">Benodigdheden:</p>
+                          <pre>
+                            hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
+                            benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
+                              ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
+                              : 'undefined'}
+                            isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
+                            length: {selectedGovernanceModelData.benodigdhedenOprichting 
+                              ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
+                                ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
+                                : 'not an array') 
+                              : '0'}
+                          </pre>
+
+                          {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) && (
+                            <div className="mt-2 border-t pt-2">
+                              <p>Benodigdheden Array Items:</p>
+                              <ul>
+                                {selectedGovernanceModelData.benodigdhedenOprichting.slice(0, 3).map((item, idx) => (
+                                  <li key={idx}>Item {idx}: {typeof item} - {
+                                    typeof item === 'string' ? 
+                                      item.substring(0, 50) + (item.length > 50 ? '...' : '') : 
+                                      'Non-string item'
+                                  }</li>
+                                ))}
+                                {selectedGovernanceModelData.benodigdhedenOprichting.length > 3 && (
+                                  <li>...and {selectedGovernanceModelData.benodigdhedenOprichting.length - 3} more items</li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Samenvatting */}
