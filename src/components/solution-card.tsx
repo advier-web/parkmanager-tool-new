@@ -53,12 +53,12 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
           
           <div className="flex flex-wrap gap-2 mt-4 mb-4">
             <div className="flex items-center">
-              <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              <span className="text-xs font-medium text-gray-700 px-2 py-1">
                 {solution.costs}
               </span>
             </div>
             <div className="flex items-center">
-              <span className="text-xs font-medium bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              <span className="text-xs font-medium text-gray-700 px-2 py-1">
                 {solution.implementationTime}
               </span>
             </div>
