@@ -5,6 +5,8 @@ import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-do
 import { useWizardStore } from '../../../lib/store';
 import { GovernanceCard } from '../../../components/governance-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
+import { useDialog } from '../../../contexts/dialog-context';
+import { GovernanceModel } from '../../../domain/models';
 
 export default function GovernanceModelsPage() {
   const { data: governanceModels, isLoading: governanceLoading, error: governanceError } = useGovernanceModels();
@@ -15,6 +17,9 @@ export default function GovernanceModelsPage() {
     setSelectedGovernanceModel,
     currentGovernanceModelId
   } = useWizardStore();
+  
+  // Access the dialog context
+  const { openGovernanceDialog } = useDialog();
   
   // State for storing recommended governance models based on selected solutions
   const [recommendedModels, setRecommendedModels] = useState<string[]>([]);
@@ -62,6 +67,31 @@ export default function GovernanceModelsPage() {
   // Handler for selecting a governance model
   const handleSelectModel = (modelId: string) => {
     setSelectedGovernanceModel(modelId);
+  };
+  
+  // Handler for showing more information
+  const handleShowMoreInfo = (model: GovernanceModel) => {
+    // Debug: Log the structure of the model to see how fields are stored
+    console.log('Opening dialog for model:', model);
+    // Vermijd circulaire structuren in logs
+    console.log('Model titel:', model.title);
+    console.log('Model beschrijving:', model.description);
+    
+    // Try to access fields directly
+    const voordelen = (model as any).voordelen;
+    const nadelen = (model as any).nadelen;
+    const benodigdheden = (model as any).benodigdhedenOprichting;
+    const links = (model as any).links;
+    
+    console.log('Direct field access:', {
+      voordelen: voordelen ? typeof voordelen : 'undefined',
+      nadelen: nadelen ? typeof nadelen : 'undefined',
+      benodigdheden: benodigdheden ? typeof benodigdheden : 'undefined',
+      links: links ? typeof links : 'undefined'
+    });
+    
+    // Open the governance dialog
+    openGovernanceDialog(model);
   };
   
   // Get the current governance model from step 0
@@ -197,6 +227,7 @@ export default function GovernanceModelsPage() {
                     onSelect={handleSelectModel}
                     isRecommended={currentModelIsRecommended}
                     isCurrent={true}
+                    onMoreInfo={handleShowMoreInfo}
                   />
                 </div>
               </div>
@@ -217,6 +248,7 @@ export default function GovernanceModelsPage() {
                       isSelected={selectedGovernanceModel === model.id}
                       onSelect={handleSelectModel}
                       isRecommended={true}
+                      onMoreInfo={handleShowMoreInfo}
                     />
                   ))}
                 </div>
@@ -242,6 +274,7 @@ export default function GovernanceModelsPage() {
                       isSelected={selectedGovernanceModel === model.id}
                       onSelect={handleSelectModel}
                       isRecommended={false}
+                      onMoreInfo={handleShowMoreInfo}
                     />
                   ))}
                 </div>

@@ -229,29 +229,50 @@ export async function getGovernanceModelsFromContentful(
       console.log(`Found ${response.items.length} entries with content type ${contentTypeId}`);
       
       if (response.items.length > 0) {
+        // Debug log the first model to see its structure
+        const firstItem = response.items[0];
+        console.log('First governance model fields from Contentful:');
+        if (firstItem && firstItem.fields) {
+          Object.entries(firstItem.fields).forEach(([key, value]) => {
+            console.log(`  ${key}: ${typeof value === 'object' ? 'object' : value}`);
+          });
+        }
+        
         // Manually map to domain model since types might not match exactly
         return response.items.map(item => {
           const fields = (item.fields as any) || {};
+          
+          // Debug log the fields
+          console.log(`Fields for governance model ${fields.title || 'unnamed'} - keys:`, Object.keys(fields));
+          
+          // Map to native and alternative field names
           return {
             id: item.sys.id,
             title: fields.title || fields.name || 'Unnamed Model',
             description: fields.description || '',
             summary: fields.summary || fields.samenvatting || '',
-            advantages: Array.isArray(fields.advantages) ? fields.advantages : [],
-            disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages : [],
-            applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
+            advantages: fields.advantages || fields.voordelen || [],
+            disadvantages: fields.disadvantages || fields.nadelen || [],
+            applicableScenarios: fields.applicableScenarios || [],
             organizationalStructure: fields.organizationalStructure || undefined,
             legalForm: fields.legalForm || undefined,
-            stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined,
+            stakeholders: fields.stakeholders || undefined,
             
             // Implementation plan fields
             samenvatting: fields.samenvatting || '',
             aansprakelijkheid: fields.aansprakelijkheid || '',
-            benodigdhedenOprichting: Array.isArray(fields.benodigdhedenOprichting) ? fields.benodigdhedenOprichting : [],
+            benodigdhedenOprichting: fields.benodigdhedenOprichting || [],
             doorlooptijd: fields.doorlooptijd || '',
             implementatie: fields.implementatie || '',
-            links: Array.isArray(fields.links) ? fields.links : [],
-            voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten : []
+            links: fields.links || [],
+            voorbeeldContracten: fields.voorbeeldContracten || [],
+            
+            // Also store original fields for direct access
+            voordelen: fields.voordelen,
+            nadelen: fields.nadelen,
+            
+            // Preserve all original fields from Contentful
+            fields
           };
         });
       }
