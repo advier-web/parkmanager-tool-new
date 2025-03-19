@@ -2,6 +2,7 @@
 
 import { useDialog } from '../contexts/dialog-context';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 export function SolutionDialog() {
   const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, closeDialog } = useDialog();
@@ -94,6 +95,11 @@ export function SolutionDialog() {
     );
   }
   
+  // Helper function for rendering list items with markdown support
+  const renderListItem = (text: string, index: number) => {
+    return <li key={index}><MarkdownContent content={processMarkdownText(text)} /></li>;
+  };
+
   // Show governance model information dialog
   if (dialogType === 'governance' && currentGovernanceModel) {
     // Log model data for debugging
@@ -142,7 +148,7 @@ export function SolutionDialog() {
             {/* Governance model description */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
-              <p className="text-gray-700">{currentGovernanceModel.description}</p>
+              <MarkdownContent content={processMarkdownText(currentGovernanceModel.description)} />
             </section>
             
             {/* Advantages and disadvantages */}
@@ -152,19 +158,15 @@ export function SolutionDialog() {
                   <h3 className="text-md font-semibold mb-2">Voordelen</h3>
                   {Array.isArray(advantages) && advantages.length > 0 ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {advantages.map((advantage, index) => (
-                        <li key={index}>{advantage}</li>
-                      ))}
+                      {advantages.map((advantage, index) => renderListItem(advantage, index))}
                     </ul>
                   ) : contentfulFields.voordelen && Array.isArray(contentfulFields.voordelen) ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {contentfulFields.voordelen.map((item: string, idx: number) => (
-                        <li key={idx}>{item}</li>
-                      ))}
+                      {contentfulFields.voordelen.map((item: string, idx: number) => renderListItem(item, idx))}
                     </ul>
                   ) : contentfulFields.voordelen && typeof contentfulFields.voordelen === 'string' ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      <li>{contentfulFields.voordelen}</li>
+                      <li><MarkdownContent content={processMarkdownText(contentfulFields.voordelen)} /></li>
                     </ul>
                   ) : (
                     <p className="text-sm text-gray-500 italic">Geen voordelen beschikbaar</p>
@@ -175,19 +177,15 @@ export function SolutionDialog() {
                   <h3 className="text-md font-semibold mb-2">Nadelen</h3>
                   {Array.isArray(disadvantages) && disadvantages.length > 0 ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {disadvantages.map((disadvantage, index) => (
-                        <li key={index}>{disadvantage}</li>
-                      ))}
+                      {disadvantages.map((disadvantage, index) => renderListItem(disadvantage, index))}
                     </ul>
                   ) : contentfulFields.nadelen && Array.isArray(contentfulFields.nadelen) ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {contentfulFields.nadelen.map((item: string, idx: number) => (
-                        <li key={idx}>{item}</li>
-                      ))}
+                      {contentfulFields.nadelen.map((item: string, idx: number) => renderListItem(item, idx))}
                     </ul>
                   ) : contentfulFields.nadelen && typeof contentfulFields.nadelen === 'string' ? (
                     <ul className="list-disc pl-5 text-sm text-gray-600">
-                      <li>{contentfulFields.nadelen}</li>
+                      <li><MarkdownContent content={processMarkdownText(contentfulFields.nadelen)} /></li>
                     </ul>
                   ) : (
                     <p className="text-sm text-gray-500 italic">Geen nadelen beschikbaar</p>
@@ -201,20 +199,16 @@ export function SolutionDialog() {
               <h3 className="text-lg font-semibold mb-2">Benodigdheden voor oprichting</h3>
               <div className="text-gray-700">
                 {typeof benodigdheden === 'string' ? (
-                  <p>{benodigdheden}</p>
+                  <MarkdownContent content={processMarkdownText(benodigdheden)} />
                 ) : Array.isArray(benodigdheden) && benodigdheden.length > 0 ? (
                   <ul className="list-disc pl-5">
-                    {benodigdheden.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
+                    {benodigdheden.map((item, index) => renderListItem(item, index))}
                   </ul>
                 ) : contentfulFields.benodigdhedenOprichting && typeof contentfulFields.benodigdhedenOprichting === 'string' ? (
-                  <p>{contentfulFields.benodigdhedenOprichting}</p>
+                  <MarkdownContent content={processMarkdownText(contentfulFields.benodigdhedenOprichting)} />
                 ) : contentfulFields.benodigdhedenOprichting && Array.isArray(contentfulFields.benodigdhedenOprichting) ? (
                   <ul className="list-disc pl-5">
-                    {contentfulFields.benodigdhedenOprichting.map((item: string, idx: number) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {contentfulFields.benodigdhedenOprichting.map((item: string, idx: number) => renderListItem(item, idx))}
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-500 italic">Geen benodigdheden beschikbaar</p>
@@ -225,13 +219,13 @@ export function SolutionDialog() {
             {/* Timeline */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Doorlooptijd</h3>
-              <p className="text-gray-700">
+              <div className="text-gray-700">
                 {doorlooptijd || contentfulFields.doorlooptijd ? (
-                  doorlooptijd || contentfulFields.doorlooptijd
+                  <MarkdownContent content={processMarkdownText(doorlooptijd || contentfulFields.doorlooptijd)} />
                 ) : (
                   <span className="text-gray-500 italic">Niet gespecificeerd</span>
                 )}
-              </p>
+              </div>
             </section>
             
             {/* Links */}
@@ -239,20 +233,16 @@ export function SolutionDialog() {
               <h3 className="text-lg font-semibold mb-2">Links</h3>
               <div className="text-gray-700">
                 {typeof links === 'string' ? (
-                  <p>{links}</p>
+                  <MarkdownContent content={processMarkdownText(links)} />
                 ) : Array.isArray(links) && links.length > 0 ? (
                   <ul className="list-disc pl-5">
-                    {links.map((link, index) => (
-                      <li key={index}>{link}</li>
-                    ))}
+                    {links.map((link, index) => renderListItem(link, index))}
                   </ul>
                 ) : contentfulFields.links && typeof contentfulFields.links === 'string' ? (
-                  <p>{contentfulFields.links}</p>
+                  <MarkdownContent content={processMarkdownText(contentfulFields.links)} />
                 ) : contentfulFields.links && Array.isArray(contentfulFields.links) ? (
                   <ul className="list-disc pl-5">
-                    {contentfulFields.links.map((link: string, idx: number) => (
-                      <li key={idx}>{link}</li>
-                    ))}
+                    {contentfulFields.links.map((link: string, idx: number) => renderListItem(link, idx))}
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-500 italic">Geen links beschikbaar</p>
