@@ -80,7 +80,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
                 e.stopPropagation();
                 if (onMoreInfo) onMoreInfo(solution);
               }}
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
             >
               <InformationCircleIcon className="h-4 w-4 mr-1" />
               Meer informatie

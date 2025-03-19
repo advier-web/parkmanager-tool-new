@@ -87,7 +87,7 @@ export default function MobilitySolutionsPage() {
   const { data: governanceModels, isLoading: isLoadingModels } = useGovernanceModels();
   
   // Access the dialog context
-  const { openDialog } = useDialog();
+  const { openSolutionDialog } = useDialog();
   
   // Show all solutions initially
   const [showAllSolutions, setShowAllSolutions] = useState(true);
@@ -144,7 +144,7 @@ export default function MobilitySolutionsPage() {
     }
     
     // Open the dialog with solution info and compatible governance models
-    openDialog(solution, compatibleModels);
+    openSolutionDialog(solution, compatibleModels);
   };
   
   // Bereken scores voor oplossingen op basis van geselecteerde redenen

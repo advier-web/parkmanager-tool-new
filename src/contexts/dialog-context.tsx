@@ -5,9 +5,12 @@ import { MobilitySolution, GovernanceModel } from '../domain/models';
 
 interface DialogContextType {
   isOpen: boolean;
+  dialogType: 'solution' | 'governance' | null;
   currentSolution: MobilitySolution | null;
   compatibleGovernanceModels: GovernanceModel[] | null;
-  openDialog: (solution: MobilitySolution, governanceModels: GovernanceModel[]) => void;
+  currentGovernanceModel: GovernanceModel | null;
+  openSolutionDialog: (solution: MobilitySolution, governanceModels: GovernanceModel[]) => void;
+  openGovernanceDialog: (model: GovernanceModel) => void;
   closeDialog: () => void;
 }
 
@@ -15,12 +18,24 @@ const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<'solution' | 'governance' | null>(null);
   const [currentSolution, setCurrentSolution] = useState<MobilitySolution | null>(null);
   const [compatibleGovernanceModels, setCompatibleGovernanceModels] = useState<GovernanceModel[] | null>(null);
+  const [currentGovernanceModel, setCurrentGovernanceModel] = useState<GovernanceModel | null>(null);
 
-  const openDialog = (solution: MobilitySolution, governanceModels: GovernanceModel[]) => {
+  const openSolutionDialog = (solution: MobilitySolution, governanceModels: GovernanceModel[]) => {
     setCurrentSolution(solution);
     setCompatibleGovernanceModels(governanceModels);
+    setCurrentGovernanceModel(null);
+    setDialogType('solution');
+    setIsOpen(true);
+  };
+
+  const openGovernanceDialog = (model: GovernanceModel) => {
+    setCurrentGovernanceModel(model);
+    setCurrentSolution(null);
+    setCompatibleGovernanceModels(null);
+    setDialogType('governance');
     setIsOpen(true);
   };
 
@@ -32,9 +47,12 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     <DialogContext.Provider
       value={{
         isOpen,
+        dialogType,
         currentSolution,
         compatibleGovernanceModels,
-        openDialog,
+        currentGovernanceModel,
+        openSolutionDialog,
+        openGovernanceDialog,
         closeDialog
       }}
     >
