@@ -36,6 +36,7 @@ export function WizardNavigation({
           }`}
           aria-disabled={isNextDisabled}
           onClick={e => isNextDisabled && e.preventDefault()}
+          tabIndex={isNextDisabled ? -1 : undefined}
         >
           Volgende stap
         </Link>
