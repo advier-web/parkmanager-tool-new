@@ -5,9 +5,10 @@ interface GovernanceCardProps {
   isSelected: boolean;
   onSelect: (modelId: string) => void;
   isRecommended?: boolean;
+  isCurrent?: boolean;
 }
 
-export function GovernanceCard({ model, isSelected, onSelect, isRecommended = false }: GovernanceCardProps) {
+export function GovernanceCard({ model, isSelected, onSelect, isRecommended = false, isCurrent = false }: GovernanceCardProps) {
   return (
     <div
       className={`
@@ -17,6 +18,7 @@ export function GovernanceCard({ model, isSelected, onSelect, isRecommended = fa
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
         }
         ${isRecommended ? 'border-l-4 border-l-green-500' : ''}
+        ${isCurrent ? 'border-r-4 border-r-purple-500' : ''}
       `}
       onClick={() => onSelect(model.id)}
     >
@@ -24,6 +26,14 @@ export function GovernanceCard({ model, isSelected, onSelect, isRecommended = fa
         <div className="absolute top-0 right-0">
           <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
             Aanbevolen
+          </span>
+        </div>
+      )}
+      
+      {isCurrent && (
+        <div className="absolute top-0 right-0 mr-24">
+          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+            Huidige model
           </span>
         </div>
       )}
