@@ -360,7 +360,9 @@ export default function ImplementationPlanPage() {
             {/* Implementatieplan voor bestuursmodel */}
             {selectedGovernanceModelData && (
               <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan bestuursmodel</h3>
+                <h3 className="text-xl font-bold mb-4 border-b pb-2">
+                  Implementatieplan {selectedGovernanceModelData.title}
+                </h3>
                 
                 {/* Debug info - remove in production */}
                 <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
