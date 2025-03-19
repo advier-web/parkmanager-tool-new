@@ -46,11 +46,11 @@ export interface GovernanceModel {
   // Implementation plan fields
   samenvatting?: string;
   aansprakelijkheid?: string;
-  benodigdhedenOprichting?: string[];
+  benodigdhedenOprichting?: any; // Can be rich text, string, or string array
   doorlooptijd?: string;
   implementatie?: string;
-  links?: string[];
-  voorbeeldContracten?: string[];
+  links?: any; // Can be rich text, string, or array
+  voorbeeldContracten?: any[]; // Can be file assets or links
 }
 
 // Implementatieplan

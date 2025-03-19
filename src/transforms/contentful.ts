@@ -88,11 +88,11 @@ export function transformGovernanceModel(
     // Implementation plan fields
     samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
-    benodigdhedenOprichting: Array.isArray(fields.benodigdhedenOprichting) ? fields.benodigdhedenOprichting : undefined,
+    benodigdhedenOprichting: fields.benodigdhedenOprichting || undefined,
     doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    links: Array.isArray(fields.links) ? fields.links : undefined,
-    voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten : undefined
+    links: fields.links || undefined,
+    voorbeeldContracten: fields.voorbeeldContracten || undefined
   };
 }
 

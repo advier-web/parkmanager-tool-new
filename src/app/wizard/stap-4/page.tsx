@@ -5,34 +5,7 @@ import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
 import ReactMarkdown from 'react-markdown';
-
-// Helper function to safely render Contentful data
-function safeRenderContentfulField(field: any): React.ReactNode {
-  if (field === null || field === undefined) {
-    return null;
-  }
-  
-  if (typeof field === 'string') {
-    return field;
-  }
-  
-  if (Array.isArray(field)) {
-    return field.map((item, index) => (
-      <li key={index}>{safeRenderContentfulField(item)}</li>
-    ));
-  }
-  
-  if (typeof field === 'object') {
-    // Handle Contentful reference
-    if (field.sys && field.fields) {
-      return field.fields.title || field.fields.name || JSON.stringify(field);
-    }
-    
-    return JSON.stringify(field);
-  }
-  
-  return String(field);
-}
+import { useEffect } from 'react';
 
 // Component to render markdown content
 const MarkdownContent = ({ content }: { content: string }) => {
@@ -40,6 +13,169 @@ const MarkdownContent = ({ content }: { content: string }) => {
     <div className="prose prose-blue max-w-none">
       <ReactMarkdown>{content}</ReactMarkdown>
     </div>
+  );
+};
+
+// Debugging toggle
+const SHOW_DEBUG = false;
+
+// Function to properly extract and render content based on Contentful's rich text
+const renderRichContent = (contentfulData: any) => {
+  console.log('Rendering contentful data type:', typeof contentfulData, contentfulData);
+  
+  // If it's null or undefined, show a message
+  if (contentfulData === null || contentfulData === undefined) {
+    return <p className="text-gray-500 italic">Geen inhoud beschikbaar</p>;
+  }
+  
+  // If it's an empty array, show a message
+  if (Array.isArray(contentfulData) && contentfulData.length === 0) {
+    return <p className="text-gray-500 italic">Geen inhoud beschikbaar</p>;
+  }
+  
+  // Special case for Contentful rich text document
+  if (contentfulData && 
+      typeof contentfulData === 'object' &&
+      contentfulData.nodeType === 'document') {
+    
+    console.log('Found Contentful rich text document!', contentfulData);
+    
+    // Extract text from rich text
+    let extractedContent = '';
+    
+    try {
+      // Extract paragraphs and list items
+      const extractText = (node: any): string => {
+        if (!node) return '';
+        
+        if (node.nodeType === 'text' && node.value) {
+          return node.value;
+        }
+        
+        if (node.content && Array.isArray(node.content)) {
+          return node.content.map(extractText).join('');
+        }
+        
+        return '';
+      };
+      
+      contentfulData.content.forEach((block: any) => {
+        console.log('Processing rich text block:', block.nodeType);
+        
+        if (block.nodeType === 'paragraph') {
+          extractedContent += extractText(block) + '\n\n';
+        } else if (block.nodeType === 'unordered-list') {
+          console.log('Found unordered list:', block);
+          block.content.forEach((listItem: any) => {
+            extractedContent += '- ' + extractText(listItem) + '\n';
+          });
+          extractedContent += '\n';
+        } else if (block.nodeType === 'ordered-list') {
+          console.log('Found ordered list:', block);
+          block.content.forEach((listItem: any, idx: number) => {
+            extractedContent += `${idx + 1}. ` + extractText(listItem) + '\n';
+          });
+          extractedContent += '\n';
+        } else if (block.nodeType === 'hyperlink' && block.data?.uri) {
+          extractedContent += `[${extractText(block)}](${block.data.uri})\n`;
+        } else if (block.nodeType === 'embedded-asset-block') {
+          extractedContent += `![Image](${block.data?.target?.fields?.file?.url || 'asset-url'})\n`;
+        } else {
+          console.log('Unhandled rich text block type:', block.nodeType);
+        }
+      });
+      
+      console.log('Extracted Markdown content:', extractedContent.trim());
+      return <MarkdownContent content={extractedContent.trim()} />;
+    } catch (e) {
+      console.error('Error extracting content from rich text:', e);
+    }
+  }
+  
+  // If it's a string, just render it as markdown
+  if (typeof contentfulData === 'string') {
+    return <MarkdownContent content={contentfulData} />;
+  }
+  
+  // If it's an array of strings (like bullet points)
+  if (Array.isArray(contentfulData) && typeof contentfulData[0] === 'string') {
+    return (
+      <ul className="list-disc pl-5">
+        {contentfulData.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    );
+  }
+  
+  // For asset references (like PDFs or images)
+  if (contentfulData && contentfulData.sys && contentfulData.sys.type === 'Asset') {
+    if (contentfulData.fields && contentfulData.fields.file && contentfulData.fields.file.url) {
+      const url = contentfulData.fields.file.url.startsWith('//') 
+        ? `https:${contentfulData.fields.file.url}` 
+        : contentfulData.fields.file.url;
+      
+      const title = contentfulData.fields.title || contentfulData.fields.description || 'Download';
+      
+      return (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          {title}
+        </a>
+      );
+    }
+  }
+  
+  // For asset arrays
+  if (Array.isArray(contentfulData) && contentfulData.length > 0 && 
+      contentfulData[0]?.sys?.type === 'Asset') {
+    return (
+      <ul className="list-disc pl-5">
+        {contentfulData.map((asset, index) => {
+          if (asset?.fields?.file?.url) {
+            const url = asset.fields.file.url.startsWith('//') 
+              ? `https:${asset.fields.file.url}` 
+              : asset.fields.file.url;
+            
+            const title = asset.fields.title || asset.fields.description || `File ${index + 1}`;
+            
+            return (
+              <li key={index}>
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  {title}
+                </a>
+              </li>
+            );
+          }
+          return <li key={index}>Invalid asset</li>;
+        })}
+      </ul>
+    );
+  }
+  
+  // For link entries (assets with a URL)
+  if (contentfulData && contentfulData.sys && contentfulData.sys.type === 'Link') {
+    // For entries that are links to assets
+    if (contentfulData.sys.linkType === 'Asset' && contentfulData.sys.id) {
+      return (
+        <p>
+          <a 
+            href={`https://cdn.contentful.com/spaces/${process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID}/assets/${contentfulData.sys.id}`}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            Asset link
+          </a>
+        </p>
+      );
+    }
+  }
+  
+  // Last resort: for complex objects we don't understand yet, show as formatted JSON
+  return (
+    <pre className="text-xs bg-gray-50 p-2 rounded overflow-auto max-h-40">
+      {JSON.stringify(contentfulData, null, 2)}
+    </pre>
   );
 };
 
@@ -62,6 +198,16 @@ export default function ImplementationPlanPage() {
     ? governanceModels.find(model => model.id === selectedGovernanceModel)
     : null;
     
+  // Log governance model data for debugging
+  useEffect(() => {
+    if (selectedGovernanceModelData) {
+      console.log('Selected Governance Model Data:', selectedGovernanceModelData);
+      console.log('benodigdhedenOprichting:', selectedGovernanceModelData.benodigdhedenOprichting);
+      console.log('links:', selectedGovernanceModelData.links);
+      console.log('voorbeeldContracten:', selectedGovernanceModelData.voorbeeldContracten);
+    }
+  }, [selectedGovernanceModelData]);
+  
   // Get selected solutions data
   const selectedSolutionsData = mobilitySolutions
     ? mobilitySolutions.filter(solution => selectedSolutions.includes(solution.id))
@@ -217,7 +363,7 @@ export default function ImplementationPlanPage() {
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan bestuursmodel</h3>
                 
                 {/* Debug info - remove in production */}
-                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: true ? 'block' : 'none' }}>
+                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
                   <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
                   <p>Links:</p>
                   <pre>{JSON.stringify({ 
@@ -240,8 +386,23 @@ export default function ImplementationPlanPage() {
                         ? selectedGovernanceModelData.benodigdhedenOprichting.length 
                         : 'not an array') 
                       : 0,
-                    benodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
+                    contentfulData: selectedGovernanceModelData,
+                    fullBenodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
                   }, null, 2)}</pre>
+                </div>
+                
+                {/* Debug info - remove in production */}
+                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
+                  <h5 className="font-bold">Debug Info - Benodigdheden voor Oprichting</h5>
+                  <p>Type: {typeof selectedGovernanceModelData.benodigdhedenOprichting}</p>
+                  {selectedGovernanceModelData.benodigdhedenOprichting && (
+                    <p>Structure: {
+                      typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
+                        ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType}`
+                        : 'Not a rich text object'
+                    }</p>
+                  )}
+                  <pre className="mt-2 border-t pt-2">{JSON.stringify(selectedGovernanceModelData.benodigdhedenOprichting, null, 2)}</pre>
                 </div>
                 
                 {/* Samenvatting */}
@@ -252,7 +413,7 @@ export default function ImplementationPlanPage() {
                       <h4 className="text-lg font-semibold">Samenvatting</h4>
                     </div>
                     <div className="text-gray-700 pl-7">
-                      <MarkdownContent content={selectedGovernanceModelData.samenvatting} />
+                      {renderRichContent(selectedGovernanceModelData.samenvatting)}
                     </div>
                   </div>
                 )}
@@ -265,7 +426,7 @@ export default function ImplementationPlanPage() {
                       <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
                     </div>
                     <div className="text-gray-700 pl-7">
-                      <MarkdownContent content={selectedGovernanceModelData.aansprakelijkheid} />
+                      {renderRichContent(selectedGovernanceModelData.aansprakelijkheid)}
                     </div>
                   </div>
                 )}
@@ -277,22 +438,12 @@ export default function ImplementationPlanPage() {
                     <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
                   </div>
                   
-                  {/* Direct rendering for rich text content */}
-                  {selectedGovernanceModelData.benodigdhedenOprichting ? (
-                    typeof selectedGovernanceModelData.benodigdhedenOprichting === 'string' ? (
-                      <div className="text-gray-700 pl-7">
-                        <MarkdownContent content={selectedGovernanceModelData.benodigdhedenOprichting} />
-                      </div>
-                    ) : (
-                      <div className="text-gray-700 pl-7">
-                        <pre className="whitespace-pre-wrap text-sm">
-                          {JSON.stringify(selectedGovernanceModelData.benodigdhedenOprichting, null, 2)}
-                        </pre>
-                      </div>
-                    )
-                  ) : (
-                    <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>
-                  )}
+                  <div className="text-gray-700 pl-7">
+                    {selectedGovernanceModelData.benodigdhedenOprichting ? 
+                      renderRichContent(selectedGovernanceModelData.benodigdhedenOprichting) :
+                      <p className="text-gray-500 italic">Geen benodigdheden beschikbaar</p>
+                    }
+                  </div>
                 </div>
                 
                 {/* Doorlooptijd */}
@@ -303,7 +454,7 @@ export default function ImplementationPlanPage() {
                       <h4 className="text-lg font-semibold">Doorlooptijd</h4>
                     </div>
                     <div className="text-gray-700 pl-7">
-                      <MarkdownContent content={selectedGovernanceModelData.doorlooptijd} />
+                      {renderRichContent(selectedGovernanceModelData.doorlooptijd)}
                     </div>
                   </div>
                 )}
@@ -316,7 +467,7 @@ export default function ImplementationPlanPage() {
                       <h4 className="text-lg font-semibold">Implementatie</h4>
                     </div>
                     <div className="text-gray-700 pl-7">
-                      <MarkdownContent content={selectedGovernanceModelData.implementatie} />
+                      {renderRichContent(selectedGovernanceModelData.implementatie)}
                     </div>
                   </div>
                 )}
@@ -328,21 +479,12 @@ export default function ImplementationPlanPage() {
                     <h4 className="text-lg font-semibold">Links</h4>
                   </div>
                   
-                  {selectedGovernanceModelData.links ? (
-                    typeof selectedGovernanceModelData.links === 'string' ? (
-                      <div className="text-gray-700 pl-7">
-                        <MarkdownContent content={selectedGovernanceModelData.links} />
-                      </div>
-                    ) : (
-                      <div className="text-gray-700 pl-7">
-                        <pre className="whitespace-pre-wrap text-sm">
-                          {JSON.stringify(selectedGovernanceModelData.links, null, 2)}
-                        </pre>
-                      </div>
-                    )
-                  ) : (
-                    <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>
-                  )}
+                  <div className="text-gray-700 pl-7">
+                    {selectedGovernanceModelData.links ? 
+                      renderRichContent(selectedGovernanceModelData.links) :
+                      <p className="text-gray-500 italic">Geen links beschikbaar</p>
+                    }
+                  </div>
                 </div>
                 
                 {/* Voorbeeld Contracten */}
@@ -351,21 +493,13 @@ export default function ImplementationPlanPage() {
                     <BiFile className="text-blue-600 text-xl mr-2" />
                     <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
                   </div>
-                  {selectedGovernanceModelData.voorbeeldContracten ? (
-                    typeof selectedGovernanceModelData.voorbeeldContracten === 'string' ? (
-                      <div className="text-gray-700 pl-7">
-                        <MarkdownContent content={selectedGovernanceModelData.voorbeeldContracten} />
-                      </div>
-                    ) : (
-                      <div className="text-gray-700 pl-7">
-                        <pre className="whitespace-pre-wrap text-sm">
-                          {JSON.stringify(selectedGovernanceModelData.voorbeeldContracten, null, 2)}
-                        </pre>
-                      </div>
-                    )
-                  ) : (
-                    <p className="text-gray-500 italic pl-7">Geen voorbeeldcontracten beschikbaar</p>
-                  )}
+                  
+                  <div className="text-gray-700 pl-7">
+                    {selectedGovernanceModelData.voorbeeldContracten ? 
+                      renderRichContent(selectedGovernanceModelData.voorbeeldContracten) :
+                      <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
+                    }
+                  </div>
                 </div>
               </div>
             )}
@@ -379,19 +513,18 @@ export default function ImplementationPlanPage() {
                   <div key={solution.id} className="mb-6 border-l-4 border-blue-200 pl-4">
                     <h4 className="text-lg font-medium mb-2">{solution.title}</h4>
                     
-                    {solution.implementatie ? (
-                      <div>
-                        <div className="flex items-center mb-2">
-                          <BiTask className="text-blue-600 text-xl mr-2" />
-                          <h5 className="font-semibold">Implementatie</h5>
-                        </div>
-                        <div className="text-gray-700 pl-7">
-                          <MarkdownContent content={solution.implementatie} />
-                        </div>
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <BiTask className="text-blue-600 text-xl mr-2" />
+                        <h5 className="font-semibold">Implementatie</h5>
                       </div>
-                    ) : (
-                      <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
-                    )}
+                      <div className="text-gray-700 pl-7">
+                        {solution.implementatie ? 
+                          renderRichContent(solution.implementatie) :
+                          <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
+                        }
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
