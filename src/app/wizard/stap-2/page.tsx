@@ -11,6 +11,7 @@ import { MobilitySolution, GovernanceModel } from '../../../domain/models';
 import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
 import { shouldUseContentful } from '../../../utils/env';
 import { useDialog } from '../../../contexts/dialog-context';
+import { useRouter } from 'next/navigation';
 
 // Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
 let reasonIdToIdentifierMap: Record<string, string> = {};
@@ -79,7 +80,7 @@ export default function MobilitySolutionsPage() {
   const [groupedSolutions, setGroupedSolutions] = useState<Record<string, MobilitySolution[]>>({});
   
   // Get store data
-  const { selectedReasons, selectedSolutions, toggleSolution } = useWizardStore();
+  const { selectedReasons, selectedSolutions, toggleSolution, setSelectedSolutions, resetWizard } = useWizardStore();
   
   // Fetch mobility solutions and reasons data
   const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
@@ -244,6 +245,8 @@ export default function MobilitySolutionsPage() {
   // Log selectedSolutions voor debug doeleinden
   console.log("Geselecteerde oplossingen:", selectedSolutions);
   
+  const router = useRouter();
+  
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -375,6 +378,32 @@ export default function MobilitySolutionsPage() {
         </div>
       </div>
       
+      {/* Debug informatie en reset knop */}
+      <div className="bg-gray-100 p-4 rounded-md mb-8">
+        <h3 className="text-lg font-semibold mb-2">Debug Informatie</h3>
+        <p>Geselecteerde oplossingen: {selectedSolutions.length > 0 ? selectedSolutions.join(', ') : 'Geen'}</p>
+        <div className="mt-4 flex space-x-4">
+          <button
+            onClick={() => {
+              setSelectedSolutions([]);
+              console.log("Mobiliteitsoplossingen gereset");
+            }}
+            className="px-3 py-1 text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Reset selecties
+          </button>
+          <button
+            onClick={() => {
+              resetWizard();
+              console.log("Volledige wizard gereset");
+            }}
+            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-700 hover:bg-red-200"
+          >
+            Reset hele wizard
+          </button>
+        </div>
+      </div>
+      
       {!hasSelectedSolutions && (
         <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-md text-yellow-800 mb-4">
           <div className="flex items-start">
@@ -388,11 +417,49 @@ export default function MobilitySolutionsPage() {
         </div>
       )}
       
-      <WizardNavigation
-        previousStep="/wizard/stap-1"
-        nextStep={hasSelectedSolutions ? "/wizard/stap-3" : undefined}
-        isNextDisabled={!hasSelectedSolutions}
-      />
+      {selectedSolutions.length > 0 && (
+        <div className="text-right mb-4">
+          <button
+            onClick={() => {
+              setSelectedSolutions([]);
+              console.log("Alle mobiliteitsoplossingen gereset");
+            }}
+            className="px-3 py-1 text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
+          >
+            Reset selecties
+          </button>
+        </div>
+      )}
+      
+      <div className="flex justify-between mt-8">
+        <button
+          onClick={() => router.push("/wizard/stap-1")}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Vorige stap
+        </button>
+
+        <button
+          onClick={() => {
+            if (hasSelectedSolutions) {
+              console.log("Navigating to next step, solutions selected:", selectedSolutions);
+              router.push("/wizard/stap-3");
+            } else {
+              console.log("Cannot navigate, no solutions selected");
+              // Optioneel: toon een melding of markeer de waarschuwing duidelijker
+            }
+          }}
+          disabled={!hasSelectedSolutions}
+          className={`px-4 py-2 rounded-md ${
+            !hasSelectedSolutions
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+          }`}
+          aria-disabled={!hasSelectedSolutions}
+        >
+          Volgende stap
+        </button>
+      </div>
     </div>
   );
 } 
