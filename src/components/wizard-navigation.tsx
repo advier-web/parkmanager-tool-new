@@ -15,6 +15,9 @@ export function WizardNavigation({
 }: WizardNavigationProps) {
   const router = useRouter();
 
+  // Log de state bij elke render voor debugging
+  console.log("[WizardNavigation] Props:", { previousStep, nextStep, isNextDisabled });
+
   const handlePrevious = () => {
     if (previousStep) {
       router.push(previousStep);
@@ -22,7 +25,16 @@ export function WizardNavigation({
   };
 
   const handleNext = () => {
-    if (nextStep && !isNextDisabled) {
+    console.log("[WizardNavigation] handleNext called, isNextDisabled:", isNextDisabled);
+    
+    // Extra controle om dubbel te checken dat we niet kunnen navigeren als isNextDisabled true is
+    if (isNextDisabled) {
+      console.log("[WizardNavigation] Navigatie geblokkeerd omdat isNextDisabled true is");
+      return; // Stop verdere uitvoering
+    }
+    
+    if (nextStep) {
+      console.log("[WizardNavigation] Navigeren naar:", nextStep);
       router.push(nextStep);
     }
   };
@@ -50,6 +62,7 @@ export function WizardNavigation({
               : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
           }`}
           aria-disabled={isNextDisabled}
+          type="button"
         >
           Volgende stap
         </button>

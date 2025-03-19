@@ -241,6 +241,9 @@ export default function MobilitySolutionsPage() {
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
   
+  // Log selectedSolutions voor debug doeleinden
+  console.log("Geselecteerde oplossingen:", selectedSolutions);
+  
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
