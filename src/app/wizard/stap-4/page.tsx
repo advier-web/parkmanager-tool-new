@@ -84,19 +84,28 @@ export default function ImplementationPlanPage() {
         
         // Check if it's a file asset
         if (link.fields.file && link.fields.file.url) {
-          // Contentful assets need https: prepended to URLs
-          url = `https:${link.fields.file.url}`;
+          // Contentful assets need https: prepended to URLs if they don't have it
+          const fileUrl = link.fields.file.url;
+          url = fileUrl.startsWith('//') ? `https:${fileUrl}` : fileUrl;
+          console.log('File asset URL:', url);
         } else if (link.fields.url) {
           // Regular URL field
           url = link.fields.url;
+          console.log('URL field:', url);
         } else if (link.fields.uri) {
           // Try URI field as fallback
           url = link.fields.uri;
+          console.log('URI field:', url);
         }
+      } else if (link.sys && link.sys.id) {
+        // It might be a direct reference without fields expanded
+        text = link.sys.id;
+        url = '#';
+        console.log('Reference ID found:', link.sys.id);
       }
     }
     
-    console.log('Processing link:', { link, url, text });
+    console.log('Processing link:', { original: link, processedUrl: url, displayText: text });
     
     return (
       <li key={index}>
@@ -223,19 +232,21 @@ export default function ImplementationPlanPage() {
                 )}
                 
                 {/* Benodigdheden Oprichting */}
-                {selectedGovernanceModelData.benodigdhedenOprichting && isNonEmptyArray(selectedGovernanceModelData.benodigdhedenOprichting) && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiListCheck className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
-                    </div>
+                <div className="mb-6">
+                  <div className="flex items-center mb-2">
+                    <BiListCheck className="text-blue-600 text-xl mr-2" />
+                    <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
+                  </div>
+                  {(selectedGovernanceModelData.benodigdhedenOprichting && isNonEmptyArray(selectedGovernanceModelData.benodigdhedenOprichting)) ? (
                     <ul className="list-disc pl-12 text-gray-700">
                       {selectedGovernanceModelData.benodigdhedenOprichting.map((item, index) => 
                         renderBenodigdheid(item, index)
                       )}
                     </ul>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>
+                  )}
+                </div>
                 
                 {/* Doorlooptijd */}
                 {selectedGovernanceModelData.doorlooptijd && (
@@ -263,45 +274,49 @@ export default function ImplementationPlanPage() {
                   </div>
                 )}
                 
-                {/* Links */}
-                {(selectedGovernanceModelData.links && (
-                  Array.isArray(selectedGovernanceModelData.links) ? 
-                  selectedGovernanceModelData.links.length > 0 : 
-                  selectedGovernanceModelData.links !== null
-                )) && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiLinkExternal className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Links</h4>
-                    </div>
+                {/* Links - Always show this section */}
+                <div className="mb-6">
+                  <div className="flex items-center mb-2">
+                    <BiLinkExternal className="text-blue-600 text-xl mr-2" />
+                    <h4 className="text-lg font-semibold">Links</h4>
+                  </div>
+                  {(selectedGovernanceModelData.links && (
+                    Array.isArray(selectedGovernanceModelData.links) ? 
+                    selectedGovernanceModelData.links.length > 0 : 
+                    selectedGovernanceModelData.links !== null
+                  )) ? (
                     <ul className="list-disc pl-12 text-gray-700">
                       {Array.isArray(selectedGovernanceModelData.links) ? 
                         selectedGovernanceModelData.links.map((link, index) => 
                           renderLink(link, index)
                         ) : renderLink(selectedGovernanceModelData.links, 0)}
                     </ul>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>
+                  )}
+                </div>
                 
                 {/* Voorbeeld Contracten */}
-                {(selectedGovernanceModelData.voorbeeldContracten && (
-                  Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? 
-                  selectedGovernanceModelData.voorbeeldContracten.length > 0 : 
-                  selectedGovernanceModelData.voorbeeldContracten !== null
-                )) && (
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiFile className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
-                    </div>
+                <div className="mb-6">
+                  <div className="flex items-center mb-2">
+                    <BiFile className="text-blue-600 text-xl mr-2" />
+                    <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
+                  </div>
+                  {(selectedGovernanceModelData.voorbeeldContracten && (
+                    Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? 
+                    selectedGovernanceModelData.voorbeeldContracten.length > 0 : 
+                    selectedGovernanceModelData.voorbeeldContracten !== null
+                  )) ? (
                     <ul className="list-disc pl-12 text-gray-700">
                       {Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? 
                         selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => 
                           renderLink(contract, index)
                         ) : renderLink(selectedGovernanceModelData.voorbeeldContracten, 0)}
                     </ul>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-500 italic pl-7">Geen voorbeeldcontracten beschikbaar</p>
+                  )}
+                </div>
               </div>
             )}
             
