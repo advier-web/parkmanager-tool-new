@@ -63,11 +63,8 @@ export default function BusinessParkInfoPage() {
   };
   
   // Check if form is valid for navigation
-  const isFormValid = 
-    businessParkInfo.numberOfCompanies > 0 && 
-    businessParkInfo.numberOfEmployees > 0 && 
-    (businessParkInfo.trafficTypes?.length ?? 0) > 0 &&
-    currentGovernanceModelId !== null;
+  // Alle velden zijn nu optioneel
+  const isFormValid = true;
   
   return (
     <div className="space-y-8">
