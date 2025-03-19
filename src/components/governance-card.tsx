@@ -19,11 +19,6 @@ export function GovernanceCard({
   isCurrent = false,
   onMoreInfo
 }: GovernanceCardProps) {
-  // Helper function for rendering list items with markdown support
-  const renderListItem = (text: string, index: number) => {
-    return <li key={index}><MarkdownContent content={processMarkdownText(text)} /></li>;
-  };
-
   return (
     <div
       className={`
@@ -78,83 +73,6 @@ export function GovernanceCard({
           <div className="text-gray-600 mt-2 mb-4">
             <MarkdownContent content={processMarkdownText(model.summary || model.description)} />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <h4 className="text-sm font-semibold mb-1">Voordelen:</h4>
-              <ul className="list-disc pl-5 text-sm text-gray-600">
-                {Array.isArray(model.advantages) && model.advantages.length > 0 ? 
-                  model.advantages.map((advantage, index) => renderListItem(advantage, index)) : 
-                  <li>Informatie beschikbaar via 'Meer informatie'</li>
-                }
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-semibold mb-1">Nadelen:</h4>
-              <ul className="list-disc pl-5 text-sm text-gray-600">
-                {Array.isArray(model.disadvantages) && model.disadvantages.length > 0 ? 
-                  model.disadvantages.map((disadvantage, index) => renderListItem(disadvantage, index)) : 
-                  <li>Informatie beschikbaar via 'Meer informatie'</li>
-                }
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold mb-1">Toepasselijke scenario&apos;s:</h4>
-            <ul className="list-disc pl-5 text-sm text-gray-600">
-              {Array.isArray(model.applicableScenarios) && model.applicableScenarios.length > 0 ? 
-                model.applicableScenarios.map((scenario, index) => renderListItem(scenario, index)) : 
-                <li>Informatie beschikbaar via 'Meer informatie'</li>
-              }
-            </ul>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            {model.organizationalStructure && (
-              <div>
-                <span className="font-semibold">Organisatiestructuur:</span>{' '}
-                <span className="text-gray-600">
-                  <MarkdownContent 
-                    content={processMarkdownText(model.organizationalStructure)} 
-                    className="inline-block"
-                  />
-                </span>
-              </div>
-            )}
-            
-            {model.legalForm && (
-              <div>
-                <span className="font-semibold">Rechtsvorm:</span>{' '}
-                <span className="text-gray-600">
-                  <MarkdownContent 
-                    content={processMarkdownText(model.legalForm)} 
-                    className="inline-block"
-                  />
-                </span>
-              </div>
-            )}
-          </div>
-          
-          {model.stakeholders && model.stakeholders.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-semibold mb-1">Belanghebbenden:</h4>
-              <div className="flex flex-wrap gap-2">
-                {Array.isArray(model.stakeholders) ? 
-                  model.stakeholders.map((stakeholder, index) => (
-                    <span 
-                      key={index}
-                      className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full"
-                    >
-                      {stakeholder}
-                    </span>
-                  )) : 
-                  <span className="text-sm text-gray-600">Informatie beschikbaar via 'Meer informatie'</span>
-                }
-              </div>
-            </div>
-          )}
           
           <div className="flex items-center justify-between mt-6 pt-3 border-t">
             {/* More info button */}
