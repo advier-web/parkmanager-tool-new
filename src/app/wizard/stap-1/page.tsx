@@ -27,8 +27,7 @@ export default function BusinessParkReasonsPage() {
     }
   }, [reasons]);
   
-  // Check if any reasons are selected
-  const hasSelectedReasons = selectedReasons.length > 0;
+  // We don't check for selected reasons anymore, users can proceed without selecting
   
   return (
     <div className="space-y-8">
@@ -65,7 +64,7 @@ export default function BusinessParkReasonsPage() {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Selecteer minimaal één reden om door te gaan</span>
+                <span>U kunt redenen selecteren, maar dit is niet verplicht</span>
               </div>
             </div>
           </div>
@@ -121,7 +120,6 @@ export default function BusinessParkReasonsPage() {
       <WizardNavigation
         previousStep="/wizard"
         nextStep="/wizard/stap-2"
-        isNextDisabled={!hasSelectedReasons}
       />
     </div>
   );

@@ -38,6 +38,12 @@ export function WizardProgress() {
       return true;
     }
     
+    // Sta altijd toe om van stap 0 naar stap 1 of van stap 1 naar stap 2 te gaan
+    if ((currentStepIndex === 0 && stepIndex === 1) || 
+        (currentStepIndex === 1 && stepIndex === 2)) {
+      return false;
+    }
+    
     // Sta toe om naar de volgende stap te gaan, maar niet verder
     return stepIndex > currentStepIndex + 1;
   };
