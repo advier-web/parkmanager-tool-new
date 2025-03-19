@@ -391,20 +391,6 @@ export default function MobilitySolutionsPage() {
         </div>
       )}
       
-      {selectedSolutions.length > 0 && (
-        <div className="text-right mb-4">
-          <button
-            onClick={() => {
-              setSelectedSolutions([]);
-              console.log("Alle mobiliteitsoplossingen gereset");
-            }}
-            className="px-3 py-1 text-sm rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300"
-          >
-            Reset selecties
-          </button>
-        </div>
-      )}
-      
       <div className="flex justify-between mt-8">
         <button
           onClick={() => router.push("/wizard/stap-1")}
