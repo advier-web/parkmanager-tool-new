@@ -75,10 +75,13 @@ export default function ImplementationPlanPage() {
     let url = '#';
     let text = 'Link';
     
+    console.log('Processing link:', link);
+
     if (typeof link === 'string') {
       url = link;
       text = link;
     } else if (link && typeof link === 'object') {
+      // Case 1: Standard Contentful entry with fields
       if (link.fields) {
         text = link.fields.title || link.fields.name || 'Link';
         
@@ -97,15 +100,26 @@ export default function ImplementationPlanPage() {
           url = link.fields.uri;
           console.log('URI field:', url);
         }
-      } else if (link.sys && link.sys.id) {
-        // It might be a direct reference without fields expanded
+      } 
+      // Case 2: It's a direct reference without fields expanded
+      else if (link.sys && link.sys.id) {
         text = link.sys.id;
         url = '#';
         console.log('Reference ID found:', link.sys.id);
       }
+      // Case 3: It might be a rich text node with a URL
+      else if (link.data && link.data.uri) {
+        url = link.data.uri;
+        text = link.content?.[0]?.value || url;
+      }
+      // Case 4: It might be an embedded asset
+      else if (link.data && link.data.target && link.data.target.sys && link.data.target.sys.linkType === 'Asset') {
+        text = 'Embedded Asset';
+        url = `https://api.contentful.com/spaces/${process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID}/assets/${link.data.target.sys.id}`;
+      }
     }
     
-    console.log('Processing link:', { original: link, processedUrl: url, displayText: text });
+    console.log('Link processed:', { processedUrl: url, displayText: text });
     
     return (
       <li key={index}>
@@ -123,11 +137,19 @@ export default function ImplementationPlanPage() {
   const renderBenodigdheid = (item: any, index: number) => {
     let text = '';
     
+    console.log('Rendering benodigdheid item:', item);
+
     if (typeof item === 'string') {
       text = item;
     } else if (item && typeof item === 'object') {
       if (item.fields) {
-        text = item.fields.title || item.fields.name || JSON.stringify(item);
+        text = item.fields.title || item.fields.name || item.fields.value || JSON.stringify(item);
+      } else if (item.content) {
+        // Handle rich text content format
+        text = item.content?.map((c: any) => c.content?.[0]?.value || '').join(' ');
+      } else if (item.nodeType === 'document' && Array.isArray(item.content)) {
+        // Another rich text format
+        text = 'Rich text content'; // Use a placeholder for rich text
       } else {
         text = JSON.stringify(item);
       }
@@ -195,7 +217,9 @@ export default function ImplementationPlanPage() {
                 <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan bestuursmodel</h3>
                 
                 {/* Debug info - remove in production */}
-                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: 'none' }}>
+                <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}>
+                  <h5 className="font-bold">Debug Info (only visible in development)</h5>
+                  <p>Links:</p>
                   <pre>{JSON.stringify({ 
                     hasLinks: !!selectedGovernanceModelData.links,
                     linksType: selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined',
@@ -203,6 +227,24 @@ export default function ImplementationPlanPage() {
                     length: selectedGovernanceModelData.links ? selectedGovernanceModelData.links.length : 0,
                     linksData: selectedGovernanceModelData.links
                   }, null, 2)}</pre>
+                  
+                  <p className="mt-2">Benodigdheden:</p>
+                  <pre>{JSON.stringify({ 
+                    hasBenodigdheden: !!selectedGovernanceModelData.benodigdhedenOprichting,
+                    benodigdhedenType: selectedGovernanceModelData.benodigdhedenOprichting 
+                      ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
+                      : 'undefined',
+                    isArray: Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting),
+                    length: selectedGovernanceModelData.benodigdhedenOprichting 
+                      ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
+                        ? selectedGovernanceModelData.benodigdhedenOprichting.length 
+                        : 'not an array') 
+                      : 0,
+                    benodigdhedenData: selectedGovernanceModelData.benodigdhedenOprichting
+                  }, null, 2)}</pre>
+                  
+                  <p className="mt-2">Complete Model:</p>
+                  <pre>{JSON.stringify(selectedGovernanceModelData, null, 2)}</pre>
                 </div>
                 
                 {/* Samenvatting */}
@@ -237,15 +279,100 @@ export default function ImplementationPlanPage() {
                     <BiListCheck className="text-blue-600 text-xl mr-2" />
                     <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
                   </div>
-                  {(selectedGovernanceModelData.benodigdhedenOprichting && isNonEmptyArray(selectedGovernanceModelData.benodigdhedenOprichting)) ? (
-                    <ul className="list-disc pl-12 text-gray-700">
-                      {selectedGovernanceModelData.benodigdhedenOprichting.map((item, index) => 
-                        renderBenodigdheid(item, index)
-                      )}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>
-                  )}
+                  
+                  {(() => {
+                    const benodigdheden = selectedGovernanceModelData.benodigdhedenOprichting;
+                    
+                    // Check if exists
+                    if (!benodigdheden) {
+                      return <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>;
+                    }
+                    
+                    // Case 1: It's an array
+                    if (Array.isArray(benodigdheden)) {
+                      if (benodigdheden.length === 0) {
+                        return <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>;
+                      }
+                      
+                      return (
+                        <ul className="list-disc pl-12 text-gray-700">
+                          {benodigdheden.map((item, index) => renderBenodigdheid(item, index))}
+                        </ul>
+                      );
+                    }
+                    
+                    // Case 2: It's a string with newlines - treat each line as a separate item
+                    if (typeof benodigdheden === 'string') {
+                      const lines = benodigdheden.split('\n').filter(line => line.trim() !== '');
+                      
+                      if (lines.length === 0) {
+                        return <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>;
+                      }
+                      
+                      return (
+                        <ul className="list-disc pl-12 text-gray-700">
+                          {lines.map((line, index) => <li key={index}>{line.trim()}</li>)}
+                        </ul>
+                      );
+                    }
+                    
+                    // Case 3: It's a rich text object from Contentful
+                    if (typeof benodigdheden === 'object') {
+                      // For rich text, render as markdown
+                      if (benodigdheden.nodeType === 'document' && Array.isArray(benodigdheden.content)) {
+                        // Attempt to extract items from rich text content if it seems to have list items
+                        const items = [];
+                        try {
+                          // Try to find list items in the rich text
+                          benodigdheden.content.forEach((block: any) => {
+                            // If it's a list
+                            if (block.nodeType === 'unordered-list' && Array.isArray(block.content)) {
+                              block.content.forEach((listItem: any) => {
+                                if (listItem.nodeType === 'list-item' && listItem.content?.[0]?.content?.[0]?.value) {
+                                  items.push(listItem.content[0].content[0].value);
+                                }
+                              });
+                            } 
+                            // If it's a paragraph that might contain list-like content
+                            else if (block.nodeType === 'paragraph' && block.content?.[0]?.value) {
+                              // Split by newlines or bullet points if it looks like a list
+                              const text = block.content[0].value;
+                              if (text.includes('\n') || text.includes('•') || text.includes('-')) {
+                                text.split(/[\n•-]/).forEach((part: string) => {
+                                  if (part.trim()) items.push(part.trim());
+                                });
+                              } else {
+                                items.push(text);
+                              }
+                            }
+                          });
+                        } catch (e) {
+                          console.error('Error parsing rich text benodigdheden:', e);
+                        }
+                        
+                        if (items.length > 0) {
+                          return (
+                            <ul className="list-disc pl-12 text-gray-700">
+                              {items.map((item, index) => <li key={index}>{item}</li>)}
+                            </ul>
+                          );
+                        }
+                        
+                        // Fallback: Just show the full rich text
+                        return (
+                          <div className="pl-7 text-gray-700">
+                            <MarkdownContent content={JSON.stringify(benodigdheden)} />
+                          </div>
+                        );
+                      }
+                      
+                      // Fallback for other object types: stringify and hope for the best
+                      return <p className="text-gray-700 pl-7">{JSON.stringify(benodigdheden)}</p>;
+                    }
+                    
+                    // Last fallback
+                    return <p className="text-gray-500 italic pl-7">Geen benodigdheden beschikbaar</p>;
+                  })()}
                 </div>
                 
                 {/* Doorlooptijd */}
@@ -280,20 +407,58 @@ export default function ImplementationPlanPage() {
                     <BiLinkExternal className="text-blue-600 text-xl mr-2" />
                     <h4 className="text-lg font-semibold">Links</h4>
                   </div>
-                  {(selectedGovernanceModelData.links && (
-                    Array.isArray(selectedGovernanceModelData.links) ? 
-                    selectedGovernanceModelData.links.length > 0 : 
-                    selectedGovernanceModelData.links !== null
-                  )) ? (
-                    <ul className="list-disc pl-12 text-gray-700">
-                      {Array.isArray(selectedGovernanceModelData.links) ? 
-                        selectedGovernanceModelData.links.map((link, index) => 
-                          renderLink(link, index)
-                        ) : renderLink(selectedGovernanceModelData.links, 0)}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>
-                  )}
+                  
+                  {(() => {
+                    const links = selectedGovernanceModelData.links;
+                    
+                    // Check if exists
+                    if (!links) {
+                      return <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>;
+                    }
+                    
+                    // Case 1: It's an array
+                    if (Array.isArray(links)) {
+                      if (links.length === 0) {
+                        return <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>;
+                      }
+                      
+                      return (
+                        <ul className="list-disc pl-12 text-gray-700">
+                          {links.map((link, index) => renderLink(link, index))}
+                        </ul>
+                      );
+                    }
+                    
+                    // Case 2: It's a string (single link)
+                    if (typeof links === 'string') {
+                      return (
+                        <ul className="list-disc pl-12 text-gray-700">
+                          <li>
+                            <a 
+                              href={links} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-blue-600 hover:underline"
+                            >
+                              {links}
+                            </a>
+                          </li>
+                        </ul>
+                      );
+                    }
+                    
+                    // Case 3: It's an object (single link reference)
+                    if (typeof links === 'object' && !Array.isArray(links)) {
+                      return (
+                        <ul className="list-disc pl-12 text-gray-700">
+                          {renderLink(links, 0)}
+                        </ul>
+                      );
+                    }
+                    
+                    // Last fallback
+                    return <p className="text-gray-500 italic pl-7">Geen links beschikbaar</p>;
+                  })()}
                 </div>
                 
                 {/* Voorbeeld Contracten */}
