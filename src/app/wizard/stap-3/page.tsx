@@ -134,22 +134,26 @@ export default function GovernanceModelsPage() {
           </div>
         )}
         
-        {/* Current Governance Model Section (if it's recommended) */}
-        {!isLoading && currentModel && currentModelIsRecommended && (
+        {/* Current Governance Model Section (always at the top) */}
+        {!isLoading && currentModel && (
           <div className="mb-8">
-            <div className="bg-green-50 p-4 rounded-t-md border border-green-200">
-              <h3 className="text-xl font-semibold text-green-800">Uw huidige governance model</h3>
-              <p className="text-green-700 mt-1">
-                Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde mobiliteitsoplossingen.
+            <div className={`p-4 rounded-t-md border ${currentModelIsRecommended ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+              <h3 className={`text-xl font-semibold ${currentModelIsRecommended ? 'text-green-800' : 'text-yellow-800'}`}>
+                Uw huidige governance model
+              </h3>
+              <p className={`mt-1 ${currentModelIsRecommended ? 'text-green-700' : 'text-yellow-700'}`}>
+                {currentModelIsRecommended 
+                  ? 'Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde mobiliteitsoplossingen.'
+                  : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde mobiliteitsoplossingen. Overweeg één van de aanbevolen modellen hieronder.'}
               </p>
             </div>
-            <div className="border-x border-b border-green-200 p-1 rounded-b-md">
+            <div className={`border-x border-b p-1 rounded-b-md ${currentModelIsRecommended ? 'border-green-200' : 'border-yellow-200'}`}>
               <GovernanceCard
                 key={currentModel.id}
                 model={currentModel}
                 isSelected={selectedGovernanceModel === currentModel.id}
                 onSelect={handleSelectModel}
-                isRecommended={true}
+                isRecommended={currentModelIsRecommended}
                 isCurrent={true}
               />
             </div>
@@ -159,9 +163,7 @@ export default function GovernanceModelsPage() {
         {/* Recommended Governance Models Section */}
         {!isLoading && getOtherRecommendedModels().length > 0 && (
           <div className="mb-10">
-            <h3 className="text-xl font-semibold mb-4 text-green-700">
-              {currentModelIsRecommended ? 'Andere aanbevolen governance modellen' : 'Aanbevolen governance modellen'}
-            </h3>
+            <h3 className="text-xl font-semibold mb-4 text-green-700">Aanbevolen governance modellen</h3>
             <p className="text-sm text-gray-600 mb-4">
               Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
             </p>
@@ -175,29 +177,6 @@ export default function GovernanceModelsPage() {
                   isRecommended={true}
                 />
               ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Current Governance Model Section (if it's NOT recommended) */}
-        {!isLoading && currentModel && !currentModelIsRecommended && (
-          <div className="mb-8">
-            <div className="bg-yellow-50 p-4 rounded-t-md border border-yellow-200">
-              <h3 className="text-xl font-semibold text-yellow-800">Uw huidige governance model</h3>
-              <p className="text-yellow-700 mt-1">
-                Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde mobiliteitsoplossingen. 
-                Overweeg één van de aanbevolen modellen hierboven.
-              </p>
-            </div>
-            <div className="border-x border-b border-yellow-200 p-1 rounded-b-md">
-              <GovernanceCard
-                key={currentModel.id}
-                model={currentModel}
-                isSelected={selectedGovernanceModel === currentModel.id}
-                onSelect={handleSelectModel}
-                isRecommended={false}
-                isCurrent={true}
-              />
             </div>
           </div>
         )}
