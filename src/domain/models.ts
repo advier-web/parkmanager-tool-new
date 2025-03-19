@@ -18,6 +18,7 @@ export interface MobilitySolution {
   id: string;
   title: string;
   description: string;
+  summary?: string;
   benefits: string[];
   challenges: string[];
   implementationTime: string; // e.g., "kort", "middellang", "lang"

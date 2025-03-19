@@ -8,8 +8,15 @@ import { WizardNavigation } from '../../../components/wizard-navigation';
 import { FilterPanel } from '../../../components/filter-panel';
 import { groupBy } from '../../../utils/helper';
 import { MobilitySolution } from '../../../domain/models';
+import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
+import { shouldUseContentful } from '../../../utils/env';
 
 export default function MobilitySolutionsPage() {
+  // Use the debug hook to log content types if using Contentful
+  if (shouldUseContentful()) {
+    useContentfulContentTypes();
+  }
+  
   const { data: allSolutions, isLoading, error } = useMobilitySolutions();
   const { data: reasons } = useBusinessParkReasons();
   const { selectedReasons, selectedSolutions, toggleSolution } = useWizardStore();
@@ -18,6 +25,13 @@ export default function MobilitySolutionsPage() {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [filteredSolutions, setFilteredSolutions] = useState<MobilitySolution[] | null>(null);
   const [groupedSolutions, setGroupedSolutions] = useState<Record<string, typeof filteredSolutions>>({});
+  
+  // Log error details for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Mobility solutions error details:', error);
+    }
+  }, [error]);
   
   // Initialiseer activeFilters met de selectedReasons uit stap 1
   useEffect(() => {
@@ -131,8 +145,11 @@ export default function MobilitySolutionsPage() {
             )}
             
             {error && (
-              <div className="bg-red-50 p-4 rounded-md">
+              <div className="bg-red-50 p-4 rounded-md space-y-2">
                 <p className="text-red-600">Er is een fout opgetreden bij het laden van de mobiliteitsoplossingen.</p>
+                <p className="text-red-500 text-sm">
+                  De mobiliteitsoplossingen worden tijdelijk geladen vanuit mock data.
+                </p>
               </div>
             )}
             

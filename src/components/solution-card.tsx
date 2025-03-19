@@ -29,7 +29,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect }: SolutionC
             <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
-          <p className="text-gray-600 mb-4">{solution.description}</p>
+          <p className="text-gray-600 mb-4">{solution.summary || solution.description}</p>
           
           <div className="flex flex-col gap-2 mb-4">
             <div>

@@ -14,9 +14,13 @@ export function shouldUseContentful(): boolean {
   
   // Client-side
   // Probeer eerst uit localStorage (gebruikt door de testpagina toggle)
-  const localStorageSetting = localStorage.getItem('USE_CONTENTFUL');
-  if (localStorageSetting !== null) {
-    return localStorageSetting === 'true';
+  try {
+    const localStorageSetting = localStorage.getItem('USE_CONTENTFUL');
+    if (localStorageSetting !== null) {
+      return localStorageSetting === 'true';
+    }
+  } catch (error) {
+    console.warn('Could not access localStorage:', error);
   }
   
   // Fallback naar env var
