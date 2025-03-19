@@ -11,6 +11,7 @@ export interface BusinessParkReason {
   summary?: string;
   icon?: string;
   category?: string;
+  identifier?: string; // Identifier die overeenkomt met veldnamen in MobilitySolution rating velden
 }
 
 // Mobiliteitsoplossingen
@@ -28,6 +29,13 @@ export interface MobilitySolution {
   
   // Implementation plan field
   implementatie?: string;
+  
+  // Rating fields (0-10)
+  parkeer_bereikbaarheidsproblemen?: number;
+  gezondheid?: number;
+  personeelszorg_en_behoud?: number;
+  imago?: number;
+  milieuverordening?: number;
 }
 
 // Governance modellen

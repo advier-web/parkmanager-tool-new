@@ -24,6 +24,7 @@ export interface IBusinessParkReasonFields {
   samenvatting?: string;
   icon?: string;
   category?: string;
+  identifier?: string;
 }
 
 export interface IBusinessParkReason extends EntrySkeletonType<IBusinessParkReasonFields> {
@@ -42,6 +43,11 @@ export interface IMobilitySolutionFields {
   summary?: string;
   samenvatting?: string;
   implementatie?: string;
+  parkeer_bereikbaarheidsproblemen?: number;
+  gezondheid?: number;
+  personeelszorg_en_behoud?: number;
+  imago?: number;
+  milieuverordening?: number;
 }
 
 export interface IMobilitySolution extends EntrySkeletonType<IMobilitySolutionFields> {

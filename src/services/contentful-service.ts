@@ -93,11 +93,11 @@ export async function getMobilitySolutionsFromContentful(
     // Log available content types first
     const client = getContentfulClient(options.preview);
     
-    console.log('Attempting to fetch mobility solutions from Contentful');
+    console.log('[CONTENTFUL] Attempting to fetch mobility solutions from Contentful');
     
     // First get all content types to see what's available
     const contentTypes = await client.getContentTypes();
-    console.log('Available Contentful content types:');
+    console.log('[CONTENTFUL] Available Contentful content types:');
     const availableContentTypes = contentTypes.items.map(ct => ct.sys.id);
     console.log(availableContentTypes);
     
@@ -107,11 +107,11 @@ export async function getMobilitySolutionsFromContentful(
     );
     
     if (mobilityContentTypes.length > 0) {
-      console.log('Found potential mobility content types:', mobilityContentTypes);
+      console.log('[CONTENTFUL] Found potential mobility content types:', mobilityContentTypes);
       
       // Try the first matching content type
       const contentTypeId = mobilityContentTypes[0];
-      console.log(`Trying content type: ${contentTypeId}`);
+      console.log(`[CONTENTFUL] Trying content type: ${contentTypeId}`);
       
       const queryParams: any = {
         content_type: contentTypeId,
@@ -120,36 +120,46 @@ export async function getMobilitySolutionsFromContentful(
       };
       
       const response = await client.getEntries(queryParams);
-      console.log(`Found ${response.items.length} entries with content type ${contentTypeId}`);
+      console.log(`[CONTENTFUL] Found ${response.items.length} entries with content type ${contentTypeId}`);
       
       if (response.items.length > 0) {
-        // Manually map to domain model since types might not match exactly
-        return response.items.map(item => {
-          const fields = (item.fields as any) || {};
-          return {
-            id: item.sys.id,
-            title: fields.title || fields.name || 'Unnamed Solution',
-            description: fields.description || '',
-            summary: fields.summary || fields.samenvatting || '',
-            benefits: Array.isArray(fields.benefits) ? fields.benefits : [],
-            challenges: Array.isArray(fields.challenges) ? fields.challenges : [],
-            implementationTime: fields.implementationTime || '',
-            costs: fields.costs || '',
-            category: fields.category || 'overig',
-            icon: fields.icon || undefined,
-            implementatie: fields.implementatie || ''
-          };
+        // Log de velden van de eerste oplossing
+        const firstItem = response.items[0];
+        console.log('[CONTENTFUL] First solution fields from Contentful:');
+        Object.entries(firstItem.fields).forEach(([key, value]) => {
+          console.log(`  ${key}: ${value} (type: ${typeof value})`);
         });
+        
+        // Log specifiek voor Gezondheid
+        if (response.items.some(item => 
+            (item.fields as any).title && 
+            (item.fields as any).title.includes('deelfiets'))) {
+          console.log('[CONTENTFUL-IMPORTANT] Found deelfiets solution, checking score fields:');
+          const deelfietsItem = response.items.find(item => 
+            (item.fields as any).title && 
+            (item.fields as any).title.includes('deelfiets'));
+          
+          if (deelfietsItem) {
+            Object.entries(deelfietsItem.fields).forEach(([key, value]) => {
+              if (typeof value === 'number') {
+                console.log(`  [SCORE] ${key}: ${value}`);
+              }
+            });
+          }
+        }
+        
+        // Manually map to domain model since types might not match exactly
+        return response.items.map(item => transformMobilitySolution(item as unknown as Entry<IMobilitySolution>));
       }
     }
     
     // If we get here, we couldn't find suitable content type or entries
-    console.log('Could not find suitable mobility solutions in Contentful, falling back to mock data');
+    console.log('[CONTENTFUL] Could not find suitable mobility solutions in Contentful, falling back to mock data');
     
     // Throw an error to trigger the fallback to mock data
     throw new Error('No suitable mobility solutions found in Contentful');
   } catch (error) {
-    console.error('Error fetching mobility solutions:', error);
+    console.error('[CONTENTFUL] Error fetching mobility solutions:', error);
     throw handleContentfulError(error);
   }
 }

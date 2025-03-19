@@ -16,28 +16,32 @@ export const mockBusinessParkReasons: BusinessParkReason[] = [
     title: 'Verbeteren bereikbaarheid',
     description: 'Verbeteren van de bereikbaarheid van het bedrijfsterrein voor medewerkers, klanten en leveranciers.',
     icon: 'road',
-    category: 'bereikbaarheid'
+    category: 'bereikbaarheid',
+    identifier: 'parkeer_bereikbaarheidsproblemen'
   },
   {
     id: 'reason-2',
     title: 'Duurzaamheidsdoelen',
     description: 'Bijdragen aan duurzaamheidsdoelen door het verminderen van CO2-uitstoot en stimuleren van duurzaam vervoer.',
     icon: 'leaf',
-    category: 'duurzaamheid'
+    category: 'duurzaamheid',
+    identifier: 'milieuverordening'
   },
   {
     id: 'reason-3',
     title: 'Parkeeroverlast verminderen',
     description: 'Aanpakken van parkeeroverlast op en rondom het bedrijfsterrein.',
     icon: 'parking',
-    category: 'bereikbaarheid'
+    category: 'bereikbaarheid',
+    identifier: 'parkeer_bereikbaarheidsproblemen'
   },
   {
     id: 'reason-4',
     title: 'Werkgeversaantrekkelijkheid',
     description: 'Verbeteren van de aantrekkelijkheid van het bedrijfsterrein als werklocatie.',
     icon: 'users',
-    category: 'aantrekkelijkheid'
+    category: 'aantrekkelijkheid',
+    identifier: 'personeelszorg_en_behoud'
   }
 ];
 
@@ -54,7 +58,12 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     implementationTime: 'kort',
     costs: 'middel',
     category: 'fiets',
-    icon: 'bike'
+    icon: 'bike',
+    parkeer_bereikbaarheidsproblemen: 6,
+    gezondheid: 9,
+    personeelszorg_en_behoud: 7,
+    imago: 8,
+    milieuverordening: 5
   },
   {
     id: 'solution-2',
@@ -65,7 +74,12 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     implementationTime: 'middellang',
     costs: 'hoog',
     category: 'openbaar vervoer',
-    icon: 'bus'
+    icon: 'bus',
+    parkeer_bereikbaarheidsproblemen: 9,
+    gezondheid: 5,
+    personeelszorg_en_behoud: 6,
+    imago: 7,
+    milieuverordening: 8
   },
   {
     id: 'solution-3',
@@ -76,7 +90,12 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     implementationTime: 'kort',
     costs: 'laag',
     category: 'auto',
-    icon: 'car'
+    icon: 'car',
+    parkeer_bereikbaarheidsproblemen: 8,
+    gezondheid: 4,
+    personeelszorg_en_behoud: 7,
+    imago: 6,
+    milieuverordening: 7
   }
 ];
 

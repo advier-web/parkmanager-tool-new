@@ -86,23 +86,25 @@ export function FilterPanel({
             </button>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
-            {activeFilterIds.map(id => {
-              const reason = reasons.find(r => r.id === id);
-              return (
-                <span 
-                  key={id}
-                  className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                >
-                  {reason?.title}
-                  <button
-                    onClick={() => onReasonFilterChange(id)}
-                    className="ml-1 text-blue-800 hover:text-blue-600"
+            {activeFilterIds
+              .filter(id => reasons.some(r => r.id === id))
+              .map(id => {
+                const reason = reasons.find(r => r.id === id);
+                return (
+                  <span 
+                    key={id}
+                    className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
                   >
-                    ×
-                  </button>
-                </span>
-              );
-            })}
+                    {reason?.title}
+                    <button
+                      onClick={() => onReasonFilterChange(id)}
+                      className="ml-1 text-blue-800 hover:text-blue-600"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
           </div>
         </div>
       )}
