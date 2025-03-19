@@ -35,17 +35,17 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 - [x] Navigatie en routing
 - [x] Formulier validatie
 
-### Fase 3: Contentful Integratie (⏳ Volgende fase)
+### Fase 3: Contentful Integratie (⏳ Bezig)
 
-- [ ] Contentful client setup
-- [ ] Type generatie script
-- [ ] Domain naar Contentful type transformers
+- [x] Contentful client setup
+- [x] Type generatie script
+- [x] Domain naar Contentful type transformers
 - [ ] Unit tests voor transformers
-- [ ] Integratie van bedrijfsterreinen-redenen
+- [x] Integratie van bedrijfsterreinen-redenen
 - [ ] Integratie van mobiliteitsoplossingen
 - [ ] Integratie van governance modellen
 - [ ] Integratie van implementatieplan
-- [ ] Error handling
+- [x] Error handling
 
 ### Fase 4: Afronding en Optimalisatie
 
@@ -169,7 +169,7 @@ export function GovernanceModelList() {
 | Feature                  | Dummy Data | Contentful Integratie | Status |
 |--------------------------|------------|----------------------|--------|
 | Bedrijfsterrein informatie | ✅      | ❌                    | Voltooid met verkeerstypes |
-| Bedrijfsterrein-redenen  | ✅         | ❌                    | Voltooid |
+| Bedrijfsterrein-redenen  | ✅         | ✅                    | Voltooid met beide data sources |
 | Mobiliteitsoplossingen   | ✅         | ❌                    | Voltooid met filter kolom |
 | Governance modellen      | ✅         | ❌                    | Voltooid |
 | Implementatieplan        | ✅         | ❌                    | Aangepast naar infopagina |

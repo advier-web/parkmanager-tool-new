@@ -22,17 +22,17 @@ import {
 export function transformBusinessParkReason(
   entry: Entry<IBusinessParkReason>
 ): BusinessParkReason {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const icon = typeof entry.fields.icon === 'string' ? entry.fields.icon : undefined;
-  const category = typeof entry.fields.category === 'string' ? entry.fields.category : undefined;
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
-    icon,
-    category
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
+    summary: typeof fields.summary === 'string' ? fields.summary : 
+             typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
+    icon: typeof fields.icon === 'string' ? fields.icon : undefined,
+    category: typeof fields.category === 'string' ? fields.category : undefined
   };
 }
 
@@ -42,26 +42,19 @@ export function transformBusinessParkReason(
 export function transformMobilitySolution(
   entry: Entry<IMobilitySolution>
 ): MobilitySolution {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const benefits = Array.isArray(entry.fields.benefits) ? entry.fields.benefits : [];
-  const challenges = Array.isArray(entry.fields.challenges) ? entry.fields.challenges : [];
-  const implementationTime = typeof entry.fields.implementationTime === 'string' 
-    ? entry.fields.implementationTime : '';
-  const costs = typeof entry.fields.costs === 'string' ? entry.fields.costs : '';
-  const category = typeof entry.fields.category === 'string' ? entry.fields.category : '';
-  const icon = typeof entry.fields.icon === 'string' ? entry.fields.icon : undefined;
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
-    benefits,
-    challenges,
-    implementationTime,
-    costs,
-    category,
-    icon
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
+    benefits: Array.isArray(fields.benefits) ? fields.benefits : [],
+    challenges: Array.isArray(fields.challenges) ? fields.challenges : [],
+    implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : '',
+    costs: typeof fields.costs === 'string' ? fields.costs : '',
+    category: typeof fields.category === 'string' ? fields.category : '',
+    icon: typeof fields.icon === 'string' ? fields.icon : undefined
   };
 }
 
@@ -71,26 +64,19 @@ export function transformMobilitySolution(
 export function transformGovernanceModel(
   entry: Entry<IGovernanceModel>
 ): GovernanceModel {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const advantages = Array.isArray(entry.fields.advantages) ? entry.fields.advantages : [];
-  const disadvantages = Array.isArray(entry.fields.disadvantages) ? entry.fields.disadvantages : [];
-  const applicableScenarios = Array.isArray(entry.fields.applicableScenarios) ? entry.fields.applicableScenarios : [];
-  const organizationalStructure = typeof entry.fields.organizationalStructure === 'string' 
-    ? entry.fields.organizationalStructure : undefined;
-  const legalForm = typeof entry.fields.legalForm === 'string' ? entry.fields.legalForm : undefined;
-  const stakeholders = Array.isArray(entry.fields.stakeholders) ? entry.fields.stakeholders : undefined;
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
-    advantages,
-    disadvantages,
-    applicableScenarios,
-    organizationalStructure,
-    legalForm,
-    stakeholders
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
+    advantages: Array.isArray(fields.advantages) ? fields.advantages : [],
+    disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages : [],
+    applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
+    organizationalStructure: typeof fields.organizationalStructure === 'string' ? fields.organizationalStructure : undefined,
+    legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
+    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined
   };
 }
 
@@ -100,17 +86,15 @@ export function transformGovernanceModel(
 export function transformImplementationTask(
   entry: Entry<IImplementationTask>
 ): ImplementationTask {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const responsible = Array.isArray(entry.fields.responsible) ? entry.fields.responsible : [];
-  const duration = typeof entry.fields.duration === 'string' ? entry.fields.duration : '';
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
-    responsible,
-    duration
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
+    responsible: Array.isArray(fields.responsible) ? fields.responsible : [],
+    duration: typeof fields.duration === 'string' ? fields.duration : ''
   };
 }
 
@@ -122,16 +106,15 @@ export function transformImplementationPhase(
   entry: Entry<IImplementationPhase>,
   tasks: ImplementationTask[] = []
 ): ImplementationPhase {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const duration = typeof entry.fields.duration === 'string' ? entry.fields.duration : '';
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
     tasks,
-    duration
+    duration: typeof fields.duration === 'string' ? fields.duration : ''
   };
 }
 
@@ -143,19 +126,16 @@ export function transformImplementationPlan(
   entry: Entry<IImplementationPlan>,
   phases: ImplementationPhase[] = []
 ): ImplementationPlan {
-  const title = typeof entry.fields.title === 'string' ? entry.fields.title : '';
-  const description = typeof entry.fields.description === 'string' ? entry.fields.description : '';
-  const estimatedDuration = typeof entry.fields.estimatedDuration === 'string' ? entry.fields.estimatedDuration : '';
-  const requiredResources = Array.isArray(entry.fields.requiredResources) ? entry.fields.requiredResources : [];
-  const keySuccessFactors = Array.isArray(entry.fields.keySuccessFactors) ? entry.fields.keySuccessFactors : [];
+  // Veiliger benadering met type assertions
+  const fields = entry.fields as any;
   
   return {
     id: entry.sys.id,
-    title,
-    description,
+    title: typeof fields.title === 'string' ? fields.title : '',
+    description: typeof fields.description === 'string' ? fields.description : '',
     phases,
-    estimatedDuration,
-    requiredResources,
-    keySuccessFactors
+    estimatedDuration: typeof fields.estimatedDuration === 'string' ? fields.estimatedDuration : '',
+    requiredResources: Array.isArray(fields.requiredResources) ? fields.requiredResources : [],
+    keySuccessFactors: Array.isArray(fields.keySuccessFactors) ? fields.keySuccessFactors : []
   };
 } 

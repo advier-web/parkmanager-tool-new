@@ -15,18 +15,34 @@ import {
   ImplementationPlan,
   MobilitySolution
 } from '../domain/models';
+import { useContentfulBusinessParkReasons, useContentfulBusinessParkReason } from './use-contentful-models';
+import { shouldUseContentful, isContentfulPreviewMode } from '../utils/env';
 
 /**
- * Hook for fetching all business park reasons
+ * Hook voor het ophalen van alle business park reasons
+ * Gebruikt Contentful of mock data afhankelijk van configuratie
  */
 export function useBusinessParkReasons() {
+  // Als Contentful is ingeschakeld, gebruik de Contentful hook
+  if (shouldUseContentful()) {
+    return useContentfulBusinessParkReasons(isContentfulPreviewMode());
+  }
+  
+  // Fallback naar mock data
   return useFetch<BusinessParkReason[]>(getBusinessParkReasons);
 }
 
 /**
- * Hook for fetching a specific business park reason by ID
+ * Hook voor het ophalen van een specifieke business park reason
+ * Gebruikt Contentful of mock data afhankelijk van configuratie
  */
 export function useBusinessParkReason(id: string | null) {
+  // Als Contentful is ingeschakeld, gebruik de Contentful hook
+  if (shouldUseContentful()) {
+    return useContentfulBusinessParkReason(id, isContentfulPreviewMode());
+  }
+  
+  // Fallback naar mock data
   return useFetch<BusinessParkReason | null>(
     () => id ? getBusinessParkReasonById(id) : Promise.resolve(null),
     [id]
@@ -34,14 +50,15 @@ export function useBusinessParkReason(id: string | null) {
 }
 
 /**
- * Hook for fetching all mobility solutions
+ * Hook voor het ophalen van alle mobility solutions
  */
 export function useMobilitySolutions() {
+  // Voor nu alleen mock data, later Contentful toevoegen
   return useFetch<MobilitySolution[]>(getMobilitySolutions);
 }
 
 /**
- * Hook for fetching a specific mobility solution by ID
+ * Hook voor het ophalen van een specifieke mobility solution
  */
 export function useMobilitySolution(id: string | null) {
   return useFetch<MobilitySolution | null>(
@@ -51,14 +68,14 @@ export function useMobilitySolution(id: string | null) {
 }
 
 /**
- * Hook for fetching all governance models
+ * Hook voor het ophalen van alle governance models
  */
 export function useGovernanceModels() {
   return useFetch<GovernanceModel[]>(getGovernanceModels);
 }
 
 /**
- * Hook for fetching a specific governance model by ID
+ * Hook voor het ophalen van een specifieke governance model
  */
 export function useGovernanceModel(id: string | null) {
   return useFetch<GovernanceModel | null>(
@@ -68,14 +85,14 @@ export function useGovernanceModel(id: string | null) {
 }
 
 /**
- * Hook for fetching all implementation plans
+ * Hook voor het ophalen van alle implementation plans
  */
 export function useImplementationPlans() {
   return useFetch<ImplementationPlan[]>(getImplementationPlans);
 }
 
 /**
- * Hook for fetching a specific implementation plan by ID
+ * Hook voor het ophalen van een specifieke implementation plan
  */
 export function useImplementationPlan(id: string | null) {
   return useFetch<ImplementationPlan | null>(

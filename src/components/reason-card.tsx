@@ -27,7 +27,9 @@ export function ReasonCard({ reason, isSelected, onToggleSelect }: ReasonCardPro
         <h3 className="text-lg font-medium">{reason.title}</h3>
       </div>
       
-      <p className="text-gray-600">{reason.description}</p>
+      <p className="text-gray-600">
+        {reason.summary || reason.description}
+      </p>
       
       {reason.category && (
         <div className="mt-4">

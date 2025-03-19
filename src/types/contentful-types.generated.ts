@@ -20,6 +20,8 @@ export interface EntrySkeletonType<T extends EntryFields = EntryFields> {
 export interface IBusinessParkReasonFields {
   title: string;
   description: string;
+  summary?: string;
+  samenvatting?: string;
   icon?: string;
   category?: string;
 }

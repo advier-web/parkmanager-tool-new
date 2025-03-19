@@ -8,6 +8,7 @@ export interface BusinessParkReason {
   id: string;
   title: string;
   description: string;
+  summary?: string;
   icon?: string;
   category?: string;
 }
