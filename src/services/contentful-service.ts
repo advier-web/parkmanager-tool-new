@@ -1,8 +1,8 @@
 import { Entry, EntryCollection } from 'contentful';
 import { getContentfulClient, handleContentfulError, ContentfulError } from '../lib/contentful/client';
-import { IBusinessParkReason, IMobilitySolution } from '../types/contentful-types.generated';
-import { BusinessParkReason, MobilitySolution } from '../domain/models';
-import { transformBusinessParkReason, transformMobilitySolution } from '../transforms/contentful';
+import { IBusinessParkReason, IMobilitySolution, IGovernanceModel } from '../types/contentful-types.generated';
+import { BusinessParkReason, MobilitySolution, GovernanceModel } from '../domain/models';
+import { transformBusinessParkReason, transformMobilitySolution, transformGovernanceModel } from '../transforms/contentful';
 
 /**
  * Service voor het ophalen van data uit Contentful
@@ -175,6 +175,101 @@ export async function getMobilitySolutionByIdFromContentful(
     
     // Anders, propageer de error
     console.error(`Error fetching mobility solution with id ${id}:`, error);
+    throw handleContentfulError(error);
+  }
+}
+
+/**
+ * Haal alle governance modellen op uit Contentful
+ */
+export async function getGovernanceModelsFromContentful(
+  options: ContentfulQueryOptions = {}
+): Promise<GovernanceModel[]> {
+  try {
+    const client = getContentfulClient(options.preview);
+    
+    console.log('Attempting to fetch governance models from Contentful');
+    
+    // First get all content types to see what's available
+    const contentTypes = await client.getContentTypes();
+    console.log('Available Contentful content types:');
+    const availableContentTypes = contentTypes.items.map(ct => ct.sys.id);
+    console.log(availableContentTypes);
+    
+    // Check if any content type contains the word "governance" (case insensitive)
+    const governanceContentTypes = availableContentTypes.filter(
+      id => id.toLowerCase().includes('governance') || id.toLowerCase().includes('model')
+    );
+    
+    if (governanceContentTypes.length > 0) {
+      console.log('Found potential governance content types:', governanceContentTypes);
+      
+      // Try the first matching content type
+      const contentTypeId = governanceContentTypes[0];
+      console.log(`Trying content type: ${contentTypeId}`);
+      
+      const queryParams: any = {
+        content_type: contentTypeId,
+        limit: options.limit || 100,
+        skip: options.skip || 0,
+      };
+      
+      const response = await client.getEntries(queryParams);
+      console.log(`Found ${response.items.length} entries with content type ${contentTypeId}`);
+      
+      if (response.items.length > 0) {
+        // Manually map to domain model since types might not match exactly
+        return response.items.map(item => {
+          const fields = (item.fields as any) || {};
+          return {
+            id: item.sys.id,
+            title: fields.title || fields.name || 'Unnamed Model',
+            description: fields.description || '',
+            summary: fields.summary || fields.samenvatting || '',
+            advantages: Array.isArray(fields.advantages) ? fields.advantages : [],
+            disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages : [],
+            applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
+            organizationalStructure: fields.organizationalStructure || undefined,
+            legalForm: fields.legalForm || undefined,
+            stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined
+          };
+        });
+      }
+    }
+    
+    // If we get here, we couldn't find suitable content type or entries
+    console.log('Could not find suitable governance models in Contentful, falling back to mock data');
+    
+    // Throw an error to trigger the fallback to mock data
+    throw new Error('No suitable governance models found in Contentful');
+  } catch (error) {
+    console.error('Error fetching governance models:', error);
+    throw handleContentfulError(error);
+  }
+}
+
+/**
+ * Haal een specifiek governance model op uit Contentful
+ */
+export async function getGovernanceModelByIdFromContentful(
+  id: string,
+  options: ContentfulQueryOptions = {}
+): Promise<GovernanceModel | null> {
+  try {
+    const client = getContentfulClient(options.preview);
+    
+    // Try to get the entry directly
+    const entry = await client.getEntry<IGovernanceModel>(id);
+    
+    return transformGovernanceModel(entry);
+  } catch (error) {
+    // If the entry doesn't exist, return null
+    if (error instanceof ContentfulError && error.type === 'NotFound') {
+      return null;
+    }
+    
+    // Otherwise, propagate the error
+    console.error(`Error fetching governance model with id ${id}:`, error);
     throw handleContentfulError(error);
   }
 } 

@@ -31,7 +31,7 @@ export function GovernanceCard({ model, isSelected, onSelect }: GovernanceCardPr
         
         <div className="ml-3 flex-grow">
           <h3 className="text-lg font-medium">{model.title}</h3>
-          <p className="text-gray-600 mt-2 mb-4">{model.description}</p>
+          <p className="text-gray-600 mt-2 mb-4">{model.summary || model.description}</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>

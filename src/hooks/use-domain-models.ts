@@ -19,10 +19,15 @@ import {
   useContentfulBusinessParkReasons, 
   useContentfulBusinessParkReason,
   useContentfulMobilitySolutions,
-  useContentfulMobilitySolution
+  useContentfulMobilitySolution,
+  useContentfulGovernanceModels,
+  useContentfulGovernanceModel
 } from './use-contentful-models';
 import { shouldUseContentful, isContentfulPreviewMode } from '../utils/env';
-import { getMobilitySolutionsFromContentful } from '../services/contentful-service';
+import { 
+  getMobilitySolutionsFromContentful,
+  getGovernanceModelsFromContentful 
+} from '../services/contentful-service';
 
 /**
  * Hook voor het ophalen van alle business park reasons
@@ -100,15 +105,41 @@ export function useMobilitySolution(id: string | null) {
 
 /**
  * Hook voor het ophalen van alle governance models
+ * Gebruikt Contentful of mock data afhankelijk van configuratie
  */
 export function useGovernanceModels() {
+  // Als Contentful is ingeschakeld, probeer Contentful eerst
+  if (shouldUseContentful()) {
+    // Using SWR's fallback mechanism
+    return useFetch<GovernanceModel[]>(
+      async () => {
+        try {
+          // Try to get data from Contentful first
+          return await getGovernanceModelsFromContentful({ preview: isContentfulPreviewMode() });
+        } catch (error) {
+          console.log('Falling back to mock data for governance models', error);
+          // If Contentful fails, fall back to mock data
+          return getGovernanceModels();
+        }
+      }
+    );
+  }
+  
+  // Fallback naar mock data
   return useFetch<GovernanceModel[]>(getGovernanceModels);
 }
 
 /**
  * Hook voor het ophalen van een specifieke governance model
+ * Gebruikt Contentful of mock data afhankelijk van configuratie
  */
 export function useGovernanceModel(id: string | null) {
+  // Als Contentful is ingeschakeld, gebruik de Contentful hook
+  if (shouldUseContentful()) {
+    return useContentfulGovernanceModel(id, isContentfulPreviewMode());
+  }
+  
+  // Fallback naar mock data
   return useFetch<GovernanceModel | null>(
     () => id ? getGovernanceModelById(id) : Promise.resolve(null),
     [id]

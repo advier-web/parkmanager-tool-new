@@ -73,6 +73,8 @@ export function transformGovernanceModel(
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : '',
     description: typeof fields.description === 'string' ? fields.description : '',
+    summary: typeof fields.summary === 'string' ? fields.summary : 
+             typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     advantages: Array.isArray(fields.advantages) ? fields.advantages : [],
     disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages : [],
     applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],

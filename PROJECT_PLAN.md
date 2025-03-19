@@ -42,8 +42,8 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 - [x] Domain naar Contentful type transformers
 - [ ] Unit tests voor transformers
 - [x] Integratie van bedrijfsterreinen-redenen
-- [ ] Integratie van mobiliteitsoplossingen
-- [ ] Integratie van governance modellen
+- [x] Integratie van mobiliteitsoplossingen
+- [x] Integratie van governance modellen
 - [ ] Integratie van implementatieplan
 - [x] Error handling
 
@@ -170,8 +170,8 @@ export function GovernanceModelList() {
 |--------------------------|------------|----------------------|--------|
 | Bedrijfsterrein informatie | ✅      | ❌                    | Voltooid met verkeerstypes |
 | Bedrijfsterrein-redenen  | ✅         | ✅                    | Voltooid met beide data sources |
-| Mobiliteitsoplossingen   | ✅         | ❌                    | Voltooid met filter kolom |
-| Governance modellen      | ✅         | ❌                    | Voltooid |
+| Mobiliteitsoplossingen   | ✅         | ✅                    | Voltooid met summary field |
+| Governance modellen      | ✅         | ✅                    | Voltooid met summary field |
 | Implementatieplan        | ✅         | ❌                    | Aangepast naar infopagina |
 | Samenvatting             | ✅         | ❌                    | Voltooid |
 | PDF Export               | ✅         | ❌                    | Basis implementatie |

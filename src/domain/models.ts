@@ -32,6 +32,7 @@ export interface GovernanceModel {
   id: string;
   title: string;
   description: string;
+  summary?: string;
   advantages: string[];
   disadvantages: string[];
   applicableScenarios: string[];
