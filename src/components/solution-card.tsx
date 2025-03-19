@@ -22,7 +22,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
     >
       <div className="flex items-start">
         <div className="flex-grow">
-          <div className="flex items-center mb-4">
+          <div className="flex items-center mb-2">
             {solution.icon && (
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                 <span className="text-blue-600 text-xl">{getIconDisplay(solution.icon)}</span>
@@ -31,9 +31,9 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
             <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
-          <p className="text-gray-600 mb-4">{solution.summary || solution.description}</p>
+          <p className="text-gray-600 mb-3">{solution.summary || solution.description}</p>
           
-          <div className="flex flex-col gap-2 mb-4">
+          <div className="flex flex-col gap-1 mb-2">
             <div>
               <ul className="list-disc pl-5 text-sm text-gray-600">
                 {solution.benefits.map((benefit, index) => (
@@ -51,7 +51,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2 mt-4 mb-4">
+          <div className="flex flex-wrap gap-2 mt-2 mb-2">
             <div className="flex items-center">
               <span className="text-xs font-medium text-gray-700 px-2 py-1">
                 {solution.costs}
@@ -64,7 +64,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
             </div>
           </div>
           
-          <div className="flex items-center justify-between mt-4 pt-3 border-t">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t">
             <button
               type="button"
               onClick={(e) => {
@@ -117,7 +117,7 @@ function getIconDisplay(icon: string): string {
     'bike': '🚲',
     'bus': '🚌',
     'car': '🚗',
-    'train': '🚆',
+    'train': '��',
     'walking': '🚶',
     'scooter': '🛴',
   };
