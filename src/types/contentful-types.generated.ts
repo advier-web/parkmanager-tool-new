@@ -39,6 +39,9 @@ export interface IMobilitySolutionFields {
   costs: string;
   category: string;
   icon?: string;
+  summary?: string;
+  samenvatting?: string;
+  implementatie?: string;
 }
 
 export interface IMobilitySolution extends EntrySkeletonType<IMobilitySolutionFields> {
@@ -54,6 +57,16 @@ export interface IGovernanceModelFields {
   organizationalStructure?: string;
   legalForm?: string;
   stakeholders?: string[];
+  summary?: string;
+  samenvatting?: string;
+  
+  // Implementation plan fields
+  aansprakelijkheid?: string;
+  benodigdhedenOprichting?: string[];
+  doorlooptijd?: string;
+  implementatie?: string;
+  links?: string[];
+  voorbeeldContracten?: string[];
 }
 
 export interface IGovernanceModel extends EntrySkeletonType<IGovernanceModelFields> {

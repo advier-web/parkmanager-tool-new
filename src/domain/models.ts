@@ -25,6 +25,9 @@ export interface MobilitySolution {
   costs: string; // e.g., "laag", "middel", "hoog"
   category: string;
   icon?: string;
+  
+  // Implementation plan field
+  implementatie?: string;
 }
 
 // Governance modellen
@@ -39,6 +42,15 @@ export interface GovernanceModel {
   organizationalStructure?: string;
   legalForm?: string;
   stakeholders?: string[];
+  
+  // Implementation plan fields
+  samenvatting?: string;
+  aansprakelijkheid?: string;
+  benodigdhedenOprichting?: string[];
+  doorlooptijd?: string;
+  implementatie?: string;
+  links?: string[];
+  voorbeeldContracten?: string[];
 }
 
 // Implementatieplan

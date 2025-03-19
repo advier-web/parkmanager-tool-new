@@ -44,7 +44,7 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 - [x] Integratie van bedrijfsterreinen-redenen
 - [x] Integratie van mobiliteitsoplossingen
 - [x] Integratie van governance modellen
-- [ ] Integratie van implementatieplan
+- [x] Integratie van implementatieplan
 - [x] Error handling
 
 ### Fase 4: Afronding en Optimalisatie
@@ -172,7 +172,7 @@ export function GovernanceModelList() {
 | Bedrijfsterrein-redenen  | ✅         | ✅                    | Voltooid met beide data sources |
 | Mobiliteitsoplossingen   | ✅         | ✅                    | Voltooid met summary field |
 | Governance modellen      | ✅         | ✅                    | Voltooid met summary field |
-| Implementatieplan        | ✅         | ❌                    | Aangepast naar infopagina |
+| Implementatieplan        | ✅         | ✅                    | Voltooid met implementatiedetails |
 | Samenvatting             | ✅         | ❌                    | Voltooid |
 | PDF Export               | ✅         | ❌                    | Basis implementatie |
 

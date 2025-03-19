@@ -56,7 +56,10 @@ export function transformMobilitySolution(
     implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : '',
     costs: typeof fields.costs === 'string' ? fields.costs : '',
     category: typeof fields.category === 'string' ? fields.category : '',
-    icon: typeof fields.icon === 'string' ? fields.icon : undefined
+    icon: typeof fields.icon === 'string' ? fields.icon : undefined,
+    
+    // Implementation plan field
+    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined
   };
 }
 
@@ -80,7 +83,16 @@ export function transformGovernanceModel(
     applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
     organizationalStructure: typeof fields.organizationalStructure === 'string' ? fields.organizationalStructure : undefined,
     legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
-    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined
+    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined,
+    
+    // Implementation plan fields
+    samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
+    aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
+    benodigdhedenOprichting: Array.isArray(fields.benodigdhedenOprichting) ? fields.benodigdhedenOprichting : undefined,
+    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
+    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
+    links: Array.isArray(fields.links) ? fields.links : undefined,
+    voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten : undefined
   };
 }
 

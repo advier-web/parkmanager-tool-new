@@ -1,46 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useImplementationPlans, useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-domain-models';
+import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
+import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
 
 export default function ImplementationPlanPage() {
-  const { data: implementationPlans, isLoading: isLoadingPlans, error: plansError } = useImplementationPlans();
   const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
-  const { data: mobilitySolutions, isLoading: isLoadingSolutions } = useMobilitySolutions();
+  const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
   
   const { 
     selectedGovernanceModel,
-    selectedSolutions,
-    selectedImplementationPlan,
-    setSelectedImplementationPlan 
+    selectedSolutions
   } = useWizardStore();
   
-  // Get selected governance model title for display
+  // Get selected governance model data
   const selectedGovernanceModelData = governanceModels && selectedGovernanceModel
     ? governanceModels.find(model => model.id === selectedGovernanceModel)
     : null;
     
-  // Get selected solutions
+  // Get selected solutions data
   const selectedSolutionsData = mobilitySolutions
     ? mobilitySolutions.filter(solution => selectedSolutions.includes(solution.id))
     : [];
     
-  // Automatisch het eerste implementatieplan selecteren als er nog geen is geselecteerd
-  useEffect(() => {
-    if (implementationPlans && implementationPlans.length > 0 && !selectedImplementationPlan) {
-      setSelectedImplementationPlan(implementationPlans[0].id);
-    }
-  }, [implementationPlans, selectedImplementationPlan, setSelectedImplementationPlan]);
-  
-  // Get the selected/default implementation plan
-  const implementationPlan = implementationPlans && selectedImplementationPlan
-    ? implementationPlans.find(plan => plan.id === selectedImplementationPlan)
-    : null;
-  
-  const isLoading = isLoadingPlans || isLoadingModels || isLoadingSolutions;
-  const error = plansError || modelsError;
+  const isLoading = isLoadingModels || isLoadingSolutions;
+  const error = modelsError || solutionsError;
   
   return (
     <div className="space-y-8">
@@ -48,7 +33,7 @@ export default function ImplementationPlanPage() {
         <h2 className="text-2xl font-bold mb-4">Stap 4: Implementatieplan</h2>
         <p className="mb-6">
           Op basis van uw gekozen mobiliteitsoplossingen en governance model is een implementatieplan opgesteld.
-          Dit plan beschrijft de stappen die nodig zijn om de mobiliteitsoplossingen succesvol te implementeren.
+          Dit plan biedt richtlijnen voor het implementeren van de gekozen oplossingen en bestuursmodel.
         </p>
         
         {isLoading && (
@@ -65,7 +50,7 @@ export default function ImplementationPlanPage() {
         )}
         
         {!isLoading && !error && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Context van eerdere keuzes */}
             <div className="bg-blue-50 p-4 rounded-md mb-6">
               <h3 className="text-md font-semibold mb-2">Uw keuzes</h3>
@@ -93,83 +78,132 @@ export default function ImplementationPlanPage() {
               </div>
             </div>
             
-            {/* Implementatieplan content */}
-            {implementationPlan ? (
+            {/* Implementatieplan voor bestuursmodel */}
+            {selectedGovernanceModelData && (
               <div className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-4">{implementationPlan.title}</h3>
-                <p className="text-gray-700 mb-6">{implementationPlan.description}</p>
+                <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan bestuursmodel</h3>
                 
-                <div className="mb-6">
-                  <div className="flex items-center mb-2">
-                    <span className="font-semibold mr-2">Geschatte doorlooptijd:</span>
-                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      {implementationPlan.estimatedDuration}
-                    </span>
+                {/* Samenvatting */}
+                {selectedGovernanceModelData.samenvatting && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiInfoCircle className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Samenvatting</h4>
+                    </div>
+                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.samenvatting}</p>
                   </div>
-                </div>
+                )}
                 
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-4">Fasen</h4>
-                  <div className="space-y-8">
-                    {implementationPlan.phases.map((phase, index) => (
-                      <div key={phase.id} className="relative pl-8">
-                        <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h5 className="text-md font-medium mb-2">{phase.title}</h5>
-                          <p className="text-gray-600 mb-4">{phase.description}</p>
-                          
-                          <div className="bg-gray-50 rounded-md p-4">
-                            <h6 className="text-sm font-medium mb-2">Taken:</h6>
-                            <ul className="space-y-2">
-                              {phase.tasks.map(task => (
-                                <li key={task.id} className="flex">
-                                  <span className="mr-2">•</span>
-                                  <div>
-                                    <span className="font-medium">{task.title}</span>
-                                    <p className="text-sm text-gray-600">{task.description}</p>
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                      {task.responsible.map((person, idx) => (
-                                        <span key={idx} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-                                          {person}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                {/* Aansprakelijkheid */}
+                {selectedGovernanceModelData.aansprakelijkheid && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiCheckShield className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
+                    </div>
+                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.aansprakelijkheid}</p>
                   </div>
-                </div>
+                )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                  <div>
-                    <h4 className="text-md font-semibold mb-2">Benodigde middelen:</h4>
-                    <ul className="list-disc pl-5 text-gray-600">
-                      {implementationPlan.requiredResources.map((resource, index) => (
-                        <li key={index}>{resource}</li>
+                {/* Benodigdheden Oprichting */}
+                {selectedGovernanceModelData.benodigdhedenOprichting && selectedGovernanceModelData.benodigdhedenOprichting.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiListCheck className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
+                    </div>
+                    <ul className="list-disc pl-12 text-gray-700">
+                      {selectedGovernanceModelData.benodigdhedenOprichting.map((item, index) => (
+                        <li key={index}>{item}</li>
                       ))}
                     </ul>
                   </div>
-                  
-                  <div>
-                    <h4 className="text-md font-semibold mb-2">Succesfactoren:</h4>
-                    <ul className="list-disc pl-5 text-gray-600">
-                      {implementationPlan.keySuccessFactors.map((factor, index) => (
-                        <li key={index}>{factor}</li>
+                )}
+                
+                {/* Doorlooptijd */}
+                {selectedGovernanceModelData.doorlooptijd && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiTimeFive className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Doorlooptijd</h4>
+                    </div>
+                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.doorlooptijd}</p>
+                  </div>
+                )}
+                
+                {/* Implementatie */}
+                {selectedGovernanceModelData.implementatie && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiTask className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Implementatie</h4>
+                    </div>
+                    <p className="text-gray-700 pl-7">{selectedGovernanceModelData.implementatie}</p>
+                  </div>
+                )}
+                
+                {/* Links */}
+                {selectedGovernanceModelData.links && selectedGovernanceModelData.links.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiLinkExternal className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Links</h4>
+                    </div>
+                    <ul className="list-disc pl-12 text-gray-700">
+                      {selectedGovernanceModelData.links.map((link, index) => (
+                        <li key={index}>
+                          <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {link}
+                          </a>
+                        </li>
                       ))}
                     </ul>
                   </div>
-                </div>
+                )}
+                
+                {/* Voorbeeld Contracten */}
+                {selectedGovernanceModelData.voorbeeldContracten && selectedGovernanceModelData.voorbeeldContracten.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <BiFile className="text-blue-600 text-xl mr-2" />
+                      <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
+                    </div>
+                    <ul className="list-disc pl-12 text-gray-700">
+                      {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => (
+                        <li key={index}>
+                          <a href={contract} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {contract}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600">Geen implementatieplan beschikbaar.</p>
+            )}
+            
+            {/* Implementatieplan voor mobiliteitsoplossingen */}
+            {selectedSolutionsData.length > 0 && (
+              <div className="border border-gray-200 rounded-lg p-6 mt-8">
+                <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan mobiliteitsoplossingen</h3>
+                
+                {selectedSolutionsData.map(solution => (
+                  <div key={solution.id} className="mb-6 border-l-4 border-blue-200 pl-4">
+                    <h4 className="text-lg font-medium mb-2">{solution.title}</h4>
+                    
+                    {solution.implementatie ? (
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <BiTask className="text-blue-600 text-xl mr-2" />
+                          <h5 className="font-semibold">Implementatie</h5>
+                        </div>
+                        <p className="text-gray-700 pl-7">{solution.implementatie}</p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
             

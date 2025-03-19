@@ -136,7 +136,8 @@ export async function getMobilitySolutionsFromContentful(
             implementationTime: fields.implementationTime || '',
             costs: fields.costs || '',
             category: fields.category || 'overig',
-            icon: fields.icon || undefined
+            icon: fields.icon || undefined,
+            implementatie: fields.implementatie || ''
           };
         });
       }
@@ -231,7 +232,16 @@ export async function getGovernanceModelsFromContentful(
             applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
             organizationalStructure: fields.organizationalStructure || undefined,
             legalForm: fields.legalForm || undefined,
-            stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined
+            stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined,
+            
+            // Implementation plan fields
+            samenvatting: fields.samenvatting || '',
+            aansprakelijkheid: fields.aansprakelijkheid || '',
+            benodigdhedenOprichting: Array.isArray(fields.benodigdhedenOprichting) ? fields.benodigdhedenOprichting : [],
+            doorlooptijd: fields.doorlooptijd || '',
+            implementatie: fields.implementatie || '',
+            links: Array.isArray(fields.links) ? fields.links : [],
+            voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten : []
           };
         });
       }
