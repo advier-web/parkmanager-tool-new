@@ -15,7 +15,28 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
   
   return (
     <div className={`prose prose-blue max-w-none ${className}`}>
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown
+        components={{
+          // Styling voor links
+          a: ({ node, ...props }) => (
+            <a 
+              {...props} 
+              className="text-blue-600 hover:underline" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            />
+          ),
+          // Styling voor lijsten
+          ul: ({ node, ...props }) => (
+            <ul {...props} className="list-disc pl-5 mb-4" />
+          ),
+          li: ({ node, ...props }) => (
+            <li {...props} className="mb-1" />
+          )
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }
@@ -30,5 +51,16 @@ export function processMarkdownText(text: string): string {
   }
   
   // Verwerk __text__ naar **text** voor vette tekst
-  return text.replace(/__(.*?)__/g, '**$1**');
+  let processed = text.replace(/__(.*?)__/g, '**$1**');
+  
+  // Converteer html <ul> en <li> tags naar markdown lijsten als ze nog niet in markdown formaat zijn
+  processed = processed.replace(/<ul>/g, '\n');
+  processed = processed.replace(/<\/ul>/g, '\n');
+  processed = processed.replace(/<li>(.*?)<\/li>/g, '- $1\n');
+  
+  // Zorg ervoor dat URL's die nog geen markdown link zijn, naar markdown links worden geconverteerd
+  const urlRegex = /(?<!["\(])(https?:\/\/[^\s<]+)(?!["\)])/g;
+  processed = processed.replace(urlRegex, '[$1]($1)');
+  
+  return processed;
 } 

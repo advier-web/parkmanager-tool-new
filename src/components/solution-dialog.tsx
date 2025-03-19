@@ -236,13 +236,49 @@ export function SolutionDialog() {
                   <MarkdownContent content={processMarkdownText(links)} />
                 ) : Array.isArray(links) && links.length > 0 ? (
                   <ul className="list-disc pl-5">
-                    {links.map((link, index) => renderListItem(link, index))}
+                    {links.map((link, index) => {
+                      // Controleer of het een URL is en converteer indien nodig
+                      const isUrl = link.match(/https?:\/\/[^\s]+/);
+                      if (isUrl) {
+                        return (
+                          <li key={index}>
+                            <a 
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {link}
+                            </a>
+                          </li>
+                        );
+                      }
+                      return renderListItem(link, index);
+                    })}
                   </ul>
                 ) : contentfulFields.links && typeof contentfulFields.links === 'string' ? (
                   <MarkdownContent content={processMarkdownText(contentfulFields.links)} />
                 ) : contentfulFields.links && Array.isArray(contentfulFields.links) ? (
                   <ul className="list-disc pl-5">
-                    {contentfulFields.links.map((link: string, idx: number) => renderListItem(link, idx))}
+                    {contentfulFields.links.map((link: string, idx: number) => {
+                      // Controleer of het een URL is en converteer indien nodig
+                      const isUrl = link.match(/https?:\/\/[^\s]+/);
+                      if (isUrl) {
+                        return (
+                          <li key={idx}>
+                            <a 
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {link}
+                            </a>
+                          </li>
+                        );
+                      }
+                      return renderListItem(link, idx);
+                    })}
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-500 italic">Geen links beschikbaar</p>
