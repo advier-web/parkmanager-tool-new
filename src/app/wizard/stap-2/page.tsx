@@ -11,6 +11,61 @@ import { MobilitySolution } from '../../../domain/models';
 import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
 import { shouldUseContentful } from '../../../utils/env';
 
+// Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
+let reasonIdToIdentifierMap: Record<string, string> = {};
+
+// Helper function om score te vinden voor een identifier (case-insensitief)
+const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
+  // Directe match
+  const directValue = solution[identifier as keyof MobilitySolution];
+  if (typeof directValue === 'number') {
+    return directValue;
+  }
+  
+  // Case-insensitive match
+  const matchingKey = Object.keys(solution).find(key => 
+    key.toLowerCase() === identifier.toLowerCase()
+  );
+  
+  if (matchingKey) {
+    const value = solution[matchingKey as keyof MobilitySolution];
+    if (typeof value === 'number') {
+      return value;
+    }
+  }
+  
+  // Normalized match (spaces to underscores)
+  const normalizedIdentifier = identifier
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_');
+  
+  const normalizedValue = solution[normalizedIdentifier as keyof MobilitySolution];
+  if (typeof normalizedValue === 'number') {
+    return normalizedValue;
+  }
+  
+  // Hardcoded mappings voor bekende inconsistenties
+  const mappings: Record<string, string[]> = {
+    'gezondheid': ['gezondheid', 'Gezondheid', 'health'],
+    'personeelszorg_en_behoud': ['personeelszorg_en_behoud', 'Personeelszorg en -behoud', 'personeel'],
+    'parkeer_bereikbaarheidsproblemen': ['parkeer_bereikbaarheidsproblemen', 'Parkeer- en bereikbaarheidsprobleem']
+  };
+  
+  if (identifier && mappings[identifier.toLowerCase()]) {
+    // Probeer alle mogelijke varianten
+    for (const variant of mappings[identifier.toLowerCase()]) {
+      const value = solution[variant as keyof MobilitySolution];
+      if (typeof value === 'number') {
+        return value;
+      }
+    }
+  }
+  
+  // Geen match gevonden
+  return 0;
+};
+
 export default function MobilitySolutionsPage() {
   // Use the debug hook to log content types if using Contentful
   if (shouldUseContentful()) {
@@ -33,51 +88,190 @@ export default function MobilitySolutionsPage() {
     }
   }, [error]);
   
+  // Bouw de mapping tussen reden ID en identifier wanneer de redenen ingeladen zijn
+  useEffect(() => {
+    if (reasons) {
+      // Bouw de mapping tussen reden ID en identifier
+      const newMapping: Record<string, string> = {};
+      
+      // DIRECT HARDCODED FIX: Map het specifieke Contentful ID naar gezondheid
+      newMapping['5tKI2Y1ydgJAsj7bGjuTEX'] = 'gezondheid';
+      
+      reasons.forEach(reason => {
+        if (reason.identifier) {
+          // Gebruik de identifier als koppeling naar de mobility solution
+          newMapping[reason.id] = reason.identifier;
+          
+          // Als de identifier spaties bevat, vervang deze door underscores
+          if (reason.identifier.includes(' ')) {
+            const normalizedIdentifier = reason.identifier
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/-/g, '_');
+            
+            newMapping[reason.id] = normalizedIdentifier;
+          }
+          
+          // Als de identifier een hoofdletter heeft, voeg ook een lowercase variant toe
+          if (/[A-Z]/.test(reason.identifier)) {
+            const lowercaseIdentifier = reason.identifier.toLowerCase();
+            newMapping[reason.id] = lowercaseIdentifier;
+          }
+        } else {
+          // Als title aanwezig is, gebruik deze als fallback voor de identifier
+          if (reason.title) {
+            // Zet de title om naar een identifier-achtige string
+            const titleIdentifier = reason.title
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/-/g, '_');
+            
+            newMapping[reason.id] = titleIdentifier;
+            
+            // GEZONDHEID SPECIAL CASE: Als de titel "Gezondheid" is, of er op lijkt
+            if (reason.title.toLowerCase().includes('gezond')) {
+              newMapping[reason.id] = 'gezondheid';
+            }
+          } else {
+            // Fallback voor mock data
+            if (reason.id === 'reason-1') newMapping[reason.id] = 'parkeer_bereikbaarheidsproblemen';
+            else if (reason.id === 'reason-2') newMapping[reason.id] = 'milieuverordening';
+            else if (reason.id === 'reason-3') newMapping[reason.id] = 'parkeer_bereikbaarheidsproblemen';
+            else if (reason.id === 'reason-4') newMapping[reason.id] = 'personeelszorg_en_behoud';
+          }
+        }
+      });
+      
+      // Map voor contentful-specifieke velden (hardcoded)
+      const contentfulFieldMap: Record<string, string> = {
+        'Gezondheid': 'gezondheid',
+        'gezondheid': 'gezondheid',
+        'Personeelszorg en -behoud': 'personeelszorg_en_behoud',
+        'personeelszorg_en_behoud': 'personeelszorg_en_behoud',
+        'Parkeer- en bereikbaarheidsprobleem': 'parkeer_bereikbaarheidsproblemen',
+        'parkeer_bereikbaarheidsproblemen': 'parkeer_bereikbaarheidsproblemen',
+        'Imago / MVO': 'imago',
+        'imago': 'imago',
+        'Milieuverordening': 'milieuverordening'
+      };
+      
+      // Ga door alle redenen en kijk of we een contentful-specifieke mapping moeten toevoegen
+      reasons.forEach(reason => {
+        if (reason.title && contentfulFieldMap[reason.title]) {
+          newMapping[reason.id] = contentfulFieldMap[reason.title];
+        }
+      });
+      
+      // Update de mapping
+      reasonIdToIdentifierMap = newMapping;
+    }
+  }, [reasons]);
+  
   // Initialiseer activeFilters met de selectedReasons uit stap 1
   useEffect(() => {
-    // Selecteer standaard de aanleidingen die in stap 1 zijn gekozen
-    setActiveFilters([...selectedReasons]);
-  }, [selectedReasons]);
+    if (reasons) {
+      // Alleen selecteren redenen die bestaan in de redenen lijst
+      const validReasonIds = selectedReasons.filter(id => reasons.some(reason => reason.id === id));
+      setActiveFilters(validReasonIds);
+    } else {
+      // Als redenen nog niet geladen zijn, gebruik alle geselecteerde redenen voorlopig
+      setActiveFilters([...selectedReasons]);
+    }
+  }, [selectedReasons, reasons]);
   
-  // Filter de oplossingen op basis van geselecteerde redenen (dummy filter logica)
+  // Filter de oplossingen op basis van geselecteerde redenen
   useEffect(() => {
-    if (allSolutions) {
-      // Als er actieve filters zijn, filter dan de oplossingen
-      // Dit is een dummy implementatie, in de toekomst komt hier de echte logica van Contentful
-      const filtered = activeFilters.length > 0
-        ? allSolutions.filter((solution, index) => {
-            // DUMMY FILTER LOGICA:
-            // Om te simuleren dat verschillende aanleidingen verschillende oplossingen filteren,
-            // gebruiken we een modulo-bewerking met de index van de oplossing en de lengte van activeFilters
-            // Dit zorgt ervoor dat sommige oplossingen worden gefilterd op basis van de geselecteerde redenen
-            const solutionNumber = index + 1;
-            
-            // Als de aangegeven filter een veelvoud is van het oplossing-nummer, toon dan de oplossing
-            return activeFilters.some((_, filterIndex) => {
-              const filterNumber = filterIndex + 1;
-              return solutionNumber % filterNumber === 0;
-            });
-          })
-        : allSolutions;
+    if (allSolutions && reasons) {
+      // Filter out any activeFilters that don't have a corresponding reason
+      const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
+      
+      // Geen sortering hier, alleen filtering als er geen filters zijn
+      const filtered = allSolutions;
       
       setFilteredSolutions(filtered);
     }
-  }, [allSolutions, activeFilters]);
+  }, [allSolutions, activeFilters, reasons]);
   
-  // Group solutions by category when data is loaded
-  useEffect(() => {
-    if (filteredSolutions) {
-      // Create a default category for solutions without a category
-      const solutionsWithCategory = filteredSolutions.map(solution => ({
-        ...solution,
-        category: solution.category || 'overig'
-      }));
-      
-      // Group by category
-      const grouped = groupBy(solutionsWithCategory, 'category');
-      setGroupedSolutions(grouped);
+  // Bereken scores voor oplossingen op basis van geselecteerde redenen
+  const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
+    let score = 0;
+    // Bijhouden welke filters al verwerkt zijn
+    const processedFilters = new Set<string>();
+    
+    // SPECIAL CASE voor gezondheid - controleer of 5tKI2Y1ydgJAsj7bGjuTEX in de filters zit
+    if (filters.includes('5tKI2Y1ydgJAsj7bGjuTEX')) {
+      // Controleer direct of er een gezondheid score is
+      if (typeof solution.gezondheid === 'number') {
+        score += solution.gezondheid;
+        // Markeer als verwerkt
+        processedFilters.add('5tKI2Y1ydgJAsj7bGjuTEX');
+      } else if (typeof (solution as any)['Gezondheid'] === 'number') {
+        score += (solution as any)['Gezondheid'];
+        // Markeer als verwerkt
+        processedFilters.add('5tKI2Y1ydgJAsj7bGjuTEX');
+      }
     }
-  }, [filteredSolutions]);
+    
+    filters.forEach(reasonId => {
+      // Skip als deze filter al verwerkt is in een speciale case
+      if (processedFilters.has(reasonId)) {
+        return;
+      }
+      
+      // Haal de identifier op die bij deze reden hoort
+      const identifier = reasonIdToIdentifierMap[reasonId];
+      
+      if (identifier) {
+        // Gebruik de gedeelde helper functie
+        const fieldScore = findScoreForIdentifier(solution, identifier);
+        
+        if (fieldScore > 0) {
+          score += fieldScore;
+        }
+      }
+    });
+    
+    return score;
+  };
+  
+  // Sorteer de gefilterde oplossingen op basis van hun scores
+  const sortSolutionsByScore = (solutions: MobilitySolution[]): MobilitySolution[] => {
+    if (!reasons) return solutions;
+    
+    const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
+    
+    if (validActiveFilters.length === 0) return solutions;
+    
+    return [...solutions].sort((a, b) => {
+      const aScore = calculateScoreForSolution(a, validActiveFilters);
+      const bScore = calculateScoreForSolution(b, validActiveFilters);
+      
+      return bScore - aScore; // Hoogste score eerst
+    });
+  };
+  
+  // Sorteer en groepeer de oplossingen
+  const sortedAndGroupedSolutions = (() => {
+    if (!filteredSolutions) return {};
+    
+    // Sorteer eerst op basis van score
+    const sortedSolutions = sortSolutionsByScore(filteredSolutions);
+    
+    // Groepeer daarna op categorie
+    const solutionsWithCategory = sortedSolutions.map(solution => ({
+      ...solution,
+      category: solution.category || 'overig'
+    }));
+    
+    return groupBy(solutionsWithCategory, 'category');
+  })();
+  
+  // Group solutions by category when data is loaded and apply sorting
+  useEffect(() => {
+    if (filteredSolutions && reasons) {
+      setGroupedSolutions(sortedAndGroupedSolutions);
+    }
+  }, [filteredSolutions, activeFilters, reasons]);
   
   // Handle filter changes
   const handleFilterChange = (reasonId: string) => {
@@ -129,7 +323,10 @@ export default function MobilitySolutionsPage() {
                 <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
                   <p className="text-blue-800">
                     <span className="font-medium">
-                      {activeFilters.length} {activeFilters.length === 1 ? 'filter' : 'filters'} actief.
+                      {(() => {
+                        const validFilterCount = activeFilters.filter(id => reasons?.some(r => r.id === id)).length;
+                        return `${validFilterCount} ${validFilterCount === 1 ? 'filter' : 'filters'} actief.`;
+                      })()}
                     </span>{' '}
                     {filteredSolutions?.length ?? 0} passende mobiliteitsoplossingen gevonden.
                   </p>
@@ -159,18 +356,31 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
-            {Object.entries(groupedSolutions).map(([category, categorySolutions]) => (
+            {Object.entries(sortedAndGroupedSolutions).map(([category, categorySolutions]) => (
               <div key={category} className="mt-8">
                 <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
                 <div className="grid grid-cols-1 gap-6">
-                  {categorySolutions?.map(solution => (
-                    <SolutionCard
-                      key={solution.id}
-                      solution={solution}
-                      isSelected={selectedSolutions.includes(solution.id)}
-                      onToggleSelect={toggleSolution}
-                    />
-                  ))}
+                  {categorySolutions?.map(solution => {
+                    // Bereken score voor deze oplossing
+                    const validActiveFilters = reasons ? 
+                      activeFilters.filter(id => reasons.some(reason => reason.id === id)) : [];
+                    const score = calculateScoreForSolution(solution, validActiveFilters);
+                    
+                    return (
+                      <div key={solution.id} className="relative">
+                        {validActiveFilters.length > 0 && (
+                          <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-md rounded-tr-md z-10">
+                            Score: {score}
+                          </div>
+                        )}
+                        <SolutionCard
+                          solution={solution}
+                          isSelected={selectedSolutions.includes(solution.id)}
+                          onToggleSelect={toggleSolution}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
