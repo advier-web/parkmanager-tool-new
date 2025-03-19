@@ -5,6 +5,39 @@ import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
 
+// Helper function to safely render Contentful data
+function safeRenderContentfulField(field: any): React.ReactNode {
+  if (field === null || field === undefined) {
+    return null;
+  }
+  
+  if (typeof field === 'string') {
+    return field;
+  }
+  
+  if (Array.isArray(field)) {
+    return field.map((item, index) => (
+      <li key={index}>{safeRenderContentfulField(item)}</li>
+    ));
+  }
+  
+  if (typeof field === 'object') {
+    // Handle Contentful reference
+    if (field.sys && field.fields) {
+      return field.fields.title || field.fields.name || JSON.stringify(field);
+    }
+    
+    return JSON.stringify(field);
+  }
+  
+  return String(field);
+}
+
+// Helper to check if a field is a non-empty array
+function isNonEmptyArray(field: any): boolean {
+  return Array.isArray(field) && field.length > 0;
+}
+
 export default function ImplementationPlanPage() {
   const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
   const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
@@ -26,6 +59,52 @@ export default function ImplementationPlanPage() {
     
   const isLoading = isLoadingModels || isLoadingSolutions;
   const error = modelsError || solutionsError;
+  
+  // Function to safely render links
+  const renderLink = (link: any, index: number) => {
+    let url = '#';
+    let text = 'Link';
+    
+    if (typeof link === 'string') {
+      url = link;
+      text = link;
+    } else if (link && typeof link === 'object') {
+      if (link.fields) {
+        text = link.fields.title || link.fields.name || 'Link';
+        url = link.fields.url || '#';
+      }
+    }
+    
+    return (
+      <li key={index}>
+        <a href={url} 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           className="text-blue-600 hover:underline">
+          {text}
+        </a>
+      </li>
+    );
+  };
+  
+  // Function to safely render benodigdhedenOprichting
+  const renderBenodigdheid = (item: any, index: number) => {
+    let text = '';
+    
+    if (typeof item === 'string') {
+      text = item;
+    } else if (item && typeof item === 'object') {
+      if (item.fields) {
+        text = item.fields.title || item.fields.name || JSON.stringify(item);
+      } else {
+        text = JSON.stringify(item);
+      }
+    } else {
+      text = String(item);
+    }
+    
+    return <li key={index}>{text}</li>;
+  };
   
   return (
     <div className="space-y-8">
@@ -106,16 +185,16 @@ export default function ImplementationPlanPage() {
                 )}
                 
                 {/* Benodigdheden Oprichting */}
-                {selectedGovernanceModelData.benodigdhedenOprichting && selectedGovernanceModelData.benodigdhedenOprichting.length > 0 && (
+                {selectedGovernanceModelData.benodigdhedenOprichting && isNonEmptyArray(selectedGovernanceModelData.benodigdhedenOprichting) && (
                   <div className="mb-6">
                     <div className="flex items-center mb-2">
                       <BiListCheck className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
                     </div>
                     <ul className="list-disc pl-12 text-gray-700">
-                      {selectedGovernanceModelData.benodigdhedenOprichting.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
+                      {selectedGovernanceModelData.benodigdhedenOprichting.map((item, index) => 
+                        renderBenodigdheid(item, index)
+                      )}
                     </ul>
                   </div>
                 )}
@@ -143,39 +222,31 @@ export default function ImplementationPlanPage() {
                 )}
                 
                 {/* Links */}
-                {selectedGovernanceModelData.links && selectedGovernanceModelData.links.length > 0 && (
+                {selectedGovernanceModelData.links && isNonEmptyArray(selectedGovernanceModelData.links) && (
                   <div className="mb-6">
                     <div className="flex items-center mb-2">
                       <BiLinkExternal className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Links</h4>
                     </div>
                     <ul className="list-disc pl-12 text-gray-700">
-                      {selectedGovernanceModelData.links.map((link, index) => (
-                        <li key={index}>
-                          <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            {link}
-                          </a>
-                        </li>
-                      ))}
+                      {selectedGovernanceModelData.links.map((link, index) => 
+                        renderLink(link, index)
+                      )}
                     </ul>
                   </div>
                 )}
                 
                 {/* Voorbeeld Contracten */}
-                {selectedGovernanceModelData.voorbeeldContracten && selectedGovernanceModelData.voorbeeldContracten.length > 0 && (
+                {selectedGovernanceModelData.voorbeeldContracten && isNonEmptyArray(selectedGovernanceModelData.voorbeeldContracten) && (
                   <div className="mb-6">
                     <div className="flex items-center mb-2">
                       <BiFile className="text-blue-600 text-xl mr-2" />
                       <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
                     </div>
                     <ul className="list-disc pl-12 text-gray-700">
-                      {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => (
-                        <li key={index}>
-                          <a href={contract} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            {contract}
-                          </a>
-                        </li>
-                      ))}
+                      {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => 
+                        renderLink(contract, index)
+                      )}
                     </ul>
                   </div>
                 )}
