@@ -36,6 +36,9 @@ export interface MobilitySolution {
   personeelszorg_en_behoud?: number;
   imago?: number;
   milieuverordening?: number;
+  
+  // Contentful reference to governance models
+  governanceModels?: Array<{sys: {id: string}} | string>;
 }
 
 // Governance modellen

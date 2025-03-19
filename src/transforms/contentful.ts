@@ -70,7 +70,10 @@ export function transformMobilitySolution(
     gezondheid: 0,
     personeelszorg_en_behoud: 0,
     imago: 0,
-    milieuverordening: 0
+    milieuverordening: 0,
+    
+    // Governance models references
+    governanceModels: fields.governanceModels || undefined
   };
   
   // Log alle velden uit Contentful voor debugging
@@ -78,6 +81,11 @@ export function transformMobilitySolution(
   Object.entries(fields).forEach(([key, value]) => {
     console.log(`  ${key}: ${value} (type: ${typeof value})`);
   });
+  
+  // Log governance models if they exist
+  if (fields.governanceModels) {
+    console.log('[TRANSFORM] Found governanceModels field:', fields.governanceModels);
+  }
   
   // Specifieke check voor deelfietssysteem 
   if (fields.title && fields.title.includes('deelfiets')) {

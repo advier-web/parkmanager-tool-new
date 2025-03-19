@@ -48,6 +48,7 @@ export interface IMobilitySolutionFields {
   personeelszorg_en_behoud?: number;
   imago?: number;
   milieuverordening?: number;
+  governanceModels?: Array<{sys: {id: string}}>;
 }
 
 export interface IMobilitySolution extends EntrySkeletonType<IMobilitySolutionFields> {

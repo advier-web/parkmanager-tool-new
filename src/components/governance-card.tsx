@@ -4,20 +4,30 @@ interface GovernanceCardProps {
   model: GovernanceModel;
   isSelected: boolean;
   onSelect: (modelId: string) => void;
+  isRecommended?: boolean;
 }
 
-export function GovernanceCard({ model, isSelected, onSelect }: GovernanceCardProps) {
+export function GovernanceCard({ model, isSelected, onSelect, isRecommended = false }: GovernanceCardProps) {
   return (
     <div
       className={`
-        p-6 rounded-lg transition-all cursor-pointer 
+        p-6 rounded-lg transition-all cursor-pointer relative
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-md' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
         }
+        ${isRecommended ? 'border-l-4 border-l-green-500' : ''}
       `}
       onClick={() => onSelect(model.id)}
     >
+      {isRecommended && (
+        <div className="absolute top-0 right-0">
+          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+            Aanbevolen
+          </span>
+        </div>
+      )}
+      
       <div className="flex items-start">
         <div className="flex-shrink-0 mt-1">
           <input
