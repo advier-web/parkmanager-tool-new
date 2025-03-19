@@ -97,7 +97,7 @@ export function SolutionDialog() {
   
   // Helper function for rendering list items with markdown support
   const renderListItem = (text: string, index: number) => {
-    return <li key={index}><MarkdownContent content={processMarkdownText(text)} /></li>;
+    return <li key={index}><MarkdownContent content={processMarkdownText(text)} disableListStyles={true} /></li>;
   };
 
   // Show governance model information dialog
@@ -157,38 +157,38 @@ export function SolutionDialog() {
                 <div>
                   <h3 className="text-md font-semibold mb-2">Voordelen</h3>
                   {Array.isArray(advantages) && advantages.length > 0 ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       {advantages.map((advantage, index) => renderListItem(advantage, index))}
                     </ul>
                   ) : contentfulFields.voordelen && Array.isArray(contentfulFields.voordelen) ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       {contentfulFields.voordelen.map((item: string, idx: number) => renderListItem(item, idx))}
                     </ul>
                   ) : contentfulFields.voordelen && typeof contentfulFields.voordelen === 'string' ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       <li><MarkdownContent content={processMarkdownText(contentfulFields.voordelen)} /></li>
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">Geen voordelen beschikbaar</p>
+                    <p className="text-gray-500 italic">Geen voordelen beschikbaar</p>
                   )}
                 </div>
                 
                 <div>
                   <h3 className="text-md font-semibold mb-2">Nadelen</h3>
                   {Array.isArray(disadvantages) && disadvantages.length > 0 ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       {disadvantages.map((disadvantage, index) => renderListItem(disadvantage, index))}
                     </ul>
                   ) : contentfulFields.nadelen && Array.isArray(contentfulFields.nadelen) ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       {contentfulFields.nadelen.map((item: string, idx: number) => renderListItem(item, idx))}
                     </ul>
                   ) : contentfulFields.nadelen && typeof contentfulFields.nadelen === 'string' ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
+                    <ul className="list-disc pl-5">
                       <li><MarkdownContent content={processMarkdownText(contentfulFields.nadelen)} /></li>
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">Geen nadelen beschikbaar</p>
+                    <p className="text-gray-500 italic">Geen nadelen beschikbaar</p>
                   )}
                 </div>
               </div>

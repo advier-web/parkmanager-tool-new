@@ -3,12 +3,17 @@ import ReactMarkdown from 'react-markdown';
 interface MarkdownContentProps {
   content: string;
   className?: string;
+  disableListStyles?: boolean;
 }
 
 /**
  * Gemeenschappelijke component voor het renderen van markdown content in de hele app
  */
-export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
+export function MarkdownContent({ 
+  content, 
+  className = '',
+  disableListStyles = false
+}: MarkdownContentProps) {
   if (!content) {
     return null;
   }
@@ -26,9 +31,9 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
               rel="noopener noreferrer"
             />
           ),
-          // Styling voor lijsten
+          // Styling voor lijsten - schakel list-disc uit als we in een bestaande lijst zijn
           ul: ({ node, ...props }) => (
-            <ul {...props} className="list-disc pl-5 mb-4" />
+            <ul {...props} className={disableListStyles ? "pl-0" : "list-disc pl-5 mb-4"} />
           ),
           li: ({ node, ...props }) => (
             <li {...props} className="mb-1" />
