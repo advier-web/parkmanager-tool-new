@@ -26,21 +26,21 @@ export function WizardNavigation({
         <div></div>
       )}
 
-      {nextStep && (
+      {nextStep && !isNextDisabled ? (
         <Link
           href={nextStep}
-          className={`px-4 py-2 rounded-md ${
-            isNextDisabled
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-          }`}
-          aria-disabled={isNextDisabled}
-          onClick={e => isNextDisabled && e.preventDefault()}
-          tabIndex={isNextDisabled ? -1 : undefined}
+          className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Volgende stap
         </Link>
-      )}
+      ) : nextStep && isNextDisabled ? (
+        <div
+          className="px-4 py-2 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed"
+          aria-disabled="true"
+        >
+          Volgende stap
+        </div>
+      ) : null}
     </div>
   );
 }
