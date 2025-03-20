@@ -28,6 +28,7 @@ export default function Home() {
   
   // State voor de sticky navigatie
   const [showStickyNav, setShowStickyNav] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('wat-is-collectief-vervoer');
   const tocRef = useRef<HTMLDivElement>(null);
   
   // Effect om te controleren of de TOC uit beeld is
@@ -38,9 +39,29 @@ export default function Home() {
         // Als de onderkant van de TOC boven de viewport is, toon de sticky nav
         setShowStickyNav(rect.bottom < 100);
       }
+      
+      // Bepaal welke sectie actief is
+      const sections = document.querySelectorAll('section[id]');
+      const scrollPosition = window.scrollY + 200; // Met een offset zodat de sectie eerder actief wordt
+      
+      let currentSection = 'wat-is-collectief-vervoer';
+      
+      sections.forEach((section) => {
+        const sectionTop = (section as HTMLElement).offsetTop;
+        const sectionId = section.getAttribute('id') || '';
+        
+        if (scrollPosition >= sectionTop) {
+          currentSection = sectionId;
+        }
+      });
+      
+      setActiveSection(currentSection);
     };
     
     window.addEventListener('scroll', handleScroll);
+    // Direct uitvoeren om de initiële actieve sectie te bepalen
+    handleScroll();
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -77,6 +98,7 @@ export default function Home() {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(id);
     }
   };
   
@@ -123,7 +145,7 @@ export default function Home() {
                 </span>
                 <button 
                   onClick={() => scrollToSection(section.id)}
-                  className="text-blue-600 hover:underline text-left text-sm font-medium"
+                  className={`text-blue-600 hover:underline text-left text-sm ${activeSection === section.id ? 'font-bold' : 'font-medium'}`}
                 >
                   {section.title}
                 </button>
@@ -198,7 +220,7 @@ export default function Home() {
                 </span>
                 <button 
                   onClick={() => scrollToSection(section.id)}
-                  className="text-blue-600 hover:underline text-left font-medium"
+                  className={`text-blue-600 hover:underline text-left ${activeSection === section.id ? 'font-bold' : 'font-medium'}`}
                 >
                   {section.title}
                 </button>
