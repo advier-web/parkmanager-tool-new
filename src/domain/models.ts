@@ -35,6 +35,7 @@ export interface MobilitySolution {
   collectiefVsIndiviueel?: string;
   effecten?: string;
   investering?: string;
+  governancemodellenToelichting?: string;
   
   // Rating fields (0-10)
   parkeer_bereikbaarheidsproblemen?: number;

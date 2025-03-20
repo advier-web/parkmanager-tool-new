@@ -47,6 +47,7 @@ export interface IMobilitySolutionFields {
   collectiefVsIndiviueel?: string;
   effecten?: string;
   investering?: string;
+  governancemodellenToelichting?: string;
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;
   personeelszorg_en_behoud?: number;

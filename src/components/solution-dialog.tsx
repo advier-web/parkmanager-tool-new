@@ -18,6 +18,7 @@ export function SolutionDialog() {
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel || '';
     const effecten = currentSolution.effecten || '';
     const investering = currentSolution.investering || '';
+    const governancemodellenToelichting = currentSolution.governancemodellenToelichting || '';
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -91,7 +92,16 @@ export function SolutionDialog() {
               ) : (
                 <p className="text-gray-500 italic">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
               )}
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
+            
+            {/* Governance modellen toelichting (nieuw veld) */}
+            {governancemodellenToelichting && (
+              <section className="mb-6">
+                <h2 className="text-xl font-bold mb-2">Toelichting governance modellen</h2>
+                <MarkdownContent content={governancemodellenToelichting} />
+              </section>
+            )}
           </div>
           
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">

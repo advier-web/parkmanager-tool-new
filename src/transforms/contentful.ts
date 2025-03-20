@@ -70,6 +70,7 @@ export function transformMobilitySolution(
     collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
     effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
     investering: typeof fields.investering === 'string' ? fields.investering : undefined,
+    governancemodellenToelichting: typeof fields.governancemodellenToelichting === 'string' ? fields.governancemodellenToelichting : undefined,
     
     // Rating fields (default 0)
     parkeer_bereikbaarheidsproblemen: 0,
