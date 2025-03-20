@@ -67,7 +67,28 @@ export function MarkdownContent({
           ),
           li: ({ node, ...props }) => (
             <li {...props} className="mb-1" />
-          )
+          ),
+          // Styling voor tabellen
+          table: ({ node, ...props }) => (
+            <div className="overflow-x-auto my-6">
+              <table {...props} className="min-w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
+            </div>
+          ),
+          thead: ({ node, ...props }) => (
+            <thead {...props} className="bg-blue-50" />
+          ),
+          tbody: ({ node, ...props }) => (
+            <tbody {...props} className="divide-y divide-gray-200" />
+          ),
+          tr: ({ node, ...props }) => (
+            <tr {...props} className="hover:bg-gray-50" />
+          ),
+          th: ({ node, ...props }) => (
+            <th {...props} className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-300" />
+          ),
+          td: ({ node, ...props }) => (
+            <td {...props} className="px-4 py-3 text-sm text-gray-600 border-b border-gray-200" />
+          ),
         }}
       >
         {processedContent}
@@ -122,6 +143,46 @@ export function processMarkdownText(text: string): string {
   
   // Vervang specifieke patronen die in de contentful content voorkomen
   processed = processed.replace(/###\s+([^#\n]+)/g, '### $1');
+  
+  // Verwerking van tabellen - Contentful kan speciale tekens gebruiken voor tabellen die we converteren naar standaard markdown
+  
+  // 1. Zorg ervoor dat pipe symbolen die in tabellen worden gebruikt correct worden weergegeven
+  // Vervang alleenstaande "|" met escaped version \| indien nodig
+  processed = processed.replace(/(\S)\|(\S)/g, "$1\\|$2");
+  
+  // 2. Zorg ervoor dat tabelheaders correct worden gedetecteerd
+  // Verbeter tabel header/data scheiding (--- lijnen) door consistentie te verzekeren
+  const tableHeaderRegex = /^\|(.+)\|$/gm;
+  const tableHeaderMatches = processed.match(tableHeaderRegex);
+  
+  if (tableHeaderMatches) {
+    // We hebben een tabel gedetecteerd, controleer of de header-scheiding correct is
+    for (const headerMatch of tableHeaderMatches) {
+      // Controleer of er een scheidingsrij na deze header is
+      const headerIndex = processed.indexOf(headerMatch);
+      const nextLineStart = processed.indexOf('\n', headerIndex) + 1;
+      const nextLineEnd = processed.indexOf('\n', nextLineStart);
+      const nextLine = nextLineEnd > 0 ? 
+        processed.substring(nextLineStart, nextLineEnd) : 
+        processed.substring(nextLineStart);
+      
+      // Als de volgende rij geen scheidingsrij is (|----|----| formaat), voeg deze toe
+      if (!nextLine.match(/^\|(\s*[-:]+\s*\|)+$/)) {
+        const columns = headerMatch.split('|').filter(Boolean);
+        const separatorRow = '|' + columns.map(() => ' --- |').join('');
+        
+        processed = processed.substring(0, nextLineStart) + 
+                    separatorRow + '\n' + 
+                    processed.substring(nextLineStart);
+      }
+    }
+  }
+  
+  // 3. Zorg ervoor dat tabellen met speciale tekens (zoals ------) worden herkend als tabellen
+  processed = processed.replace(/^([-|]+\s*[-|]+\s*[-|]+)$/gm, (match) => {
+    // Converteer "| ------ | ------ |" formaat naar correcte markdown tabel scheiding
+    return match.replace(/[-]+/g, ' --- ');
+  });
   
   return processed;
 } 
