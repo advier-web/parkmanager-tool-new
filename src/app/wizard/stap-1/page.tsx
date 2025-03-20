@@ -73,7 +73,7 @@ export default function BusinessParkReasonsPage() {
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg p-8 shadow-md">
-            <h2 className="text-2xl font-bold mb-4">Stap 1: Bedrijfsterrein-redenen</h2>
+            <h2 className="text-2xl font-bold mb-4">Stap 1: Selecteer uw aanleiding</h2>
             <p className="mb-6">
               Selecteer de redenen waarom u de mobiliteit op uw bedrijfsterrein wilt verbeteren.
               U kunt meerdere redenen selecteren.

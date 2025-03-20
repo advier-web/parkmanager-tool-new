@@ -12,7 +12,7 @@ interface Step {
 
 const STEPS: Step[] = [
   { id: 0, name: 'Bedrijventerrein', path: '/wizard/bedrijventerrein' },
-  { id: 1, name: 'Redenen', path: '/wizard/stap-1' },
+  { id: 1, name: 'Aanleiding', path: '/wizard/stap-1' },
   { id: 2, name: 'Oplossingen', path: '/wizard/stap-2' },
   { id: 3, name: 'Governance', path: '/wizard/stap-3' },
   { id: 4, name: 'Implementatie', path: '/wizard/stap-4' },
