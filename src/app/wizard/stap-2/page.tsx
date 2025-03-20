@@ -18,22 +18,17 @@ let reasonIdToIdentifierMap: Record<string, string> = {};
 
 // Helper function om score te vinden voor een identifier (case-insensitief)
 const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
-  const debugEnabled = solution.title && solution.title.includes('Vanpool');
-  
-  // SPECIALE CASE: Vanpool en parkeer bereikbaarheidsproblemen
-  if (solution.title && 
-      (solution.title === 'Vanpoolen 8+1' || solution.title.includes('Vanpool')) && 
-      identifier.toLowerCase() === 'parkeer_bereikbaarheidsproblemen') {
-    // Voor dit specifieke geval, forceer de score naar 9
-    console.log(`🔍 SPECIALE DETECTIE: Vanpool 8+1 met parkeer_bereikbaarheidsproblemen, forceer score naar 9`);
-    return 9;
-  }
+  // Standaard debug waarde voor belangrijke oplossingen
+  const debugEnabled = solution.title && (
+    solution.title.includes('Vanpool') || 
+    solution.title.includes('fiets')
+  );
   
   if (debugEnabled) {
-    console.log(`\n--- findScoreForIdentifier voor ${identifier} ---`);
+    console.log(`\n--- findScoreForIdentifier voor ${solution.title} - ${identifier} ---`);
   }
   
-  // Directe match
+  // 1. Directe match
   const directValue = solution[identifier as keyof MobilitySolution];
   if (typeof directValue === 'number') {
     if (debugEnabled) console.log(`✅ Directe match gevonden voor '${identifier}': ${directValue}`);
@@ -42,7 +37,7 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
     console.log(`❌ Geen directe match voor '${identifier}'`);
   }
   
-  // Case-insensitive match
+  // 2. Case-insensitive match
   const matchingKey = Object.keys(solution).find(key => 
     key.toLowerCase() === identifier.toLowerCase()
   );
@@ -57,7 +52,7 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
     console.log(`❌ Geen case-insensitive match voor '${identifier}'`);
   }
   
-  // Normalized match (spaces to underscores)
+  // 3. Normalized match (spaces to underscores)
   const normalizedIdentifier = identifier
     .toLowerCase()
     .replace(/\s+/g, '_')
@@ -73,7 +68,7 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
     console.log(`❌ Geen genormaliseerde match voor '${normalizedIdentifier}'`);
   }
   
-  // Hardcoded mappings voor bekende inconsistenties
+  // 4. Bekend mappings voor ingebouwde inconsistenties
   const mappings: Record<string, string[]> = {
     'gezondheid': ['gezondheid', 'Gezondheid', 'health'],
     'personeelszorg_en_behoud': ['personeelszorg_en_behoud', 'Personeelszorg en -behoud', 'personeel'],
@@ -105,14 +100,23 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
     console.log(`❌ Geen mappings gevonden voor '${identifier.toLowerCase()}'`);
   }
   
-  // NOGMAALS: Als het Vanpool is en we zoeken naar parkeer_bereikbaarheidsproblemen, forceer 9
-  if (solution.title && 
-      (solution.title === 'Vanpoolen 8+1' || solution.title.includes('Vanpool')) && 
-      (identifier.toLowerCase() === 'parkeer_bereikbaarheidsproblemen' || 
-       identifier.toLowerCase().includes('parkeer') || 
-       identifier.toLowerCase().includes('bereikbaarheid'))) {
-    console.log(`🔍 LAATSTE KANS DETECTIE: Vanpool 8+1 met ${identifier}, forceer score naar 9`);
-    return 9;
+  // 5. Zoek deels overeenkomende velden (voor parkeerproblemen, gezondheid, etc.)
+  const potentialMatches = Object.keys(solution).filter(key => {
+    // Controleert of de key de identifier bevat, of andersom
+    return key.toLowerCase().includes(identifier.toLowerCase()) || 
+           identifier.toLowerCase().includes(key.toLowerCase());
+  });
+  
+  if (potentialMatches.length > 0 && debugEnabled) {
+    console.log(`🔍 Potentiële partial matches gevonden: ${potentialMatches.join(', ')}`);
+  }
+  
+  for (const match of potentialMatches) {
+    const value = solution[match as keyof MobilitySolution];
+    if (typeof value === 'number') {
+      if (debugEnabled) console.log(`✅ Partial match gevonden: '${match}' = ${value}`);
+      return value;
+    }
   }
   
   // Geen match gevonden
@@ -210,62 +214,26 @@ export default function MobilitySolutionsPage() {
   // Functie om bekend incorrecte scores handmatig te corrigeren
   const applyScoreCorrections = (solution: MobilitySolution): MobilitySolution => {
     // Maak een veilige kopie van de oplossing om de originele niet te wijzigen
-    // Vermijd JSON.parse/stringify vanwege circulaire structuren
     const correctedSolution = { ...solution };
-    
-    // VANPOOL 8+1 CORRECTIE
-    if (solution.title && (solution.title === 'Vanpoolen 8+1' || solution.title.includes('Vanpool'))) {
-      console.log(`\n🔧 SCORE CORRECTIE VOOR VANPOOL 8+1 🔧`);
-      console.log(`Oorspronkelijke score: ${solution.parkeer_bereikbaarheidsproblemen || 'niet ingesteld'}`);
-      
-      // Log alle scores voor dit veld in het originele object
-      const scoreFields = [
-        'parkeer_bereikbaarheidsproblemen', 
-        'Parkeer- en bereikbaarheidsprobleem',
-        'Parkeer- en bereikbaarheidsproblemen'
-      ];
-      
-      console.log(`Controle van score velden in originele object:`);
-      scoreFields.forEach(field => {
-        console.log(`- ${field}: ${(solution as any)[field] || 'niet ingesteld'}`);
-      });
-      
-      // Zet de correcte score voor parkeer_bereikbaarheidsproblemen
-      // Dit doet de oorspronkelijke waarde uit Contentful overschrijven
-      correctedSolution.parkeer_bereikbaarheidsproblemen = 9;
-      
-      // Voeg ook alle andere varianten toe
-      (correctedSolution as any)['Parkeer- en bereikbaarheidsprobleem'] = 9;
-      (correctedSolution as any)['Parkeer- en bereikbaarheidsproblemen'] = 9;
-      (correctedSolution as any)['parkeer_en_bereikbaarheidsproblemen'] = 9;
-      (correctedSolution as any)['Parkeer en bereikbaarheidsprobleem'] = 9;
-      
-      console.log(`Score gecorrigeerd naar 9 voor alle varianten`);
-      console.log(`🔧 EINDE CORRECTIE 🔧\n`);
-    }
-    
     return correctedSolution;
   };
   
   // Bereken scores direct met de gecorrigeerde waarden
   const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
-    // Pas eerst de correcties toe op de oplossing
-    const correctedSolution = applyScoreCorrections(solution);
-    
-    let score = 0;
-    let scoreBreakdown: Record<string, number> = {};
     // Bijhouden welke filters al verwerkt zijn
     const processedFilters = new Set<string>();
+    let score = 0;
+    let scoreBreakdown: Record<string, number> = {};
 
-    // Debug logging voor Vanpool 8+1
-    const isVanpool = correctedSolution.title && 
-                      (correctedSolution.title === 'Vanpoolen 8+1' || 
-                       correctedSolution.title.includes('Vanpool'));
+    // Debug logging voor belangrijke oplossingen
+    const isDebugSolution = solution.title && (
+      solution.title.includes('Vanpool') || 
+      solution.title.includes('fiets')
+    );
 
-    if (isVanpool) {
-      console.log(`===== DEBUG SCORE VOOR VANPOOL 8+1 =====`);
-      console.log(`Solution ID: ${correctedSolution.id}`);
-      console.log(`Solution Title: ${correctedSolution.title}`);
+    if (isDebugSolution) {
+      console.log(`===== DEBUG SCORE VOOR ${solution.title} =====`);
+      console.log(`Solution ID: ${solution.id}`);
       console.log(`Filters: ${filters.join(', ')}`);
       console.log(`Filter mappings:`);
       filters.forEach(filterId => {
@@ -274,59 +242,19 @@ export default function MobilitySolutionsPage() {
       });
       
       // Log alle score velden in de solution
-      console.log(`Beschikbare score velden in gecorrigeerde solution:`);
-      Object.keys(correctedSolution).forEach(key => {
-        if (typeof (correctedSolution as any)[key] === 'number') {
-          console.log(`- ${key}: ${(correctedSolution as any)[key]}`);
+      console.log(`Beschikbare score velden in solution:`);
+      Object.keys(solution).forEach(key => {
+        if (typeof (solution as any)[key] === 'number') {
+          console.log(`- ${key}: ${(solution as any)[key]}`);
         }
       });
     }
     
-    // SPECIAL CASE voor gezondheid - controleer of 5tKI2Y1ydgJAsj7bGjuTEX in de filters zit
-    if (filters.includes('5tKI2Y1ydgJAsj7bGjuTEX')) {
-      // Controleer direct of er een gezondheid score is
-      if (typeof correctedSolution.gezondheid === 'number') {
-        score += correctedSolution.gezondheid;
-        scoreBreakdown['gezondheid'] = correctedSolution.gezondheid;
-        // Markeer als verwerkt
-        processedFilters.add('5tKI2Y1ydgJAsj7bGjuTEX');
-        
-        if (isVanpool) {
-          console.log(`Gezondheid score toegevoegd: ${correctedSolution.gezondheid}`);
-        }
-      } else if (typeof (correctedSolution as any)['Gezondheid'] === 'number') {
-        score += (correctedSolution as any)['Gezondheid'];
-        scoreBreakdown['Gezondheid'] = (correctedSolution as any)['Gezondheid'];
-        // Markeer als verwerkt
-        processedFilters.add('5tKI2Y1ydgJAsj7bGjuTEX');
-        
-        if (isVanpool) {
-          console.log(`Gezondheid (kapitaal) score toegevoegd: ${(correctedSolution as any)['Gezondheid']}`);
-        }
-      }
-    }
-    
-    // Handmatige check voor Vanpool en parkeer_bereikbaarheidsproblemen
-    if (isVanpool) {
-      const filterWithParkeerBereikbaarheid = filters.find(filterId => {
-        const identifier = reasonIdToIdentifierMap[filterId];
-        return identifier === 'parkeer_bereikbaarheidsproblemen';
-      });
-      
-      if (filterWithParkeerBereikbaarheid && !processedFilters.has(filterWithParkeerBereikbaarheid)) {
-        console.log(`🔍 DIRECTE PARKEER SCORE DETECTIE voor Vanpool 8+1`);
-        score += 9; // Voeg direct de score 9 toe
-        scoreBreakdown['parkeer_bereikbaarheidsproblemen (direct)'] = 9;
-        processedFilters.add(filterWithParkeerBereikbaarheid);
-        console.log(`✅ Score 9 toegevoegd voor parkeer_bereikbaarheidsproblemen`);
-      }
-    }
-    
-    // Verwerk resterende filters
+    // Verwerk alle filters
     filters.forEach(reasonId => {
-      // Skip als deze filter al verwerkt is in een speciale case
+      // Skip als deze filter al verwerkt is
       if (processedFilters.has(reasonId)) {
-        if (isVanpool) {
+        if (isDebugSolution) {
           console.log(`- Filter ${reasonId} is al verwerkt, wordt overgeslagen`);
         }
         return;
@@ -336,41 +264,32 @@ export default function MobilitySolutionsPage() {
       const identifier = reasonIdToIdentifierMap[reasonId];
       
       if (identifier) {
-        // Extra check voor Vanpool en parkeerprobleem
-        if (isVanpool && 
-            (identifier === 'parkeer_bereikbaarheidsproblemen' || 
-             identifier.includes('parkeer') || 
-             identifier.includes('bereikbaarheid'))) {
-          score += 9;
-          scoreBreakdown[`${identifier} (vanpool special)`] = 9;
-          if (isVanpool) {
-            console.log(`🔍 SPECIALE PARKEER SCORE: 9 toegevoegd voor ${identifier}`);
-          }
-        } else {
-          // Gebruik de gedeelde helper functie
-          const fieldScore = findScoreForIdentifier(correctedSolution, identifier);
+        // Gebruik de gedeelde helper functie
+        const fieldScore = findScoreForIdentifier(solution, identifier);
+        
+        if (fieldScore > 0) {
+          score += fieldScore;
+          scoreBreakdown[identifier] = fieldScore;
           
-          if (fieldScore > 0) {
-            score += fieldScore;
-            scoreBreakdown[identifier] = fieldScore;
-            
-            if (isVanpool) {
-              console.log(`Score voor ${identifier} toegevoegd: ${fieldScore}`);
-            }
-          } else if (isVanpool) {
-            console.log(`Geen score gevonden voor ${identifier}`);
+          if (isDebugSolution) {
+            console.log(`Score voor ${identifier} toegevoegd: ${fieldScore}`);
           }
+        } else if (isDebugSolution) {
+          console.log(`Geen score gevonden voor ${identifier}`);
         }
+        
+        // Markeer deze filter als verwerkt
+        processedFilters.add(reasonId);
       }
     });
     
-    // Eindresultaat loggen voor Vanpool 8+1
-    if (isVanpool) {
-      console.log(`Score breakdown voor Vanpool 8+1:`);
+    // Eindresultaat loggen voor debug oplossingen
+    if (isDebugSolution) {
+      console.log(`Score breakdown voor ${solution.title}:`);
       Object.entries(scoreBreakdown).forEach(([key, value]) => {
         console.log(`- ${key}: ${value}`);
       });
-      console.log(`Totale score voor Vanpool 8+1: ${score}`);
+      console.log(`Totale score voor ${solution.title}: ${score}`);
       console.log(`===============================`);
     }
     

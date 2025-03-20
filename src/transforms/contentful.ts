@@ -86,108 +86,103 @@ export function transformMobilitySolution(
   // Log alle velden uit Contentful voor debugging
   console.log('[TRANSFORM] Contentful fields for solution:');
   Object.entries(fields).forEach(([key, value]) => {
-    console.log(`  ${key}: ${value} (type: ${typeof value})`);
-  });
-  
-  // Log governance models if they exist
-  if (fields.governanceModels) {
-    console.log('[TRANSFORM] Found governanceModels field:', fields.governanceModels);
-  }
-  
-  // Specifieke check voor deelfietssysteem 
-  if (fields.title && fields.title.includes('deelfiets')) {
-    console.log('[TRANSFORM-IMPORTANT] Processing deelfiets solution');
-    
-    // Check voor gezondheid score
-    if (typeof fields.gezondheid === 'number') {
-      console.log(`[TRANSFORM-IMPORTANT] Found gezondheid score in Contentful: ${fields.gezondheid}`);
-      solution.gezondheid = fields.gezondheid;
-      
-      // Ook expliciet als verschillende schrijfwijzen toevoegen
-      (solution as any)['Gezondheid'] = fields.gezondheid;
-      (solution as any)['Health'] = fields.gezondheid;
-    } else {
-      console.log('[TRANSFORM-IMPORTANT] No direct gezondheid score found in fields');
-    }
-  }
-  
-  // Specifieke check voor 'Parkeer- en bereikbaarheidsproblemen' velden
-  [
-    'parkeer_bereikbaarheidsproblemen',
-    'Parkeer- en bereikbaarheidsprobleem',
-    'Parkeer- en bereikbaarheidsproblemen',
-    'parkeer_en_bereikbaarheidsproblemen',
-    'Parkeer en bereikbaarheidsprobleem'
-  ].forEach(fieldName => {
-    if (typeof fields[fieldName] === 'number') {
-      console.log(`[TRANSFORM] Veld gevonden voor parkeerprobleem: ${fieldName} = ${fields[fieldName]}`);
-      solution.parkeer_bereikbaarheidsproblemen = fields[fieldName];
-      // Voeg alle mogelijke varianten toe voor consistentie
-      (solution as any)['Parkeer- en bereikbaarheidsprobleem'] = fields[fieldName];
-      (solution as any)['Parkeer- en bereikbaarheidsproblemen'] = fields[fieldName];
-    }
-  });
-  
-  // Voeg alle numerieke velden toe aan het solution object
-  Object.entries(fields).forEach(([key, value]) => {
     if (typeof value === 'number') {
-      console.log(`[TRANSFORM] Found numeric field in Contentful: ${key} = ${value}`);
-      
-      // Voeg dit veld toe aan het solution object
-      (solution as any)[key] = value;
-      
-      // Voeg ook lowercase en capitalized varianten toe voor robuustheid
-      (solution as any)[key.toLowerCase()] = value;
-      (solution as any)[key.charAt(0).toUpperCase() + key.slice(1)] = value;
-      
-      // Verwijder spaties en vervang door underscores
-      if (key.includes(' ')) {
-        const normalizedKey = key.toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_');
-        (solution as any)[normalizedKey] = value;
-        console.log(`[TRANSFORM] Also added normalized key: ${normalizedKey} = ${value}`);
+      console.log(`  ${key}: ${value} (type: ${typeof value})`);
+    }
+  });
+  
+  // NORMALISATIE VAN VELDNAMEN - Eerst bekend maken welke varianten gezocht moeten worden
+  const fieldMappings = {
+    // Parkeerprobleem varianten
+    parkeer_bereikbaarheidsproblemen: [
+      'parkeer_bereikbaarheidsproblemen',
+      'Parkeer- en bereikbaarheidsprobleem',
+      'Parkeer- en bereikbaarheidsproblemen',
+      'parkeer_en_bereikbaarheidsproblemen',
+      'Parkeer en bereikbaarheidsprobleem',
+      'parkeerprobleem',
+      'bereikbaarheidsprobleem'
+    ],
+    // Gezondheid varianten
+    gezondheid: [
+      'gezondheid',
+      'Gezondheid',
+      'health'
+    ],
+    // Personeelszorg varianten
+    personeelszorg_en_behoud: [
+      'personeelszorg_en_behoud',
+      'Personeelszorg en -behoud',
+      'personeel'
+    ],
+    // Imago varianten
+    imago: [
+      'imago',
+      'Imago'
+    ],
+    // Milieuverordening varianten
+    milieuverordening: [
+      'milieuverordening',
+      'Milieuverordening'
+    ]
+  };
+  
+  // Voor elk veld in de solution, zoek alle mogelijke varianten in de contentful data
+  Object.entries(fieldMappings).forEach(([normalizedField, variants]) => {
+    // Zoek door alle varianten
+    for (const variant of variants) {
+      if (typeof fields[variant] === 'number') {
+        // Als een variant gevonden is, gebruik die waarde voor het genormaliseerde veld
+        console.log(`[TRANSFORM] Found ${variant} = ${fields[variant]}, mapping to ${normalizedField}`);
+        (solution as any)[normalizedField] = fields[variant];
+        
+        // Zorg ervoor dat alle varianten dezelfde waarde krijgen voor consistentie
+        variants.forEach(otherVariant => {
+          (solution as any)[otherVariant] = fields[variant];
+        });
+        
+        // Stop zoeken naar varianten zodra we een waarde hebben gevonden
+        break;
       }
     }
   });
   
-  // Specifieke hardcoded rating velden (voor het geval dat)
-  const ratingFields = [
-    'parkeer_bereikbaarheidsproblemen', 
-    'gezondheid', 
-    'personeelszorg_en_behoud', 
-    'imago', 
-    'milieuverordening',
-    'Gezondheid',
-    'Personeelszorg en -behoud',
-    'Vervoerkosten',
-    'Gastvrijheid'
-  ];
-  
-  // Controleer en zet rating velden
-  ratingFields.forEach(field => {
-    if (typeof fields[field] === 'number') {
-      (solution as any)[field] = fields[field];
-      console.log(`[TRANSFORM] Set rating field ${field} = ${fields[field]}`);
+  // Controleer op numerieke velden die nog niet afgehandeld zijn
+  Object.entries(fields).forEach(([key, value]) => {
+    if (typeof value === 'number') {
+      // Controleer of dit veld al is afgehandeld door de fieldMappings
+      let isHandled = false;
+      for (const [normalizedField, variants] of Object.entries(fieldMappings)) {
+        if (variants.includes(key)) {
+          isHandled = true;
+          break;
+        }
+      }
       
-      // Ook lowercase variant toevoegen
-      (solution as any)[field.toLowerCase()] = fields[field];
+      // Als het veld nog niet is afgehandeld, sla het op onder zijn eigen naam
+      if (!isHandled) {
+        console.log(`[TRANSFORM] Unmapped numeric field: ${key} = ${value}`);
+        (solution as any)[key] = value;
+        
+        // Ook normaliseren als lowercase
+        const normalizedKey = key.toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/-/g, '_');
+        
+        if (normalizedKey !== key) {
+          console.log(`[TRANSFORM] Also storing as normalized key: ${normalizedKey}`);
+          (solution as any)[normalizedKey] = value;
+        }
+      }
     }
   });
   
-  // Nu expliciete veldbinding toevoegen voor de meest voorkomende scenario's
-  if (typeof fields['Gezondheid'] === 'number') {
-    solution.gezondheid = fields['Gezondheid'];
-    console.log(`[TRANSFORM] Mapped 'Gezondheid' to 'gezondheid': ${fields['Gezondheid']}`);
-  }
-  
-  if (typeof fields['Personeelszorg en -behoud'] === 'number') {
-    solution.personeelszorg_en_behoud = fields['Personeelszorg en -behoud'];
-    console.log(`[TRANSFORM] Mapped 'Personeelszorg en -behoud' to 'personeelszorg_en_behoud': ${fields['Personeelszorg en -behoud']}`);
-  }
-  
-  // Sanity check - loggen van alle velden in het uiteindelijke solution object
-  console.log('[TRANSFORM] Final solution object with scores:');
-  ['gezondheid', 'Gezondheid', 'parkeer_bereikbaarheidsproblemen', 'personeelszorg_en_behoud', 'imago', 'milieuverordening'].forEach(field => {
-    console.log(`  ${field}: ${(solution as any)[field]} (type: ${typeof (solution as any)[field]})`);
+  // Log het uiteindelijke resultaat voor debug doeleinden
+  console.log('[TRANSFORM] Final solution scores:');
+  Object.entries(solution).forEach(([key, value]) => {
+    if (typeof value === 'number') {
+      console.log(`  ${key}: ${value}`);
+    }
   });
   
   return solution;
