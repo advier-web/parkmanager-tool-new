@@ -106,8 +106,12 @@ export function processMarkdownText(text: string): string {
     return '';
   }
   
+  // Voer een pre-processing stap uit voor tabellen voordat we andere bewerkingen doen
+  // Dit helpt specifiek met de governance modellen tabel
+  let processed = preprocessTables(text);
+  
   // Verwerk __text__ naar **text** voor vette tekst
-  let processed = text.replace(/__(.*?)__/g, '**$1**');
+  processed = processed.replace(/__(.*?)__/g, '**$1**');
   
   // Vervang ### zonder spatie door ### met spatie
   processed = processed.replace(/^(#{1,6})([^#\s])/gm, '$1 $2');
@@ -144,45 +148,121 @@ export function processMarkdownText(text: string): string {
   // Vervang specifieke patronen die in de contentful content voorkomen
   processed = processed.replace(/###\s+([^#\n]+)/g, '### $1');
   
-  // Verwerking van tabellen - Contentful kan speciale tekens gebruiken voor tabellen die we converteren naar standaard markdown
+  return processed;
+}
+
+/**
+ * Deze helper functie doet specifieke pre-processing voor tabelstructuren
+ * vooral om de governance modellen tabel correct weer te geven
+ */
+function preprocessTables(text: string): string {
+  let processed = text;
   
-  // 1. Zorg ervoor dat pipe symbolen die in tabellen worden gebruikt correct worden weergegeven
-  // Vervang alleenstaande "|" met escaped version \| indien nodig
-  processed = processed.replace(/(\S)\|(\S)/g, "$1\\|$2");
+  // Herkenningspatroon voor tabellen met meerdere | tekens en streepjes
+  const tableRowPattern = /\|\s*([^|\n]+)\s*\|\s*([^|\n]+)\s*\|\s*([^|\n]+)\s*\|/g;
+  const hasTableFormat = tableRowPattern.test(text);
   
-  // 2. Zorg ervoor dat tabelheaders correct worden gedetecteerd
-  // Verbeter tabel header/data scheiding (--- lijnen) door consistentie te verzekeren
-  const tableHeaderRegex = /^\|(.+)\|$/gm;
-  const tableHeaderMatches = processed.match(tableHeaderRegex);
-  
-  if (tableHeaderMatches) {
-    // We hebben een tabel gedetecteerd, controleer of de header-scheiding correct is
-    for (const headerMatch of tableHeaderMatches) {
-      // Controleer of er een scheidingsrij na deze header is
-      const headerIndex = processed.indexOf(headerMatch);
-      const nextLineStart = processed.indexOf('\n', headerIndex) + 1;
-      const nextLineEnd = processed.indexOf('\n', nextLineStart);
-      const nextLine = nextLineEnd > 0 ? 
-        processed.substring(nextLineStart, nextLineEnd) : 
-        processed.substring(nextLineStart);
+  if (hasTableFormat) {
+    // Splitsen op regels
+    const lines = processed.split('\n');
+    let inTable = false;
+    let tableRows: string[] = [];
+    let currentTable: string[] = [];
+    
+    // Voor elke regel controleren of het onderdeel is van een tabel
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       
-      // Als de volgende rij geen scheidingsrij is (|----|----| formaat), voeg deze toe
-      if (!nextLine.match(/^\|(\s*[-:]+\s*\|)+$/)) {
-        const columns = headerMatch.split('|').filter(Boolean);
-        const separatorRow = '|' + columns.map(() => ' --- |').join('');
+      // Check of deze regel een tabelrij kan zijn (bevat meerdere | tekens)
+      const pipesCount = (line.match(/\|/g) || []).length;
+      
+      if (pipesCount >= 3 && !inTable) {
+        // Begin van een nieuwe tabel gedetecteerd
+        inTable = true;
+        currentTable = [line];
+      } else if (pipesCount >= 3 && inTable) {
+        // Vervolg van een tabel
+        currentTable.push(line);
+      } else if (inTable) {
+        // Einde van de tabel
+        inTable = false;
         
-        processed = processed.substring(0, nextLineStart) + 
-                    separatorRow + '\n' + 
-                    processed.substring(nextLineStart);
+        // Verwerk de verzamelde tabelrijen
+        if (currentTable.length >= 1) {
+          // Zorg ervoor dat we een scheidingsrij hebben na de header
+          if (currentTable.length < 2 || !currentTable[1].match(/^\|[\s-:|]+\|[\s-:|]+\|/)) {
+            // Aantal kolommen berekenen
+            const headerCols = (currentTable[0].match(/\|/g) || []).length - 1;
+            const separator = '|' + Array(headerCols).fill(' --- ').join('|') + '|';
+            currentTable.splice(1, 0, separator);
+          }
+          
+          // Opgeschoonde tabel toevoegen aan de verzameling
+          tableRows.push(currentTable.join('\n'));
+        }
+        
+        // Deze niet-tabel regel toevoegen
+        tableRows.push(line);
+      } else {
+        // Normale regel (geen tabel)
+        tableRows.push(line);
       }
     }
+    
+    // Als we eindigen in een tabel, deze ook verwerken
+    if (inTable && currentTable.length >= 1) {
+      // Zorg ervoor dat we een scheidingsrij hebben na de header
+      if (currentTable.length < 2 || !currentTable[1].match(/^\|[\s-:|]+\|[\s-:|]+\|/)) {
+        // Aantal kolommen berekenen
+        const headerCols = (currentTable[0].match(/\|/g) || []).length - 1;
+        const separator = '|' + Array(headerCols).fill(' --- ').join('|') + '|';
+        currentTable.splice(1, 0, separator);
+      }
+      
+      // Opgeschoonde tabel toevoegen aan de verzameling
+      tableRows.push(currentTable.join('\n'));
+    }
+    
+    // Combineer alles terug tot één string
+    processed = tableRows.join('\n');
   }
   
-  // 3. Zorg ervoor dat tabellen met speciale tekens (zoals ------) worden herkend als tabellen
-  processed = processed.replace(/^([-|]+\s*[-|]+\s*[-|]+)$/gm, (match) => {
-    // Converteer "| ------ | ------ |" formaat naar correcte markdown tabel scheiding
-    return match.replace(/[-]+/g, ' --- ');
-  });
+  // Als de tekst veel streepjes en pipes bevat, kan het een tabel zijn die niet goed geformatteerd is
+  if (text.includes('-----') && text.includes('|')) {
+    // Zoek naar patronen zoals "| Bestuurlijke rechtsvorm | Geschikt | Toelichting |"
+    const potentialTableHeaders = text.match(/\|\s*[\w\s]+\s*\|\s*[\w\s]+\s*\|\s*[\w\s]+\s*\|/g);
+    
+    if (potentialTableHeaders) {
+      // Voor elke mogelijke tabelheader
+      potentialTableHeaders.forEach(header => {
+        const headerIndex = processed.indexOf(header);
+        if (headerIndex !== -1) {
+          // Voeg een scheidingsrij toe na deze header als die er nog niet is
+          const afterHeader = processed.substring(headerIndex + header.length);
+          // Als de volgende rij geen scheidingsrij is, voeg er een in
+          if (!afterHeader.trim().startsWith('|') || !afterHeader.trim().match(/^\|[\s-:|]+\|/)) {
+            // Tel het aantal kolommen door de pipe-symbolen te tellen
+            const columnCount = (header.match(/\|/g) || []).length - 1;
+            const separatorRow = '\n|' + Array(columnCount).fill(' --- ').join('|') + '|\n';
+            
+            processed = processed.substring(0, headerIndex + header.length) + 
+                         separatorRow + 
+                         processed.substring(headerIndex + header.length);
+          }
+        }
+      });
+    }
+    
+    // Vervang rijen met veel streepjes door correcte markdown tabelscheidingen
+    processed = processed.replace(/(\|-+\|-+\|-+\|)/g, '| --- | --- | --- |');
+    processed = processed.replace(/\|\s*-{3,}\s*\|\s*-{3,}\s*\|\s*-{3,}\s*\|/g, '| --- | --- | --- |');
+    
+    // Streepjes tussen rijen (niet omgeven door pipes) verwijderen
+    processed = processed.replace(/^-{3,}$/gm, '');
+  }
+  
+  // Specifieke problemen met streepjes en pipes verhelpen
+  processed = processed.replace(/\|-{3,}\|/g, '| --- |');
   
   return processed;
 } 
