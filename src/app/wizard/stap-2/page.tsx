@@ -250,8 +250,21 @@ export default function MobilitySolutionsPage() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column - Information */}
+        {/* Left Column - Filters en Information */}
         <div className="lg:col-span-1">
+          {/* Filter panel - Nu bovenaan */}
+          {reasons && (
+            <div className="mb-6">
+              <FilterPanel
+                reasons={reasons}
+                selectedReasonIds={selectedReasons}
+                activeFilterIds={activeFilters}
+                onReasonFilterChange={handleFilterChange}
+              />
+            </div>
+          )}
+          
+          {/* Informatieve tekst - Nu onderaan */}
           <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
@@ -286,18 +299,6 @@ export default function MobilitySolutionsPage() {
               </div>
             </div>
           </div>
-          
-          {/* Filter panel */}
-          {reasons && (
-            <div className="mt-6">
-              <FilterPanel
-                reasons={reasons}
-                selectedReasonIds={selectedReasons}
-                activeFilterIds={activeFilters}
-                onReasonFilterChange={handleFilterChange}
-              />
-            </div>
-          )}
         </div>
 
         {/* Right Column - Content */}
