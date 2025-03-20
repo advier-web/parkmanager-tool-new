@@ -38,6 +38,7 @@ export function SolutionDialog() {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Paspoort</h3>
                 <MarkdownContent content={paspoort} />
+                <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
             
@@ -45,6 +46,7 @@ export function SolutionDialog() {
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
               <MarkdownContent content={currentSolution.description} />
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
             {/* Collectief vs Individueel (nieuw veld) */}
@@ -52,6 +54,7 @@ export function SolutionDialog() {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Collectief vs Individueel</h3>
                 <MarkdownContent content={collectiefVsIndiviueel} />
+                <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
             
@@ -60,6 +63,7 @@ export function SolutionDialog() {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Effecten</h3>
                 <MarkdownContent content={effecten} />
+                <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
             
@@ -68,6 +72,7 @@ export function SolutionDialog() {
               <section className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Investering</h3>
                 <MarkdownContent content={investering} />
+                <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
             
@@ -86,37 +91,6 @@ export function SolutionDialog() {
               ) : (
                 <p className="text-gray-500 italic">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
               )}
-            </section>
-            
-            {/* Additional information */}
-            <section className="border-t pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-md font-semibold mb-2">Voordelen</h3>
-                  {Array.isArray(currentSolution.benefits) && currentSolution.benefits.length > 0 ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {currentSolution.benefits.map((benefit, index) => (
-                        <li key={index}>{benefit}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">Geen voordelen beschikbaar</p>
-                  )}
-                </div>
-                
-                <div>
-                  <h3 className="text-md font-semibold mb-2">Uitdagingen</h3>
-                  {Array.isArray(currentSolution.challenges) && currentSolution.challenges.length > 0 ? (
-                    <ul className="list-disc pl-5 text-sm text-gray-600">
-                      {currentSolution.challenges.map((challenge, index) => (
-                        <li key={index}>{challenge}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">Geen uitdagingen beschikbaar</p>
-                  )}
-                </div>
-              </div>
             </section>
           </div>
           
@@ -187,6 +161,7 @@ export function SolutionDialog() {
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
               <MarkdownContent content={processMarkdownText(currentGovernanceModel.description)} />
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
             {/* Advantages and disadvantages */}
@@ -230,6 +205,7 @@ export function SolutionDialog() {
                   )}
                 </div>
               </div>
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
             {/* Setup requirements */}
@@ -252,6 +228,7 @@ export function SolutionDialog() {
                   <p className="text-sm text-gray-500 italic">Geen benodigdheden beschikbaar</p>
                 )}
               </div>
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
             {/* Timeline */}
@@ -264,6 +241,7 @@ export function SolutionDialog() {
                   <span className="text-gray-500 italic">Niet gespecificeerd</span>
                 )}
               </div>
+              <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
             {/* Links */}
