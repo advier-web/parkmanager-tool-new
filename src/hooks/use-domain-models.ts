@@ -13,7 +13,8 @@ import {
   BusinessParkReason,
   GovernanceModel,
   ImplementationPlan,
-  MobilitySolution
+  MobilitySolution,
+  WebsiteCollectiefVervoer
 } from '../domain/models';
 import { 
   useContentfulBusinessParkReasons, 
@@ -21,12 +22,14 @@ import {
   useContentfulMobilitySolutions,
   useContentfulMobilitySolution,
   useContentfulGovernanceModels,
-  useContentfulGovernanceModel
+  useContentfulGovernanceModel,
+  useContentfulWebsiteCollectiefVervoer
 } from './use-contentful-models';
 import { shouldUseContentful, isContentfulPreviewMode } from '../utils/env';
 import { 
   getMobilitySolutionsFromContentful,
-  getGovernanceModelsFromContentful 
+  getGovernanceModelsFromContentful,
+  getWebsiteCollectiefVervoerFromContentful
 } from '../services/contentful-service';
 
 /**
@@ -161,4 +164,45 @@ export function useImplementationPlan(id: string | null) {
     () => id ? getImplementationPlanById(id) : Promise.resolve(null),
     [id]
   );
+}
+
+/**
+ * Hook voor het ophalen van de website collectief vervoer content
+ * Gebruikt Contentful
+ */
+export function useWebsiteCollectiefVervoer() {
+  if (shouldUseContentful()) {
+    return useFetch<WebsiteCollectiefVervoer>(
+      async () => {
+        try {
+          return await getWebsiteCollectiefVervoerFromContentful({ preview: isContentfulPreviewMode() });
+        } catch (error) {
+          console.log('Error fetching websiteCollectiefVervoer content', error);
+          // Return empty content as fallback
+          return {
+            id: 'mock',
+            inleiding: 'Content kon niet geladen worden.',
+            watIsCollectiefVervoer: 'Content kon niet geladen worden.',
+            aanleidingenVoorCollectieveVervoersoplossingen: 'Content kon niet geladen worden.',
+            overzichtCollectieveVervoersoplossingen: 'Content kon niet geladen worden.',
+            bestuurlijkeRechtsvormen: 'Content kon niet geladen worden.',
+            coverSubsidie: 'Content kon niet geladen worden.',
+            bestPractices: 'Content kon niet geladen worden.'
+          };
+        }
+      }
+    );
+  }
+  
+  // Fallback if Contentful is not available
+  return useFetch<WebsiteCollectiefVervoer>(() => Promise.resolve({
+    id: 'mock',
+    inleiding: 'Collectief vervoer inleiding (mock data).',
+    watIsCollectiefVervoer: 'Wat is collectief vervoer (mock data).',
+    aanleidingenVoorCollectieveVervoersoplossingen: 'Aanleidingen voor collectieve vervoersoplossingen (mock data).',
+    overzichtCollectieveVervoersoplossingen: 'Overzicht collectieve vervoersoplossingen (mock data).',
+    bestuurlijkeRechtsvormen: 'Bestuurlijke rechtsvormen (mock data).',
+    coverSubsidie: 'Cover subsidie (mock data).',
+    bestPractices: 'Best practices (mock data).'
+  }));
 } 

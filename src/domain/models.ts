@@ -134,4 +134,17 @@ export enum TrafficType {
   COMMUTER = 'woon-werkverkeer',
   BUSINESS = 'zakelijk verkeer',
   VISITOR = 'bezoekers verkeer'
+}
+
+// Website Collectief Vervoer - Homepage content
+export interface WebsiteCollectiefVervoer {
+  id: string;
+  title?: string;
+  inleiding: string;
+  watIsCollectiefVervoer: string;
+  aanleidingenVoorCollectieveVervoersoplossingen: string;
+  overzichtCollectieveVervoersoplossingen: string;
+  bestuurlijkeRechtsvormen: string;
+  coverSubsidie: string;
+  bestPractices: string;
 } 

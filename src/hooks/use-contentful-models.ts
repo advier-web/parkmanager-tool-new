@@ -7,9 +7,10 @@ import {
   getMobilitySolutionByIdFromContentful,
   getContentfulContentTypes,
   getGovernanceModelsFromContentful,
-  getGovernanceModelByIdFromContentful
+  getGovernanceModelByIdFromContentful,
+  getWebsiteCollectiefVervoerFromContentful
 } from '../services/contentful-service';
-import { BusinessParkReason, MobilitySolution, GovernanceModel } from '../domain/models';
+import { BusinessParkReason, MobilitySolution, GovernanceModel, WebsiteCollectiefVervoer } from '../domain/models';
 
 /**
  * Debug hook to get content types from Contentful
@@ -80,5 +81,15 @@ export function useContentfulGovernanceModel(id: string | null, preview = false)
   return useFetch<GovernanceModel | null>(
     () => id ? getGovernanceModelByIdFromContentful(id, { preview }) : Promise.resolve(null),
     [id, preview]
+  );
+}
+
+/**
+ * Hook om websiteCollectiefVervoer content op te halen via Contentful
+ */
+export function useContentfulWebsiteCollectiefVervoer(preview = false) {
+  return useFetch<WebsiteCollectiefVervoer>(
+    () => getWebsiteCollectiefVervoerFromContentful({ preview }),
+    [preview]
   );
 } 

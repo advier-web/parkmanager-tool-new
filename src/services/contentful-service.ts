@@ -313,4 +313,37 @@ export async function getGovernanceModelByIdFromContentful(
     console.error(`Error fetching governance model with id ${id}:`, error);
     throw handleContentfulError(error);
   }
+}
+
+/**
+ * Haal de websiteCollectiefVervoer content op uit Contentful
+ */
+export async function getWebsiteCollectiefVervoerFromContentful(
+  options: ContentfulQueryOptions = {}
+): Promise<any> {
+  try {
+    const client = getContentfulClient(options.preview);
+    
+    console.log('[CONTENTFUL] Attempting to fetch websiteCollectiefVervoer content from Contentful');
+    
+    const queryParams: any = {
+      content_type: 'websiteCollectiefVervoer',
+      limit: 1,
+    };
+    
+    const response = await client.getEntries(queryParams);
+    
+    if (response.items.length > 0) {
+      const contentItem = response.items[0];
+      return {
+        id: contentItem.sys.id,
+        ...contentItem.fields
+      };
+    }
+    
+    throw new Error('No websiteCollectiefVervoer content found in Contentful');
+  } catch (error) {
+    console.error('[CONTENTFUL] Error fetching websiteCollectiefVervoer content:', error);
+    throw handleContentfulError(error);
+  }
 } 
