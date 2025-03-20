@@ -89,7 +89,7 @@ export function ItemWithMarkdown({ content, className = '' }: ItemWithMarkdownPr
       }
       
       // Otherwise, continue the previous paragraph with a break
-      return `<br/>${trimmedLine}`;
+      return ` ${trimmedLine}`;
     }
   }).join('\n');
   

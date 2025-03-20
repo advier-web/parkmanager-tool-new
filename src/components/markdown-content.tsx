@@ -39,7 +39,7 @@ export function MarkdownContent({
             <h2 {...props} className="text-xl font-bold mb-3 mt-5" />
           ),
           h3: ({ node, ...props }) => (
-            <h3 {...props} className="text-lg font-bold mb-3 mt-4" />
+            <h3 {...props} className="text-lg font-bold mb-2 mt-4" />
           ),
           h4: ({ node, ...props }) => (
             <h4 {...props} className="text-base font-semibold mb-2 mt-4" />
