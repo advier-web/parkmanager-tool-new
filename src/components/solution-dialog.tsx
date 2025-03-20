@@ -30,7 +30,7 @@ export function SolutionDialog() {
             {/* Solution description */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
-              <p className="text-gray-700">{currentSolution.description}</p>
+              <MarkdownContent content={currentSolution.description} />
             </section>
             
             {/* Compatible governance models */}

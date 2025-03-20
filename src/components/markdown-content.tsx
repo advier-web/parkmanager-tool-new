@@ -18,6 +18,9 @@ export function MarkdownContent({
     return null;
   }
   
+  // Verwerk de content door de markdown-tekst te bewerken
+  const processedContent = processMarkdownText(content);
+  
   return (
     <div className={`prose prose-blue max-w-none ${className}`}>
       <ReactMarkdown
@@ -59,14 +62,14 @@ export function MarkdownContent({
           )
         }}
       >
-        {content}
+        {processedContent}
       </ReactMarkdown>
     </div>
   );
 }
 
 /**
- * Helper functie om tekst met markdown-stijl onderstreepte woorden te verwerken
+ * Helper functie om tekst met markdown-stijl te verwerken
  * bijv. "__Collectieve financiering__" wordt omgezet naar Markdown
  */
 export function processMarkdownText(text: string): string {
@@ -77,9 +80,17 @@ export function processMarkdownText(text: string): string {
   // Verwerk __text__ naar **text** voor vette tekst
   let processed = text.replace(/__(.*?)__/g, '**$1**');
   
-  // Zorg ervoor dat Markdown-headings correct worden weergegeven
-  // Voeg spatie toe na # indien deze ontbreekt (e.g. "#Heading" -> "# Heading")
+  // Vervang ### zonder spatie door ### met spatie
   processed = processed.replace(/^(#{1,6})([^#\s])/gm, '$1 $2');
+  
+  // Specifieke verbetering voor markdown headers die beginnen met ###
+  processed = processed.replace(/(#{1,6})\s+([^#\n]+)/g, '$1 $2');
+  
+  // Verwerk "###Titel" zonder spatie ook (case-insensitief)
+  processed = processed.replace(/^(#{1,6})([A-Za-z])/gm, '$1 $2');
+
+  // Vervang "_tekst_" door "*tekst*" voor cursieve tekst
+  processed = processed.replace(/(?<![\w\*])_([^_]+)_(?![\w\*])/g, '*$1*');
   
   // Converteer html <ul> en <li> tags naar markdown lijsten als ze nog niet in markdown formaat zijn
   processed = processed.replace(/<ul>/g, '\n');
@@ -89,6 +100,9 @@ export function processMarkdownText(text: string): string {
   // Zorg ervoor dat URL's die nog geen markdown link zijn, naar markdown links worden geconverteerd
   const urlRegex = /(?<!["\(])(https?:\/\/[^\s<]+)(?!["\)])/g;
   processed = processed.replace(urlRegex, '[$1]($1)');
+  
+  // Vervang specifieke patronen die in de contentful content voorkomen
+  processed = processed.replace(/###\s+([^#\n]+)/g, '### $1');
   
   return processed;
 } 
