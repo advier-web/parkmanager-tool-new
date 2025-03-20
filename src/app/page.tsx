@@ -109,6 +109,36 @@ export default function Home() {
           <MarkdownContent content={data.inleiding} />
         </div>
         
+        {/* Actieknoppen */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+          <Link 
+            href="/wizard"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md text-center font-medium transition-colors flex-1 max-w-xs mx-auto sm:mx-0"
+          >
+            Start de wizard voor persoonlijk advies
+          </Link>
+          
+          <button
+            onClick={() => scrollToSection('wat-is-collectief-vervoer')}
+            className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 py-3 px-6 rounded-md text-center font-medium transition-colors flex items-center justify-center gap-2 flex-1 max-w-xs mx-auto sm:mx-0"
+          >
+            Lees verder
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </button>
+        </div>
+        
         {/* Op deze pagina sectie */}
         <div className="bg-gray-50 p-6 rounded-lg mb-16">
           <h2 className="text-2xl font-bold mb-4">Op deze pagina:</h2>
