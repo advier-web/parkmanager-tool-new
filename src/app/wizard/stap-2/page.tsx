@@ -209,8 +209,9 @@ export default function MobilitySolutionsPage() {
   
   // Functie om bekend incorrecte scores handmatig te corrigeren
   const applyScoreCorrections = (solution: MobilitySolution): MobilitySolution => {
-    // Maak een diepe kopie van de oplossing om de originele niet te wijzigen
-    const correctedSolution = JSON.parse(JSON.stringify(solution)) as MobilitySolution;
+    // Maak een veilige kopie van de oplossing om de originele niet te wijzigen
+    // Vermijd JSON.parse/stringify vanwege circulaire structuren
+    const correctedSolution = { ...solution };
     
     // VANPOOL 8+1 CORRECTIE
     if (solution.title && (solution.title === 'Vanpoolen 8+1' || solution.title.includes('Vanpool'))) {
