@@ -44,6 +44,14 @@ export function MarkdownContent({
           h6: ({ node, ...props }) => (
             <h6 {...props} className="text-sm font-medium mb-2 mt-3" />
           ),
+          // Expliciete styling voor italic/emphasis tekst
+          em: ({ node, ...props }) => (
+            <em {...props} className="italic" />
+          ),
+          // Expliciete styling voor bold/strong tekst
+          strong: ({ node, ...props }) => (
+            <strong {...props} className="font-bold" />
+          ),
           // Styling voor links
           a: ({ node, ...props }) => (
             <a 
@@ -89,8 +97,16 @@ export function processMarkdownText(text: string): string {
   // Verwerk "###Titel" zonder spatie ook (case-insensitief)
   processed = processed.replace(/^(#{1,6})([A-Za-z])/gm, '$1 $2');
 
-  // Vervang "_tekst_" door "*tekst*" voor cursieve tekst
-  processed = processed.replace(/(?<![\w\*])_([^_]+)_(?![\w\*])/g, '*$1*');
+  // Verbeterde verwerking van italic tekst
+  // 1. Vervang "_tekst_" door "*tekst*" voor cursieve tekst
+  processed = processed.replace(/(?<![a-zA-Z0-9\*])_([^_\n]+?)_(?![a-zA-Z0-9\*])/g, '*$1*');
+  
+  // 2. Zorg ervoor dat alleenstaande * tekens niet worden verward met markdown
+  // (b.v. "5 * 5 = 25" zou niet als italic moeten worden geïnterpreteerd)
+  processed = processed.replace(/(\s)(\*)(\s)/g, '$1\\*$3');
+  
+  // 3. Zorg ervoor dat *tekst* consistent wordt behandeld
+  processed = processed.replace(/(?<![a-zA-Z0-9\\\*])(\*)([^\*\n]+?)(\*)(?![a-zA-Z0-9\*])/g, '*$2*');
   
   // Converteer html <ul> en <li> tags naar markdown lijsten als ze nog niet in markdown formaat zijn
   processed = processed.replace(/<ul>/g, '\n');
@@ -100,6 +116,9 @@ export function processMarkdownText(text: string): string {
   // Zorg ervoor dat URL's die nog geen markdown link zijn, naar markdown links worden geconverteerd
   const urlRegex = /(?<!["\(])(https?:\/\/[^\s<]+)(?!["\)])/g;
   processed = processed.replace(urlRegex, '[$1]($1)');
+  
+  // Verwerking van strikethrough tekst met ~~ ~~
+  processed = processed.replace(/~~([^~]+)~~/g, '~~$1~~');
   
   // Vervang specifieke patronen die in de contentful content voorkomen
   processed = processed.replace(/###\s+([^#\n]+)/g, '### $1');
