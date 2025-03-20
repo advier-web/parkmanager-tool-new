@@ -76,19 +76,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
               <InformationCircleIcon className="h-4 w-4 mr-1" />
               Meer informatie
             </button>
-            
-            <div className="flex items-center">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                  checked={isSelected}
-                  onChange={() => onToggleSelect(solution.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className="ml-2 text-sm text-gray-700">Selecteren</span>
-              </label>
-            </div>
           </div>
         </div>
         
@@ -107,7 +94,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
 }
 
 // Simple function to display an emoji based on icon string
-// In a real app, this would use an icon library
 function getIconDisplay(icon: string): string {
   const iconMap: Record<string, string> = {
     'road': '🛣️',
@@ -117,7 +103,7 @@ function getIconDisplay(icon: string): string {
     'bike': '🚲',
     'bus': '🚌',
     'car': '🚗',
-    'train': '��',
+    'train': '🚆',
     'walking': '🚶',
     'scooter': '🛴',
   };
