@@ -1,12 +1,18 @@
+'use client';
+
+import { useRef } from 'react';
 import { GovernanceModel } from '../domain/models';
 import { Accordion } from './accordion';
 import { ItemWithMarkdown } from './item-with-markdown';
+import { PdfDownloadButton } from './pdf-download-button';
 
 interface GovernanceModelAccordionProps {
   model: GovernanceModel;
 }
 
 export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  
   // Ensure advantages and disadvantages are arrays or convert them
   const advantages = Array.isArray(model.advantages) ? model.advantages : 
                     (model.advantages ? [String(model.advantages)] : []);
@@ -104,7 +110,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
 
   return (
     <Accordion title={model.title}>
-      <div className="space-y-8 py-2">
+      <div ref={contentRef} className="space-y-8 py-2">
         {model.description && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Beschrijving</h2>
@@ -202,7 +208,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
         )}
         
         {model.voorbeeldContracten && (
-          <div>
+          <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Voorbeeld contracten</h2>
             {Array.isArray(model.voorbeeldContracten) && model.voorbeeldContracten.length > 0 ? (
               <div className="mt-3">
@@ -217,6 +223,12 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
             )}
           </div>
         )}
+        
+        <PdfDownloadButton 
+          contentRef={contentRef} 
+          fileName={`governance-model-${model.title.toLowerCase().replace(/\s+/g, '-')}`} 
+          title={model.title}
+        />
       </div>
     </Accordion>
   );
