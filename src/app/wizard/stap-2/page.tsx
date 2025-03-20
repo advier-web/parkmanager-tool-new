@@ -465,11 +465,6 @@ export default function MobilitySolutionsPage() {
                     
                     return (
                       <div key={solution.id} className="relative">
-                        {validActiveFilters.length > 0 && (
-                          <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-bl-md rounded-tr-md z-10">
-                            Score: {score}
-                          </div>
-                        )}
                         <SolutionCard
                           solution={solution}
                           isSelected={selectedSolutions.includes(solution.id)}
