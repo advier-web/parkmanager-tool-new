@@ -145,6 +145,7 @@ export default function BusinessParkInfoPage() {
                       } focus:ring-blue-500 focus:border-blue-500`}
                     >
                       <option value="">Selecteer een bestuursmodel</option>
+                      <option value="geen">Geen bestuursvorm</option>
                       {governanceModels?.map(model => (
                         <option key={model.id} value={model.id}>
                           {model.title}
@@ -157,13 +158,23 @@ export default function BusinessParkInfoPage() {
                   </>
                 )}
                 
-                {currentGovernanceModelId && governanceModels && (
+                {currentGovernanceModelId && currentGovernanceModelId !== 'geen' && governanceModels && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md">
                     <h4 className="text-sm font-semibold mb-2">
                       {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
                     </h4>
                     <p className="text-sm text-gray-600">
                       {governanceModels.find(model => model.id === currentGovernanceModelId)?.samenvatting}
+                    </p>
+                  </div>
+                )}
+                
+                {currentGovernanceModelId === 'geen' && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
+                    <h4 className="text-sm font-semibold mb-2">Geen bestuursvorm</h4>
+                    <p className="text-sm text-gray-600">
+                      Er is momenteel geen formele bestuursvorm of organisatiestructuur voor collectieve activiteiten op het bedrijventerrein. 
+                      Voor het implementeren van collectieve mobiliteitsoplossingen zal waarschijnlijk een nieuwe samenwerkingsstructuur nodig zijn.
                     </p>
                   </div>
                 )}
