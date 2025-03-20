@@ -158,9 +158,42 @@ export function processMarkdownText(text: string): string {
 function preprocessTables(text: string): string {
   let processed = text;
   
+  // Specifieke patroon voor tabellen met spaties en streepjes zoals in Contentful
+  // Voorbeeld: | Header     | Header     |
+  //           | ---------- | ---------- |
+  //           | Cell       | Cell       |
+  const contentfulTablePattern = /\|\s+[\w\s]+\s+\|\s+[\w\s]+\s+\|/;
+  
+  if (contentfulTablePattern.test(text)) {
+    // Dit ziet eruit als een Contentful tabel met veel spaties
+    const lines = processed.split('\n');
+    const cleanedLines: string[] = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      
+      // Controleer of dit een tabelrij is met pipe symbolen
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        // Normaliseer de spaties binnen de tabelcellen
+        line = line.replace(/\|\s+/g, '| ').replace(/\s+\|/g, ' |');
+        
+        // Controleer of dit een scheidingsrij is (alleen streepjes tussen pipes)
+        if (line.match(/\|\s*-{3,}\s*\|/)) {
+          // Vervang door standaard markdown scheidingsrij
+          const columnCount = (line.match(/\|/g) || []).length - 1;
+          line = '|' + Array(columnCount).fill(' --- ').join('|') + '|';
+        }
+      }
+      
+      cleanedLines.push(line);
+    }
+    
+    processed = cleanedLines.join('\n');
+  }
+  
   // Herkenningspatroon voor tabellen met meerdere | tekens en streepjes
   const tableRowPattern = /\|\s*([^|\n]+)\s*\|\s*([^|\n]+)\s*\|\s*([^|\n]+)\s*\|/g;
-  const hasTableFormat = tableRowPattern.test(text);
+  const hasTableFormat = tableRowPattern.test(processed);
   
   if (hasTableFormat) {
     // Splitsen op regels
@@ -176,11 +209,11 @@ function preprocessTables(text: string): string {
       // Check of deze regel een tabelrij kan zijn (bevat meerdere | tekens)
       const pipesCount = (line.match(/\|/g) || []).length;
       
-      if (pipesCount >= 3 && !inTable) {
+      if (pipesCount >= 2 && !inTable) {
         // Begin van een nieuwe tabel gedetecteerd
         inTable = true;
         currentTable = [line];
-      } else if (pipesCount >= 3 && inTable) {
+      } else if (pipesCount >= 2 && inTable) {
         // Vervolg van een tabel
         currentTable.push(line);
       } else if (inTable) {
@@ -227,34 +260,10 @@ function preprocessTables(text: string): string {
     processed = tableRows.join('\n');
   }
   
-  // Als de tekst veel streepjes en pipes bevat, kan het een tabel zijn die niet goed geformatteerd is
-  if (text.includes('-----') && text.includes('|')) {
-    // Zoek naar patronen zoals "| Bestuurlijke rechtsvorm | Geschikt | Toelichting |"
-    const potentialTableHeaders = text.match(/\|\s*[\w\s]+\s*\|\s*[\w\s]+\s*\|\s*[\w\s]+\s*\|/g);
-    
-    if (potentialTableHeaders) {
-      // Voor elke mogelijke tabelheader
-      potentialTableHeaders.forEach(header => {
-        const headerIndex = processed.indexOf(header);
-        if (headerIndex !== -1) {
-          // Voeg een scheidingsrij toe na deze header als die er nog niet is
-          const afterHeader = processed.substring(headerIndex + header.length);
-          // Als de volgende rij geen scheidingsrij is, voeg er een in
-          if (!afterHeader.trim().startsWith('|') || !afterHeader.trim().match(/^\|[\s-:|]+\|/)) {
-            // Tel het aantal kolommen door de pipe-symbolen te tellen
-            const columnCount = (header.match(/\|/g) || []).length - 1;
-            const separatorRow = '\n|' + Array(columnCount).fill(' --- ').join('|') + '|\n';
-            
-            processed = processed.substring(0, headerIndex + header.length) + 
-                         separatorRow + 
-                         processed.substring(headerIndex + header.length);
-          }
-        }
-      });
-    }
-    
+  // Specifieke verwerking voor Contentful-tabellen met veel streepjes
+  if (text.includes('----------') && text.includes('|')) {
     // Vervang rijen met veel streepjes door correcte markdown tabelscheidingen
-    processed = processed.replace(/(\|-+\|-+\|-+\|)/g, '| --- | --- | --- |');
+    processed = processed.replace(/\|\s*-{3,}\s*\|\s*-{3,}\s*\|/g, '| --- | --- |');
     processed = processed.replace(/\|\s*-{3,}\s*\|\s*-{3,}\s*\|\s*-{3,}\s*\|/g, '| --- | --- | --- |');
     
     // Streepjes tussen rijen (niet omgeven door pipes) verwijderen
