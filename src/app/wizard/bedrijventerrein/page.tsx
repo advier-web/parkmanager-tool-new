@@ -234,7 +234,7 @@ export default function BusinessParkInfoPage() {
                       {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.description}
+                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.samenvatting}
                     </p>
                   </div>
                 )}
