@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWebsiteCollectiefVervoer, useMobilitySolutions, useGovernanceModels } from '../hooks/use-domain-models';
 import { SiteHeader } from '../components/site-header';
 import { MarkdownContent } from '../components/markdown-content';
@@ -25,6 +25,26 @@ export default function Home() {
     isLoading: isLoadingGovernance,
     error: governanceError
   } = useGovernanceModels();
+  
+  // State voor de sticky navigatie
+  const [showStickyNav, setShowStickyNav] = useState(false);
+  const tocRef = useRef<HTMLDivElement>(null);
+  
+  // Effect om te controleren of de TOC uit beeld is
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tocRef.current) {
+        const rect = tocRef.current.getBoundingClientRect();
+        // Als de onderkant van de TOC boven de viewport is, toon de sticky nav
+        setShowStickyNav(rect.bottom < 100);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
   
   // Share functionality
   const handleShare = () => {
@@ -88,6 +108,31 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
+      
+      {/* Sticky navigatie die verschijnt bij scrollen */}
+      {showStickyNav && (
+        <div className="fixed left-0 top-24 max-w-[250px] bg-white p-4 rounded-r-lg shadow-md transition-opacity z-40 opacity-95 hover:opacity-100 border-r border-t border-b border-gray-200 hidden lg:block">
+          <h3 className="font-bold mb-2 text-gray-700">Op deze pagina:</h3>
+          <ul className="space-y-2">
+            {sections.map((section) => (
+              <li key={section.id} className="flex items-start">
+                <span className="text-blue-600 mr-2 flex-shrink-0 mt-0.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <button 
+                  onClick={() => scrollToSection(section.id)}
+                  className="text-blue-600 hover:underline text-left text-sm font-medium"
+                >
+                  {section.title}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
       <main className="container mx-auto max-w-5xl px-4 py-8 pt-16">
         <div className="flex justify-between items-start mb-4">
           <h1 className="text-4xl font-bold">Samenwerken in collectieve vervoersoplossingen</h1>
@@ -140,7 +185,7 @@ export default function Home() {
         </div>
         
         {/* Op deze pagina sectie */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-16">
+        <div ref={tocRef} className="bg-gray-50 p-6 rounded-lg mb-16">
           <h2 className="text-2xl font-bold mb-4">Op deze pagina:</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
             {sections.map((section) => (
