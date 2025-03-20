@@ -3,7 +3,7 @@ import Link from 'next/link';
 export function SiteHeader() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto max-w-7xl px-4 py-4 flex justify-between items-center">
+      <div className="container mx-auto max-w-7xl px-4 py-3 flex justify-between items-center">
         <div>
           <Link href="/" className="text-xl font-bold text-blue-600">
             ParkManager Tool

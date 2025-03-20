@@ -112,10 +112,10 @@ export default function Home() {
         {/* Op deze pagina sectie */}
         <div className="bg-gray-50 p-6 rounded-lg mb-16">
           <h2 className="text-2xl font-bold mb-4">Op deze pagina:</h2>
-          <ul className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
             {sections.map((section) => (
-              <li key={section.id} className="flex items-start">
-                <span className="text-blue-600 mr-2">
+              <div key={section.id} className="flex items-start">
+                <span className="text-blue-600 mr-2 flex-shrink-0">
                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                    <path d="M19 14L12 21L5 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                    <path d="M19 7L12 14L5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -127,9 +127,9 @@ export default function Home() {
                 >
                   {section.title}
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
         
         {/* Content sections */}
