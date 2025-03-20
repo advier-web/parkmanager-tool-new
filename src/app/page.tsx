@@ -111,7 +111,7 @@ export default function Home() {
       
       {/* Sticky navigatie die verschijnt bij scrollen */}
       {showStickyNav && (
-        <div className="fixed left-0 top-24 max-w-[250px] bg-white p-4 rounded-r-lg shadow-md transition-opacity z-40 opacity-95 hover:opacity-100 border-r border-t border-b border-gray-200 hidden lg:block">
+        <div className="fixed left-4 lg:left-16 xl:left-24 top-24 w-[250px] bg-gray-50 p-4 rounded-lg shadow-md transition-opacity z-40 opacity-95 hover:opacity-100 border border-gray-200 hidden lg:block">
           <h3 className="font-bold mb-2 text-gray-700">Op deze pagina:</h3>
           <ul className="space-y-2">
             {sections.map((section) => (
