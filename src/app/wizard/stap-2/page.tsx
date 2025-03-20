@@ -96,6 +96,13 @@ export default function MobilitySolutionsPage() {
   // Get the filtered solutions
   const [filteredSolutions, setFilteredSolutions] = useState<MobilitySolution[] | null>(null);
   
+  // Initialize activeFilters with selectedReasons when component mounts
+  useEffect(() => {
+    if (selectedReasons && selectedReasons.length > 0) {
+      setActiveFilters(selectedReasons);
+    }
+  }, [selectedReasons]);
+  
   // Build the reason identifier mapping
   useEffect(() => {
     if (reasons) {
