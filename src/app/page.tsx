@@ -88,7 +88,7 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
-      <main className="container mx-auto max-w-5xl px-4 py-8">
+      <main className="container mx-auto max-w-5xl px-4 py-8 pt-16">
         <div className="flex justify-between items-start mb-4">
           <h1 className="text-4xl font-bold">Samenwerken in collectieve vervoersoplossingen</h1>
           <button 
@@ -105,7 +105,7 @@ export default function Home() {
           </button>
         </div>
         
-        <div className="prose max-w-none mb-8">
+        <div className="prose prose-lg max-w-none mb-10 text-lg font-semibold">
           <MarkdownContent content={data.inleiding} />
         </div>
         
