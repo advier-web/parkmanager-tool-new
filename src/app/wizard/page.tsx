@@ -52,7 +52,7 @@ export default function WizardPage() {
               <span className="text-blue-600 font-semibold">1</span>
             </div>
             <div>
-              <h4 className="font-medium">Bedrijfsterrein-redenen</h4>
+              <h4 className="font-medium">Aanleiding</h4>
               <p className="text-gray-600">Selecteer de redenen waarom u de mobiliteit op uw bedrijfsterrein wilt verbeteren.</p>
             </div>
           </li>
