@@ -21,7 +21,7 @@ export function SolutionDialog() {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentSolution.title}</h2>
             <button
@@ -145,7 +145,7 @@ export function SolutionDialog() {
     
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentGovernanceModel.title}</h2>
             <button
