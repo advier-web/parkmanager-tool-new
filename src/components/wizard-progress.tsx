@@ -49,7 +49,7 @@ export function WizardProgress() {
   };
   
   return (
-    <div className="py-6">
+    <div className="py-6 mb-10">
       <ol className="flex items-center w-full">
         {STEPS.map((step, index) => {
           const isActive = index === currentStepIndex;

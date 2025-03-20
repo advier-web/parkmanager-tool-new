@@ -23,7 +23,7 @@ export default function WizardLayout({
         {/* Wizard Progress will only show on wizard step pages, not the index */}
         <WizardProgress />
         
-        <main>
+        <main className="mt-8">
           {children}
         </main>
         
