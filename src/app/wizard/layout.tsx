@@ -3,6 +3,7 @@ import React from 'react';
 import { WizardProgress } from '../../components/wizard-progress';
 import { DialogProvider } from '../../contexts/dialog-context';
 import { SolutionDialog } from '../../components/solution-dialog';
+import { SiteHeader } from '../../components/site-header';
 
 export const metadata: Metadata = {
   title: 'ParkManager Tool - Wizard',
@@ -16,14 +17,9 @@ export default function WizardLayout({
 }>) {
   return (
     <DialogProvider>
+      <SiteHeader />
+      
       <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-center">ParkManager Tool</h1>
-          <p className="text-center text-gray-600 mt-2">
-            Creëer optimale mobiliteitsoplossingen voor uw bedrijfsterrein
-          </p>
-        </header>
-        
         {/* Wizard Progress will only show on wizard step pages, not the index */}
         <WizardProgress />
         
