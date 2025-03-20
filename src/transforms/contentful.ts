@@ -111,6 +111,23 @@ export function transformMobilitySolution(
     }
   }
   
+  // Specifieke check voor 'Parkeer- en bereikbaarheidsproblemen' velden
+  [
+    'parkeer_bereikbaarheidsproblemen',
+    'Parkeer- en bereikbaarheidsprobleem',
+    'Parkeer- en bereikbaarheidsproblemen',
+    'parkeer_en_bereikbaarheidsproblemen',
+    'Parkeer en bereikbaarheidsprobleem'
+  ].forEach(fieldName => {
+    if (typeof fields[fieldName] === 'number') {
+      console.log(`[TRANSFORM] Veld gevonden voor parkeerprobleem: ${fieldName} = ${fields[fieldName]}`);
+      solution.parkeer_bereikbaarheidsproblemen = fields[fieldName];
+      // Voeg alle mogelijke varianten toe voor consistentie
+      (solution as any)['Parkeer- en bereikbaarheidsprobleem'] = fields[fieldName];
+      (solution as any)['Parkeer- en bereikbaarheidsproblemen'] = fields[fieldName];
+    }
+  });
+  
   // Voeg alle numerieke velden toe aan het solution object
   Object.entries(fields).forEach(([key, value]) => {
     if (typeof value === 'number') {
