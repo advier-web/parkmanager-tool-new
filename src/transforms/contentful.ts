@@ -65,6 +65,12 @@ export function transformMobilitySolution(
     // Implementation plan field
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
     
+    // Nieuwe velden van Contentful
+    paspoort: typeof fields.paspoort === 'string' ? fields.paspoort : undefined,
+    collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
+    effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
+    investering: typeof fields.investering === 'string' ? fields.investering : undefined,
+    
     // Rating fields (default 0)
     parkeer_bereikbaarheidsproblemen: 0,
     gezondheid: 0,

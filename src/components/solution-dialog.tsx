@@ -13,6 +13,12 @@ export function SolutionDialog() {
 
   // Show solution information dialog
   if (dialogType === 'solution' && currentSolution) {
+    // Nieuwe velden uit Contentful toegevoegd
+    const paspoort = currentSolution.paspoort || '';
+    const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel || '';
+    const effecten = currentSolution.effecten || '';
+    const investering = currentSolution.investering || '';
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -27,11 +33,43 @@ export function SolutionDialog() {
           </div>
           
           <div className="p-6">
+            {/* Paspoort (nieuw veld) */}
+            {paspoort && (
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Paspoort</h3>
+                <MarkdownContent content={paspoort} />
+              </section>
+            )}
+            
             {/* Solution description */}
             <section className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
               <MarkdownContent content={currentSolution.description} />
             </section>
+            
+            {/* Collectief vs Individueel (nieuw veld) */}
+            {collectiefVsIndiviueel && (
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Collectief vs Individueel</h3>
+                <MarkdownContent content={collectiefVsIndiviueel} />
+              </section>
+            )}
+            
+            {/* Effecten (nieuw veld) */}
+            {effecten && (
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Effecten</h3>
+                <MarkdownContent content={effecten} />
+              </section>
+            )}
+            
+            {/* Investering (nieuw veld) */}
+            {investering && (
+              <section className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Investering</h3>
+                <MarkdownContent content={investering} />
+              </section>
+            )}
             
             {/* Compatible governance models */}
             <section className="mb-6">

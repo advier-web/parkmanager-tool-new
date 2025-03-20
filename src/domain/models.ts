@@ -30,6 +30,12 @@ export interface MobilitySolution {
   // Implementation plan field
   implementatie?: string;
   
+  // Nieuwe velden van Contentful
+  paspoort?: string;
+  collectiefVsIndiviueel?: string;
+  effecten?: string;
+  investering?: string;
+  
   // Rating fields (0-10)
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;

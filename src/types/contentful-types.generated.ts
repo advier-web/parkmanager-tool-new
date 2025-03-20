@@ -43,6 +43,10 @@ export interface IMobilitySolutionFields {
   summary?: string;
   samenvatting?: string;
   implementatie?: string;
+  paspoort?: string;
+  collectiefVsIndiviueel?: string;
+  effecten?: string;
+  investering?: string;
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;
   personeelszorg_en_behoud?: number;
