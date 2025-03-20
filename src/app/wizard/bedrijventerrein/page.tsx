@@ -118,6 +118,58 @@ export default function BusinessParkInfoPage() {
             
             <div className="space-y-6">
               <div>
+                <label htmlFor="currentGovernanceModelId" className="block text-sm font-medium text-gray-700 mb-1">
+                  Huidig bestuursmodel
+                </label>
+                
+                {isLoading && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="w-5 h-5 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+                    <span>Bestuursmodellen worden geladen...</span>
+                  </div>
+                )}
+                
+                {error && (
+                  <p className="text-sm text-red-600">Er is een fout opgetreden bij het laden van bestuursmodellen.</p>
+                )}
+                
+                {!isLoading && !error && (
+                  <>
+                    <select
+                      id="currentGovernanceModelId"
+                      name="currentGovernanceModelId"
+                      value={currentGovernanceModelId || ''}
+                      onChange={handleGovernanceModelChange}
+                      className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
+                        formErrors.currentGovernanceModelId ? 'border-red-300' : 'border-gray-300'
+                      } focus:ring-blue-500 focus:border-blue-500`}
+                    >
+                      <option value="">Selecteer een bestuursmodel</option>
+                      {governanceModels?.map(model => (
+                        <option key={model.id} value={model.id}>
+                          {model.title}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.currentGovernanceModelId && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.currentGovernanceModelId}</p>
+                    )}
+                  </>
+                )}
+                
+                {currentGovernanceModelId && governanceModels && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
+                    <h4 className="text-sm font-semibold mb-2">
+                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.samenvatting}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div>
                 <label htmlFor="numberOfCompanies" className="block text-sm font-medium text-gray-700 mb-1">
                   Aantal bedrijven op het terrein
                 </label>
@@ -186,58 +238,6 @@ export default function BusinessParkInfoPage() {
                     <p className="mt-1 text-sm text-red-600">{formErrors.trafficTypes}</p>
                   )}
                 </fieldset>
-              </div>
-              
-              <div>
-                <label htmlFor="currentGovernanceModelId" className="block text-sm font-medium text-gray-700 mb-1">
-                  Huidig bestuursmodel
-                </label>
-                
-                {isLoading && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <div className="w-5 h-5 border-t-2 border-blue-500 rounded-full animate-spin"></div>
-                    <span>Bestuursmodellen worden geladen...</span>
-                  </div>
-                )}
-                
-                {error && (
-                  <p className="text-sm text-red-600">Er is een fout opgetreden bij het laden van bestuursmodellen.</p>
-                )}
-                
-                {!isLoading && !error && (
-                  <>
-                    <select
-                      id="currentGovernanceModelId"
-                      name="currentGovernanceModelId"
-                      value={currentGovernanceModelId || ''}
-                      onChange={handleGovernanceModelChange}
-                      className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
-                        formErrors.currentGovernanceModelId ? 'border-red-300' : 'border-gray-300'
-                      } focus:ring-blue-500 focus:border-blue-500`}
-                    >
-                      <option value="">Selecteer een bestuursmodel</option>
-                      {governanceModels?.map(model => (
-                        <option key={model.id} value={model.id}>
-                          {model.title}
-                        </option>
-                      ))}
-                    </select>
-                    {formErrors.currentGovernanceModelId && (
-                      <p className="mt-1 text-sm text-red-600">{formErrors.currentGovernanceModelId}</p>
-                    )}
-                  </>
-                )}
-                
-                {currentGovernanceModelId && governanceModels && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                    <h4 className="text-sm font-semibold mb-2">
-                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.samenvatting}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
