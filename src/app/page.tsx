@@ -70,10 +70,10 @@ export default function Home() {
   // Define sections for navigation
   const sections: SectionRef[] = [
     { id: 'wat-is-collectief-vervoer', title: 'Wat is collectief vervoer?' },
-    { id: 'aanleidingen', title: 'Aanleidingen voor collectieve vervoersoplossingen' },
     { id: 'overzicht', title: 'Overzicht collectieve vervoersoplossingen' },
-    { id: 'bestuursvormen', title: 'Bestuurlijke rechtsvormen' },
     { id: 'subsidie', title: 'COVER subsidie' },
+    { id: 'aanleidingen', title: 'Aanleidingen voor collectieve vervoersoplossingen' },
+    { id: 'bestuursvormen', title: 'Bestuurlijke rechtsvormen' },
     { id: 'best-practices', title: 'Best practices' }
   ];
   
