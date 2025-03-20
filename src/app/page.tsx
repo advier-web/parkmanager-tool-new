@@ -110,17 +110,17 @@ export default function Home() {
         </div>
         
         {/* Actieknoppen */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+        <div className="flex flex-col sm:flex-row justify-start gap-4 mb-12">
           <Link 
             href="/wizard"
-            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md text-center font-medium transition-colors flex-1 max-w-xs mx-auto sm:mx-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-md text-center font-medium transition-colors sm:flex-initial"
           >
-            Start de wizard voor persoonlijk advies
+            Start de wizard
           </Link>
           
           <button
             onClick={() => scrollToSection('wat-is-collectief-vervoer')}
-            className="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 py-3 px-6 rounded-md text-center font-medium transition-colors flex items-center justify-center gap-2 flex-1 max-w-xs mx-auto sm:mx-0"
+            className="bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 py-2 px-5 rounded-md text-center font-medium transition-colors flex items-center justify-center gap-2 sm:flex-initial"
           >
             Lees verder
             <svg 
