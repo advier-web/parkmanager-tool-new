@@ -36,7 +36,7 @@ export function SolutionDialog() {
             {/* Paspoort (nieuw veld) */}
             {paspoort && (
               <section className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Paspoort</h3>
+                <h2 className="text-xl font-bold mb-2">Paspoort</h2>
                 <MarkdownContent content={paspoort} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
@@ -44,7 +44,7 @@ export function SolutionDialog() {
             
             {/* Solution description */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
+              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
               <MarkdownContent content={currentSolution.description} />
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
@@ -52,7 +52,7 @@ export function SolutionDialog() {
             {/* Collectief vs Individueel (nieuw veld) */}
             {collectiefVsIndiviueel && (
               <section className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Collectief vs Individueel</h3>
+                <h2 className="text-xl font-bold mb-2">Collectief vs Individueel</h2>
                 <MarkdownContent content={collectiefVsIndiviueel} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
@@ -61,7 +61,7 @@ export function SolutionDialog() {
             {/* Effecten (nieuw veld) */}
             {effecten && (
               <section className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Effecten</h3>
+                <h2 className="text-xl font-bold mb-2">Effecten</h2>
                 <MarkdownContent content={effecten} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
@@ -70,7 +70,7 @@ export function SolutionDialog() {
             {/* Investering (nieuw veld) */}
             {investering && (
               <section className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Investering</h3>
+                <h2 className="text-xl font-bold mb-2">Investering</h2>
                 <MarkdownContent content={investering} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
@@ -78,7 +78,7 @@ export function SolutionDialog() {
             
             {/* Compatible governance models */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Geschikte governance modellen</h3>
+              <h2 className="text-xl font-bold mb-2">Geschikte governance modellen</h2>
               {compatibleGovernanceModels && Array.isArray(compatibleGovernanceModels) && compatibleGovernanceModels.length > 0 ? (
                 <div className="space-y-3">
                   {compatibleGovernanceModels.map((model) => (
@@ -159,7 +159,7 @@ export function SolutionDialog() {
           <div className="p-6">
             {/* Governance model description */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Beschrijving</h3>
+              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
               <MarkdownContent content={processMarkdownText(currentGovernanceModel.description)} />
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
@@ -168,7 +168,7 @@ export function SolutionDialog() {
             <section className="mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-md font-semibold mb-2">Voordelen</h3>
+                  <h2 className="text-xl font-bold mb-2">Voordelen</h2>
                   {Array.isArray(advantages) && advantages.length > 0 ? (
                     <ul className="list-disc pl-5">
                       {advantages.map((advantage, index) => renderListItem(advantage, index))}
@@ -187,7 +187,7 @@ export function SolutionDialog() {
                 </div>
                 
                 <div>
-                  <h3 className="text-md font-semibold mb-2">Nadelen</h3>
+                  <h2 className="text-xl font-bold mb-2">Nadelen</h2>
                   {Array.isArray(disadvantages) && disadvantages.length > 0 ? (
                     <ul className="list-disc pl-5">
                       {disadvantages.map((disadvantage, index) => renderListItem(disadvantage, index))}
@@ -210,7 +210,7 @@ export function SolutionDialog() {
             
             {/* Setup requirements */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Benodigdheden voor oprichting</h3>
+              <h2 className="text-xl font-bold mb-2">Benodigdheden voor oprichting</h2>
               <div className="text-gray-700">
                 {typeof benodigdheden === 'string' ? (
                   <MarkdownContent content={processMarkdownText(benodigdheden)} />
@@ -233,7 +233,7 @@ export function SolutionDialog() {
             
             {/* Timeline */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Doorlooptijd</h3>
+              <h2 className="text-xl font-bold mb-2">Doorlooptijd</h2>
               <div className="text-gray-700">
                 {doorlooptijd || contentfulFields.doorlooptijd ? (
                   <MarkdownContent content={processMarkdownText(doorlooptijd || contentfulFields.doorlooptijd)} />
@@ -246,7 +246,7 @@ export function SolutionDialog() {
             
             {/* Links */}
             <section className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Links</h3>
+              <h2 className="text-xl font-bold mb-2">Links</h2>
               <div className="text-gray-700">
                 {typeof links === 'string' ? (
                   <MarkdownContent content={processMarkdownText(links)} />
