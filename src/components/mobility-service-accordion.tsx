@@ -13,6 +13,19 @@ interface MobilityServiceAccordionProps {
 export function MobilityServiceAccordion({ service }: MobilityServiceAccordionProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Functie om lange content af te kappen voor PDF-weergave om problemen te voorkomen
+  const prepareContentForPdf = () => {
+    if (contentRef.current) {
+      // Zorg ervoor dat alle afbeeldingen correct geladen zijn
+      const images = contentRef.current.querySelectorAll('img');
+      images.forEach(img => {
+        if (!img.complete) {
+          (img as HTMLImageElement).style.display = 'none'; // Verberg niet-geladen afbeeldingen
+        }
+      });
+    }
+  };
+  
   return (
     <Accordion title={service.title}>
       <div ref={contentRef} className="space-y-8 py-2">
@@ -69,6 +82,7 @@ export function MobilityServiceAccordion({ service }: MobilityServiceAccordionPr
           contentRef={contentRef} 
           fileName={`mobiliteitsoplossing-${service.title.toLowerCase().replace(/\s+/g, '-')}`} 
           title={service.title}
+          onBeforeDownload={prepareContentForPdf}
         />
       </div>
     </Accordion>

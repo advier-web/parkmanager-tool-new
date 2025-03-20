@@ -13,6 +13,26 @@ interface GovernanceModelAccordionProps {
 export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   
+  // Functie om content voor te bereiden voor PDF-generatie
+  const prepareContentForPdf = () => {
+    if (contentRef.current) {
+      // Zorg ervoor dat alle afbeeldingen correct geladen zijn
+      const images = contentRef.current.querySelectorAll('img');
+      images.forEach(img => {
+        if (!img.complete) {
+          (img as HTMLImageElement).style.display = 'none'; // Verberg niet-geladen afbeeldingen
+        }
+      });
+      
+      // Verwijder alle interactieve elementen tijdelijk
+      const interactiveElements = contentRef.current.querySelectorAll('button, input, select');
+      interactiveElements.forEach(el => {
+        el.setAttribute('data-pdf-hidden', 'true');
+        (el as HTMLElement).style.display = 'none';
+      });
+    }
+  };
+  
   // Ensure advantages and disadvantages are arrays or convert them
   const advantages = Array.isArray(model.advantages) ? model.advantages : 
                     (model.advantages ? [String(model.advantages)] : []);
@@ -228,6 +248,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           contentRef={contentRef} 
           fileName={`governance-model-${model.title.toLowerCase().replace(/\s+/g, '-')}`} 
           title={model.title}
+          onBeforeDownload={prepareContentForPdf}
         />
       </div>
     </Accordion>
