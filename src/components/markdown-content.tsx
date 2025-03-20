@@ -22,6 +22,25 @@ export function MarkdownContent({
     <div className={`prose prose-blue max-w-none ${className}`}>
       <ReactMarkdown
         components={{
+          // Styling voor headings
+          h1: ({ node, ...props }) => (
+            <h1 {...props} className="text-2xl font-bold mb-4 mt-6" />
+          ),
+          h2: ({ node, ...props }) => (
+            <h2 {...props} className="text-xl font-bold mb-3 mt-5" />
+          ),
+          h3: ({ node, ...props }) => (
+            <h3 {...props} className="text-lg font-bold mb-3 mt-4" />
+          ),
+          h4: ({ node, ...props }) => (
+            <h4 {...props} className="text-base font-semibold mb-2 mt-4" />
+          ),
+          h5: ({ node, ...props }) => (
+            <h5 {...props} className="text-sm font-semibold mb-2 mt-3" />
+          ),
+          h6: ({ node, ...props }) => (
+            <h6 {...props} className="text-sm font-medium mb-2 mt-3" />
+          ),
           // Styling voor links
           a: ({ node, ...props }) => (
             <a 
@@ -57,6 +76,10 @@ export function processMarkdownText(text: string): string {
   
   // Verwerk __text__ naar **text** voor vette tekst
   let processed = text.replace(/__(.*?)__/g, '**$1**');
+  
+  // Zorg ervoor dat Markdown-headings correct worden weergegeven
+  // Voeg spatie toe na # indien deze ontbreekt (e.g. "#Heading" -> "# Heading")
+  processed = processed.replace(/^(#{1,6})([^#\s])/gm, '$1 $2');
   
   // Converteer html <ul> en <li> tags naar markdown lijsten als ze nog niet in markdown formaat zijn
   processed = processed.replace(/<ul>/g, '\n');
