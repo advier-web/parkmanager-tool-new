@@ -67,22 +67,6 @@ export default function Home() {
     };
   }, []);
   
-  // Share functionality
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Samenwerken in collectieve vervoersoplossingen',
-        text: 'Bekijk deze informatie over samenwerken in collectieve vervoersoplossingen',
-        url: window.location.href,
-      }).catch((error) => console.log('Error sharing:', error));
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => alert('Link gekopieerd naar klembord!'))
-        .catch((error) => console.log('Error copying to clipboard:', error));
-    }
-  };
-  
   // Define sections for navigation
   const sections: SectionRef[] = [
     { id: 'wat-is-collectief-vervoer', title: 'Wat is collectief vervoer?' },
@@ -156,20 +140,8 @@ export default function Home() {
       )}
       
       <main className="container mx-auto max-w-5xl px-4 py-8 pt-16">
-        <div className="flex justify-between items-start mb-4">
+        <div className="mb-4">
           <h1 className="text-4xl font-bold">Samenwerken in collectieve vervoersoplossingen</h1>
-          <button 
-            onClick={handleShare}
-            className="flex items-center text-blue-600 hover:text-blue-800"
-            aria-label="Deel deze pagina"
-          >
-            <span className="mr-2">Deel</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-              <polyline points="16 6 12 2 8 6"></polyline>
-              <line x1="12" y1="2" x2="12" y2="15"></line>
-            </svg>
-          </button>
         </div>
         
         <div className="prose prose-lg max-w-none mb-10 text-lg font-semibold">
