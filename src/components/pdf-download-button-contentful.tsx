@@ -174,8 +174,13 @@ export default function PdfDownloadButtonContentful({
         }
       };
       
-      // Helper functie voor het tekenen van tekst met speciale karakters
+      // Verbeter de renderTextWithSpecialChars functie om consistente letter-spacing te garanderen
       const renderTextWithSpecialChars = (text: string, x: number, y: number, pdf: jsPDF): number => {
+        // Check specifiek op CO₂ patterns
+        if (text.toLowerCase().includes('co₂') || text.toLowerCase().includes('co2')) {
+          return renderCO2Text(text, x, y, pdf);
+        }
+        
         // Check of er speciale tekens in de tekst zitten (uitgebreid met meer speciale tekens)
         const hasSpecialChars = /[₂²≈₁₃₄]/g.test(text);
         
@@ -186,16 +191,85 @@ export default function PdfDownloadButtonContentful({
         } else {
           // Karakter voor karakter renderen bij speciale tekens
           let currentX = x;
+          
+          // Vaste letterafstand voor consistente rendering
+          const avgCharWidth = pdf.getTextWidth("n"); // Gebruik 'n' als referentie voor gemiddelde breedte
+          
           for (let char of text) {
-            pdf.text(char, currentX, y);
-            currentX += pdf.getTextWidth(char);
+            // Voor subscripts, maak de spacing compacter
+            if (/[₂₁₃₄]/.test(char)) {
+              // Render het subscript karakter met kleinere tussenruimte
+              pdf.text(char, currentX, y);
+              currentX += pdf.getTextWidth(char) * 0.8; // 20% compactere ruimte voor subscripts
+            } else {
+              // Voor normale karakters
+              pdf.text(char, currentX, y);
+              currentX += pdf.getTextWidth(char); // Normale tussenruimte
+            }
           }
           return currentX;
         }
       };
       
+      // Voeg een speciale functie toe om CO₂-uitstoot consistent te renderen
+      const renderCO2Text = (text: string, x: number, y: number, pdf: jsPDF): number => {
+        // Specifiek voor CO₂-uitstoot en verwante tekst
+        // Split de tekst in delen: "CO", "₂", "-uitstoot" etc.
+        const co2Pattern = /(CO)([₂²])([-‚]uitstoot|[-‚]emissie|[-‚]reductie|\s+)/gi;
+        
+        if (!co2Pattern.test(text)) {
+          // Als het geen CO₂ patroon is, gebruik de normale renderer
+          return renderTextWithSpecialChars(text, x, y, pdf);
+        }
+        
+        // Reset de regex state
+        co2Pattern.lastIndex = 0;
+        
+        let lastIndex = 0;
+        let currentX = x;
+        let match;
+        
+        while ((match = co2Pattern.exec(text)) !== null) {
+          // Render tekst voor de match
+          if (match.index > lastIndex) {
+            const prefix = text.substring(lastIndex, match.index);
+            currentX = renderTextWithSpecialChars(prefix, currentX, y, pdf);
+          }
+          
+          // Render "CO" normaal
+          pdf.text(match[1], currentX, y);
+          currentX += pdf.getTextWidth(match[1]);
+          
+          // Render "₂" subscript zonder extra ruimte
+          pdf.text(match[2], currentX, y);
+          currentX += pdf.getTextWidth(match[2]) * 0.7; // Compacter voor subscript
+          
+          // Render "-uitstoot" of andere suffix zonder extra ruimte
+          if (match[3]) {
+            pdf.text(match[3], currentX, y);
+            currentX += pdf.getTextWidth(match[3]);
+          }
+          
+          lastIndex = match.index + match[0].length;
+        }
+        
+        // Render eventuele tekst na de laatste match
+        if (lastIndex < text.length) {
+          const suffix = text.substring(lastIndex);
+          currentX = renderTextWithSpecialChars(suffix, currentX, y, pdf);
+        }
+        
+        return currentX;
+      };
+      
       // Helper voor speciale tekst rendering character by character
       const renderTextCharByChar = (text: string, x: number, y: number, pdf: jsPDF): number => {
+        // Check specifiek op CO₂ patterns
+        if (text.toLowerCase().includes('co₂') || text.toLowerCase().includes('co2')) {
+          return renderCO2Text(text, x, y, pdf);
+        }
+        
+        // Normale karakter-voor-karakter verwerking
         let currentX = x;
         for (let char of text) {
           pdf.text(char, currentX, y);
@@ -400,7 +474,13 @@ export default function PdfDownloadButtonContentful({
                     }
                     
                     // Render het woord
-                    pdf.text(word, lineX, lineY);
+                    if (word.toLowerCase().includes('co₂') || word.toLowerCase().includes('co2')) {
+                      // Gebruik de speciale CO₂ renderer
+                      renderCO2Text(word, lineX, lineY, pdf);
+                    } else {
+                      // Normale woord rendering
+                      pdf.text(word, lineX, lineY);
+                    }
                     lineX += wordWidth;
                   }
                   
@@ -539,9 +619,16 @@ export default function PdfDownloadButtonContentful({
                   let currentY = yPos;
                   for (const line of lines) {
                     let lineX = 25;
-                    const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                    for (const part of parts) {
-                      lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                    // Check op CO₂ pattern in de lijn
+                    if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
+                      // Gebruik de speciale CO₂ rendering functie
+                      renderCO2Text(line, lineX, currentY, pdf);
+                    } else {
+                      // Normale verwerking met parts splitting voor andere speciale tekens
+                      const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                      for (const part of parts) {
+                        lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                      }
                     }
                     currentY += 5; // Line height consistent houden
                   }
@@ -625,9 +712,16 @@ export default function PdfDownloadButtonContentful({
                     // Begin nieuwe regel - render eerst huidige regel
                     if (currentLine.length > 0) {
                       let lineX = 20;
-                      const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                      for (const part of parts) {
-                        lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                      // Check op CO₂ pattern in de regel
+                      if (currentLine.toLowerCase().includes('co₂') || currentLine.toLowerCase().includes('co2')) {
+                        // Gebruik de speciale CO₂ rendering functie
+                        renderCO2Text(currentLine, lineX, currentY, pdf);
+                      } else {
+                        // Normale verwerking met parts splitting voor andere speciale tekens
+                        const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                        for (const part of parts) {
+                          lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                        }
                       }
                       
                       currentY += 6;
@@ -655,9 +749,16 @@ export default function PdfDownloadButtonContentful({
               // Render laatste regel indien nodig
               if (currentLine) {
                 let lineX = 20;
-                const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                for (const part of parts) {
-                  lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                // Check op CO₂ pattern in de regel
+                if (currentLine.toLowerCase().includes('co₂') || currentLine.toLowerCase().includes('co2')) {
+                  // Gebruik de speciale CO₂ rendering functie
+                  renderCO2Text(currentLine, lineX, currentY, pdf);
+                } else {
+                  // Normale verwerking met parts splitting voor andere speciale tekens
+                  const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                  for (const part of parts) {
+                    lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                  }
                 }
                 currentY += 6;
               }
@@ -678,9 +779,16 @@ export default function PdfDownloadButtonContentful({
                 let currentY = yPos;
                 for (const line of textLines) {
                   let lineX = 20;
-                  const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                  for (const part of parts) {
-                    lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                  // Check op CO₂ pattern in de lijn
+                  if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
+                    // Gebruik de speciale CO₂ rendering functie
+                    renderCO2Text(line, lineX, currentY, pdf);
+                  } else {
+                    // Normale verwerking met parts splitting voor andere speciale tekens
+                    const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                    for (const part of parts) {
+                      lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                    }
                   }
                   currentY += 6; // Consistente regelafstand van 6 punten
                 }
@@ -885,7 +993,13 @@ export default function PdfDownloadButtonContentful({
                           }
                           
                           // Render het woord
-                          pdf.text(word, lineX, lineY);
+                          if (word.toLowerCase().includes('co₂') || word.toLowerCase().includes('co2')) {
+                            // Gebruik de speciale CO₂ renderer
+                            renderCO2Text(word, lineX, lineY, pdf);
+                          } else {
+                            // Normale woord rendering
+                            pdf.text(word, lineX, lineY);
+                          }
                           lineX += wordWidth;
                         }
                         
@@ -953,9 +1067,16 @@ export default function PdfDownloadButtonContentful({
                         let currentY = yPos;
                         for (const line of lines) {
                           let lineX = 25;
-                          const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                          for (const part of parts) {
-                            lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                          // Check op CO₂ pattern in de lijn
+                          if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
+                            // Gebruik de speciale CO₂ rendering functie
+                            renderCO2Text(line, lineX, currentY, pdf);
+                          } else {
+                            // Normale verwerking met parts splitting voor andere speciale tekens
+                            const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                            for (const part of parts) {
+                              lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                            }
                           }
                           currentY += 5; // Line height consistent houden
                         }
