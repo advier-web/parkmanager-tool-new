@@ -130,7 +130,7 @@ export default function GovernanceModelsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Information */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
@@ -170,7 +170,7 @@ export default function GovernanceModelsPage() {
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
           {/* Inleiding sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+          <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h2 className="text-2xl font-bold mb-4">Stap 3: Governance Modellen</h2>
             <p className="mb-6">
               Kies een passend governance model voor de organisatie en het beheer van uw mobiliteitsoplossingen.
@@ -210,7 +210,7 @@ export default function GovernanceModelsPage() {
             
           {/* Current Governance Model Section (always at the top) */}
           {!isLoading && currentModel && (
-            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <div className={`p-4 rounded-md ${currentModelIsRecommended ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'} mb-4`}>
                 <h3 className={`text-xl font-semibold ${currentModelIsRecommended ? 'text-green-800' : 'text-yellow-800'}`}>
                   Uw huidige governance model
@@ -236,7 +236,7 @@ export default function GovernanceModelsPage() {
             
           {/* Recommended Governance Models Section */}
           {!isLoading && getOtherRecommendedModels().length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Aanbevolen governance modellen</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
@@ -258,7 +258,7 @@ export default function GovernanceModelsPage() {
             
           {/* Other Non-Recommended Governance Models Section */}
           {!isLoading && getNonRecommendedModels().filter(model => model.id !== currentGovernanceModelId).length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-md">
+            <div className="bg-white rounded-lg p-8 shadow-even">
               <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
               <div className="bg-yellow-50 p-4 rounded-md mb-6 border border-yellow-200">
                 <p className="text-amber-800">

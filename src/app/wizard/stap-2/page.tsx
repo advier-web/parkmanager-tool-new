@@ -371,7 +371,7 @@ export default function MobilitySolutionsPage() {
           )}
           
           {/* Informatieve tekst - Nu onderaan */}
-          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
@@ -409,7 +409,7 @@ export default function MobilitySolutionsPage() {
 
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg p-8 shadow-md">
+          <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Stap 2: Mobiliteitsoplossingen</h2>
             <p className="mb-6">
               Op basis van de door u geselecteerde redenen, kunt u hier de gewenste mobiliteitsoplossingen selecteren.

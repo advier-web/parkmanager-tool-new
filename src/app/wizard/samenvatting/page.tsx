@@ -52,7 +52,7 @@ export default function SummaryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Information */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
@@ -75,7 +75,7 @@ export default function SummaryPage() {
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
           {/* Samenvatting sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+          <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h2 className="text-2xl font-bold mb-4">Samenvatting</h2>
             <p className="mb-6">
               Een overzicht van uw geselecteerde opties voor het mobiliteitsplan van uw bedrijfsterrein.
@@ -111,7 +111,7 @@ export default function SummaryPage() {
           </div>
           
           {/* Geselecteerde aanleidingen sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+          <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h3 className="text-xl font-semibold mb-4">Geselecteerde aanleidingen</h3>
             {selectedReasons.length > 0 && reasons ? (
               <div className="space-y-6">
@@ -134,7 +134,7 @@ export default function SummaryPage() {
           </div>
           
           {/* Geselecteerde mobiliteitsoplossingen sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+          <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h3 className="text-xl font-semibold mb-4">Geselecteerde mobiliteitsoplossingen</h3>
             {selectedSolutions.length > 0 ? (
               <div className="space-y-6">
@@ -163,7 +163,7 @@ export default function SummaryPage() {
           </div>
           
           {/* Gekozen governance model sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md">
+          <div className="bg-white rounded-lg p-8 shadow-even">
             <h3 className="text-xl font-semibold mb-4">Gekozen governance model</h3>
             {selectedGovernanceModel && governanceModels ? (
               (() => {

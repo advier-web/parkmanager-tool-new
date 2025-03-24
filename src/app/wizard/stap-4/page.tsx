@@ -308,7 +308,7 @@ export default function ImplementationPlanPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Information */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
@@ -349,7 +349,7 @@ export default function ImplementationPlanPage() {
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
           {/* Inleiding sectie */}
-          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+          <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h2 className="text-2xl font-bold mb-4">Stap 4: Implementatieplan</h2>
             <p className="mb-6">
               Op basis van uw gekozen mobiliteitsoplossingen en governance model is een implementatieplan opgesteld.
@@ -399,7 +399,7 @@ export default function ImplementationPlanPage() {
           
           {!isLoading && !error && selectedGovernanceModelData && (
             /* Implementatieplan voor bestuursmodel sectie */
-            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-bold mb-4 border-b pb-2">
                 {isSameAsCurrentModel 
                   ? "Governance model" 
@@ -664,7 +664,7 @@ export default function ImplementationPlanPage() {
           
           {!isLoading && !error && selectedSolutionsData.length > 0 && (
             /* Implementatieplan voor mobiliteitsoplossingen sectie */
-            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan mobiliteitsoplossingen</h3>
               
               {selectedSolutionsData.map(solution => (
@@ -690,7 +690,7 @@ export default function ImplementationPlanPage() {
           
           {!isLoading && !error && (
             /* Waarschuwing sectie */
-            <div className="bg-white rounded-lg p-6 shadow-md">
+            <div className="bg-white rounded-lg p-6 shadow-even">
               <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
                 <p className="text-sm text-yellow-800">
                   <span className="font-medium">Let op:</span> Dit implementatieplan is een richtlijn gebaseerd op uw gekozen 
