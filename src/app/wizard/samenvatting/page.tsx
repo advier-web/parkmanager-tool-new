@@ -217,12 +217,21 @@ export default function SummaryPage() {
               
               <section>
                 <h3 className="text-xl font-semibold mb-2">Geselecteerde aanleidingen</h3>
-                {selectedReasonTitles.length > 0 ? (
-                  <ul className="list-disc pl-5">
-                    {selectedReasonTitles.map((title, index) => (
-                      <li key={index}>{title}</li>
-                    ))}
-                  </ul>
+                {selectedReasons.length > 0 && reasons ? (
+                  <div className="space-y-6">
+                    {reasons
+                      .filter(reason => selectedReasons.includes(reason.id))
+                      .map((reason, index) => (
+                        <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
+                          <h4 className="font-medium text-lg mb-2">{reason.title}</h4>
+                          {reason.summary ? (
+                            <p className="mb-3 text-gray-700">{reason.summary}</p>
+                          ) : reason.description ? (
+                            <p className="mb-3 text-gray-700">{reason.description}</p>
+                          ) : null}
+                        </div>
+                      ))}
+                  </div>
                 ) : (
                   <p className="text-gray-500">Geen aanleidingen geselecteerd.</p>
                 )}
