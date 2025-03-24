@@ -546,14 +546,11 @@ export default function ImplementationPlanPage() {
                         </div>
                         
                         {/* Doorlooptijd */}
-                        {selectedGovernanceModelData.doorlooptijd && (
-                          <div className="mb-6">
-                            <div className="flex items-center mb-2">
-                              <BiTimeFive className="text-blue-600 text-xl mr-2" />
-                              <h4 className="text-lg font-semibold">Doorlooptijd</h4>
-                            </div>
-                            <div className="text-gray-700 pl-7">
-                              {renderRichContent(selectedGovernanceModelData.doorlooptijd)}
+                        {(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd) && (
+                          <div className="border-b border-gray-200 pb-6 mb-6">
+                            <h4 className="text-lg font-semibold">Doorlooptijd</h4>
+                            <div className="mt-2">
+                              {renderRichContent(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd)}
                             </div>
                           </div>
                         )}

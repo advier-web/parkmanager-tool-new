@@ -214,7 +214,8 @@ export function transformGovernanceModel(
     samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
     benodigdhedenOprichting: fields.benodigdhedenOprichting || undefined,
-    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
+    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined, // Legacy veld, wordt uitgefaseerd
+    doorlooptijdLang: typeof fields.doorlooptijdLang === 'string' ? fields.doorlooptijdLang : undefined, // Nieuwe versie van doorlooptijd veld
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
     links: fields.links || undefined,
     voorbeeldContracten: fields.voorbeeldContracten || undefined

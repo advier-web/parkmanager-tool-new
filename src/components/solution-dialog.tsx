@@ -21,7 +21,7 @@ export function SolutionDialog() {
     const governancemodellenToelichting = currentSolution.governancemodellenToelichting || '';
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
         <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentSolution.title}</h2>
@@ -146,15 +146,15 @@ export function SolutionDialog() {
                  (currentGovernanceModel as any).links || 
                  [];
     
-    const doorlooptijd = currentGovernanceModel.doorlooptijd || 
-                        (currentGovernanceModel as any).doorlooptijd || 
+    const doorlooptijdLang = currentGovernanceModel.doorlooptijdLang || 
+                        (currentGovernanceModel as any).doorlooptijdLang || 
                         '';
     
     // If fields contains a direct contentful fields object, try to use it
     const contentfulFields = (currentGovernanceModel as any).fields || {};
     
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
         <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentGovernanceModel.title}</h2>
@@ -245,8 +245,8 @@ export function SolutionDialog() {
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Doorlooptijd</h2>
               <div className="text-gray-700">
-                {doorlooptijd || contentfulFields.doorlooptijd ? (
-                  <MarkdownContent content={processMarkdownText(doorlooptijd || contentfulFields.doorlooptijd)} />
+                {doorlooptijdLang || contentfulFields.doorlooptijdLang ? (
+                  <MarkdownContent content={processMarkdownText(doorlooptijdLang || contentfulFields.doorlooptijdLang)} />
                 ) : (
                   <span className="text-gray-500 italic">Niet gespecificeerd</span>
                 )}

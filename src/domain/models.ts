@@ -65,7 +65,8 @@ export interface GovernanceModel {
   samenvatting?: string;
   aansprakelijkheid?: string;
   benodigdhedenOprichting?: any; // Can be rich text, string, or string array
-  doorlooptijd?: string;
+  doorlooptijd?: string; // Deprecated: wordt vervangen door doorlooptijdLang
+  doorlooptijdLang?: string; // Nieuwe veldnaam van Contentful
   implementatie?: string;
   links?: any; // Can be rich text, string, or array
   voorbeeldContracten?: any[]; // Can be file assets or links

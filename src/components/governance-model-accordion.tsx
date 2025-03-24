@@ -194,10 +194,11 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </div>
         )}
         
-        {model.doorlooptijd && (
+        {/* Doorlooptijd sectie */}
+        {(model.doorlooptijdLang || model.doorlooptijd) && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Doorlooptijd</h2>
-            <ItemWithMarkdown content={model.doorlooptijd} />
+            <ItemWithMarkdown content={model.doorlooptijdLang || model.doorlooptijd || ""} />
           </div>
         )}
         
