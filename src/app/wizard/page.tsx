@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function WizardPage() {
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg p-8 shadow-md">
+      <div className="bg-white rounded-lg p-8 shadow-even">
         <h2 className="text-2xl font-bold mb-4">Welkom bij de ParkManager Tool</h2>
         <p className="mb-6">
           Deze tool helpt u bij het selecteren van de beste mobiliteitsoplossingen voor uw bedrijfsterrein.
@@ -33,7 +33,7 @@ export default function WizardPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-8 shadow-md">
+      <div className="bg-white rounded-lg p-8 shadow-even">
         <h3 className="text-xl font-semibold mb-4">De stappen</h3>
         
         <ol className="space-y-4 mt-6">

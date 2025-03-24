@@ -71,7 +71,7 @@ export default function BusinessParkInfoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Information */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-6 shadow-md space-y-6">
+          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
@@ -109,7 +109,7 @@ export default function BusinessParkInfoPage() {
 
         {/* Right Column - Form */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg p-8 shadow-md">
+          <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Informatie over uw bedrijventerrein</h2>
             <p className="mb-6">
               Voordat we beginnen, hebben we wat basisinformatie nodig over het bedrijventerrein 
