@@ -35,26 +35,35 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 - [x] Navigatie en routing
 - [x] Formulier validatie
 
-### Fase 3: Contentful Integratie (⏳ Bezig)
+### Fase 3: Contentful Integratie (✅ Voltooid)
 
 - [x] Contentful client setup
 - [x] Type generatie script
 - [x] Domain naar Contentful type transformers
-- [ ] Unit tests voor transformers
+- [x] Unit tests voor transformers
 - [x] Integratie van bedrijfsterreinen-redenen
 - [x] Integratie van mobiliteitsoplossingen
 - [x] Integratie van governance modellen
 - [x] Integratie van implementatieplan
 - [x] Error handling
 
-### Fase 4: Afronding en Optimalisatie
+### Fase 4: UI/UX Optimalisatie (✅ Voltooid)
 
-- [ ] Performance optimalisatie
-- [ ] Toegankelijkheid verbeteren
-- [ ] Cross-browser testing
+- [x] Consistente schaduwen voor alle kaarten
+- [x] Verbeterde weergave van CO₂-uitstoot tekst in PDFs
+- [x] UX verbeteringen voor "Ik weet het nog niet" optie
+- [x] PDF export functionaliteit
+- [x] Responsieve layout verbeteringen
+- [x] Cross-browser testing
+
+### Fase 5: Afronding en Fine-tuning (⏳ Bezig)
+
+- [x] Bugfixes voor contentweergave
+- [x] Performance optimalisatie
+- [x] Toegankelijkheid verbeteren
 - [ ] Content preview functionaliteit
-- [ ] PDF export functionaliteit
-- [ ] Final checks en bug fixes
+- [x] Final checks en kleinere bug fixes
+- [ ] Deployment naar productie
 
 ## Tech Stack
 
@@ -166,19 +175,34 @@ export function GovernanceModelList() {
 
 ## Voortgang Tracking
 
-| Feature                  | Dummy Data | Contentful Integratie | Status |
-|--------------------------|------------|----------------------|--------|
-| Bedrijfsterrein informatie | ✅      | ❌                    | Voltooid met verkeerstypes |
-| Bedrijfsterrein-redenen  | ✅         | ✅                    | Voltooid met beide data sources |
-| Mobiliteitsoplossingen   | ✅         | ✅                    | Voltooid met summary field |
-| Governance modellen      | ✅         | ✅                    | Voltooid met summary field |
-| Implementatieplan        | ✅         | ✅                    | Voltooid met implementatiedetails |
-| Samenvatting             | ✅         | ❌                    | Voltooid |
-| PDF Export               | ✅         | ❌                    | Basis implementatie |
+| Feature                     | Dummy Data | Contentful Integratie | Status |
+|-----------------------------|------------|----------------------|--------|
+| Bedrijfsterrein informatie  | ✅         | ✅                    | Voltooid met verkeerstypes |
+| Bedrijfsterrein-redenen     | ✅         | ✅                    | Voltooid met beide data sources |
+| Mobiliteitsoplossingen      | ✅         | ✅                    | Voltooid met summary field |
+| Governance modellen         | ✅         | ✅                    | Voltooid met summary field |
+| Implementatieplan           | ✅         | ✅                    | Voltooid met implementatiedetails |
+| Samenvatting                | ✅         | ✅                    | Voltooid met PDF download |
+| PDF Export                  | ✅         | ✅                    | Voltooid met CO₂-uitstoot fixes |
+| UI/UX Optimalisaties        | ✅         | ✅                    | Voltooid met consistente schaduwen |
+
+## Recente Verbeteringen
+
+### UI/UX Optimalisaties
+- Consistente schaduwen (`shadow-even` class) doorgevoerd voor alle kaarten in de applicatie
+- Verbeterde formattering voor CO₂-uitstoot tekst in PDFs
+- Geavanceerde regex-patronen voor speciale tekst in PDFs
+- UX verbetering: "Ik weet het nog niet" aanleiding toont geen bijdrage-indicatoren
+- Responsieve layout verbeteringen voor verschillende schermformaten
+
+### Bug Fixes
+- Opgelost: CO₂-uitstoot tekst correct weergeven in PDFs
+- Opgelost: Inconsistenties in schaduw-stijlen tussen verschillende kaarten
+- Opgelost: Overbodige bijdrage-indicatoren bij "Ik weet het nog niet" aanleiding
 
 ## Contentful Schema Documentatie
 
-Dit gedeelte zal worden bijgewerkt zodra we de exacte Contentful content types hebben gedocumenteerd.
+Dit gedeelte zal worden bijgewerkt met de exacte schema definities wanneer alle content types zijn gefinaliseerd.
 
 ## Potentiële Risico's en Mitigatie
 
@@ -196,6 +220,6 @@ Dit gedeelte zal worden bijgewerkt zodra we de exacte Contentful content types h
 
 ## Referenties
 
-- [Huidige Applicatie](https://github.com/originele-repo-link)
+- [GitHub Repository](https://github.com/advier-web/parkmanager-tool-new)
 - [Contentful Documentatie](https://www.contentful.com/developers/docs/)
 - [Next.js Documentatie](https://nextjs.org/docs) 
