@@ -5,10 +5,46 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 export function SolutionDialog() {
-  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, closeDialog } = useDialog();
+  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, closeDialog } = useDialog();
 
   if (!isOpen) {
     return null;
+  }
+
+  // Show business park reason information dialog
+  if (dialogType === 'reason' && currentReason) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
+            <h2 className="text-xl font-bold">{currentReason.title}</h2>
+            <button
+              onClick={closeDialog}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
+          
+          <div className="p-6">
+            {/* Reason description */}
+            <section className="mb-6">
+              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
+              <MarkdownContent content={currentReason.description} />
+            </section>
+          </div>
+          
+          <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
+            <button
+              onClick={closeDialog}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Sluiten
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Show solution information dialog

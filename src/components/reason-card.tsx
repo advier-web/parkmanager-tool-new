@@ -1,4 +1,6 @@
 import { BusinessParkReason } from '../domain/models';
+import { useDialog } from '../contexts/dialog-context';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface ReasonCardProps {
   reason: BusinessParkReason;
@@ -7,6 +9,13 @@ interface ReasonCardProps {
 }
 
 export function ReasonCard({ reason, isSelected, onToggleSelect }: ReasonCardProps) {
+  const { openReasonDialog } = useDialog();
+  
+  const handleMoreInfoClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Voorkom dat de kaart wordt geselecteerd/gedeselecteerd
+    openReasonDialog(reason);
+  };
+  
   return (
     <div
       className={`
@@ -31,7 +40,15 @@ export function ReasonCard({ reason, isSelected, onToggleSelect }: ReasonCardPro
         {reason.summary || reason.description}
       </p>
       
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex justify-between items-center">
+        <button
+          onClick={handleMoreInfoClick}
+          className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+        >
+          <InformationCircleIcon className="h-4 w-4 mr-1" />
+          Meer informatie
+        </button>
+        
         <input
           type="checkbox"
           className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
