@@ -264,17 +264,15 @@ export default function Home() {
           
           {servicesError && (
             <div className="py-4 px-4 bg-red-50 text-red-700 rounded-md my-4">
-              <p>Fout bij het laden van de vervoersoplossingen</p>
+              <p>Fout bij het laden van de oplossingen</p>
             </div>
           )}
           
           {mobilityServices && mobilityServices.length > 0 && (
-            <div className="mt-6">
-              <div className="space-y-2">
-                {mobilityServices.map(service => (
-                  <MobilityServiceAccordion key={service.id} service={service} />
-                ))}
-              </div>
+            <div className="space-y-6 mt-6">
+              {mobilityServices.map(service => (
+                <MobilityServiceAccordion key={service.id} solution={service} />
+              ))}
             </div>
           )}
           
