@@ -288,7 +288,7 @@ export default function PdfDownloadButtonContentful({
                     pdf.text(segment.text, startX, yPos);
                     startX += pdf.getTextWidth(segment.text);
                   }
-                  yPos += 6; // Standaard regelafstand
+                  yPos += 8; // Verhoogd van 6 naar 8 voor meer ruimte
                 } else {
                   // Tekst moet over meerdere regels verdeeld worden
                   let lineY = yPos;
@@ -371,13 +371,13 @@ export default function PdfDownloadButtonContentful({
                     }
                   }
                   
-                  yPos = lineY + 1; // Update yPos na alle tekst
+                  yPos = lineY + 3; // Verhoog de ruimte tussen bullets (was lineY + 1)
                 }
               } else {
                 // Eenvoudige bullet zonder bold elementen
-                const lines = pdf.splitTextToSize(bulletText, 160); // Iets smallere breedte voor indentatie
+                const lines = pdf.splitTextToSize(bulletText, 160);
                 pdf.text(lines, 25, yPos);
-                yPos += lines.length * 6;
+                yPos += lines.length * 6 + 2; // Voeg 2 extra punten ruimte toe na elke bullet
               }
             }
             
@@ -611,14 +611,15 @@ export default function PdfDownloadButtonContentful({
                         pdf.text(lines, startX, yPos);
                         startX += pdf.getTextWidth(text);
                       }
+                      
+                      yPos += 10; // Meer ruimte tussen bullets met bold (was 6, nu 10)
                     } else {
                       // Normale tekst zonder bold
                       const bulletText = formatBoldText(item.trim());
                       const lines = pdf.splitTextToSize(bulletText, 163);
                       pdf.text(lines, 25, yPos);
+                      yPos += lines.length * 6 + 4; // Meer ruimte tussen bullets (was 6, nu 6+4)
                     }
-                    
-                    yPos += 6;
                   }
                   
                   // Extra ruimte na bulletlijsten
