@@ -194,6 +194,16 @@ export default function PdfDownloadButtonContentful({
         }
       };
       
+      // Helper voor speciale tekst rendering character by character
+      const renderTextCharByChar = (text: string, x: number, y: number, pdf: jsPDF): number => {
+        let currentX = x;
+        for (let char of text) {
+          pdf.text(char, currentX, y);
+          currentX += pdf.getTextWidth(char);
+        }
+        return currentX;
+      };
+      
       // Hoofdfunctie voor het toevoegen van een sectie
       const addSection = (title: string, content: string | undefined): void => {
         if (!content) return;
@@ -310,105 +320,208 @@ export default function PdfDownloadButtonContentful({
               const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
               
               if (hasBold || hasSpecialChars) {
-                // Verbeterde methode voor bullets met bold tekst of speciale tekens
-                // Parse de bold secties
-                const segments = [];
-                let currentText = '';
-                let isBold = false;
+                // Check extra op specifieke patronen die problemen veroorzaken
+                const containsCO2 = /vermindering\s+van\s+co₂/i.test(bulletText.toLowerCase());
+                const containsSpacedText = /^V\s*e\s*r\s*m\s*i\s*n\s*d\s*e\s*r\s*i\s*n\s*g/i.test(bulletText);
                 
-                for (let i = 0; i < bulletText.length; i++) {
-                  if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
-                    if (currentText) {
-                      segments.push({ text: currentText, bold: isBold });
-                      currentText = '';
-                    }
-                    isBold = !isBold;
-                    i++; // Skip het tweede karakter van **
-                  } else {
-                    currentText += bulletText[i];
-                  }
-                }
-                
-                if (currentText) {
-                  segments.push({ text: currentText, bold: isBold });
-                }
-                
-                // Verbeterde tekstweergave met respect voor regeleinden en speciale tekens
-                // Controleer eerst of het geheel op één regel past
-                const fullText = segments.map(s => s.text).join('');
-                const wrappedLines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
-                
-                if (wrappedLines.length === 1) {
-                  // Alles past op één regel - render met juiste formatting
-                  let startX = 25; // Indent voor bulletpoints
-                  for (const segment of segments) {
-                    pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                if (containsCO2 || containsSpacedText) {
+                  // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
+                  pdf.setFont('helvetica', 'normal'); // Start met normale tekst
+                  
+                  // Eerst controleren of de tekst op één regel past
+                  const fullText = formatBoldText(bulletText); // Verwijder bolding-markers voor breedte-berekening
+                  const maxWidth = 160; // Max breedte voor bullet tekst
+                  const wrappedLines = pdf.splitTextToSize(fullText, maxWidth);
+                  
+                  if (wrappedLines.length === 1) {
+                    // Alles past op één regel - render karakter voor karakter
+                    let xPos = 25;
+                    let i = 0;
+                    let isBold = false;
                     
-                    // Altijd controleren op speciale tekens
-                    const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
-                    if (containsSpecialChars) {
-                      // Speciale behandeling voor tekst met speciale tekens
-                      // Render karakter voor karakter
-                      let xOffset = startX;
-                      for (let char of segment.text) {
-                        pdf.text(char, xOffset, yPos);
-                        xOffset += pdf.getTextWidth(char);
+                    while (i < bulletText.length) {
+                      // Check voor bold markers
+                      if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
+                        // Toggle bold state
+                        isBold = !isBold;
+                        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                        i += 2; // Skip de markers
+                      } else {
+                        // Render karakter voor karakter
+                        pdf.text(bulletText[i], xPos, yPos);
+                        xPos += pdf.getTextWidth(bulletText[i]);
+                        i++;
                       }
-                      startX = xOffset;
-                    } else {
-                      pdf.text(segment.text, startX, yPos);
-                      startX += pdf.getTextWidth(segment.text);
                     }
-                  }
-                  yPos += 4; // Verminderde ruimte voor één-regel bullets
-                } else {
-                  // Tekst moet over meerdere regels verdeeld worden
-                  let lineY = yPos;
-                  let lineStartX = 25;
-                  let lineRemainingWidth = 160; // Maximum breedte voor de regel
-                  
-                  // Maak een kopie van de segments om mee te werken
-                  const workingSegments = [...segments];
-                  let currentSegmentIndex = 0;
-                  
-                  while (currentSegmentIndex < workingSegments.length) {
-                    // Haal het huidige segment op
-                    const currentSegment = workingSegments[currentSegmentIndex];
-                    pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
                     
-                    // Hoeveel tekst past er nog op deze regel?
-                    const segmentText = currentSegment.text;
-                    const textWidth = pdf.getTextWidth(segmentText);
+                    yPos += 4; // Standaard ruimte na één regel
+                  } else {
+                    // Tekst moet over meerdere regels verdeeld worden
+                    let currentY = yPos;
+                    let lineX = 25;
+                    let lineWidth = 0;
+                    let i = 0;
+                    let isBold = false;
                     
-                    if (textWidth <= lineRemainingWidth) {
-                      // Hele segment past op huidige regel
-                      pdf.text(segmentText, lineStartX, lineY);
-                      lineStartX += textWidth;
-                      lineRemainingWidth -= textWidth;
-                      currentSegmentIndex++; // Ga naar volgende segment
-                    } else {
-                      // Segment past niet volledig op huidige regel
-                      // Bereken hoeveel tekst wel past
-                      let textIndex = 0;
-                      let partialText = '';
-                      let partialWidth = 0;
+                    while (i < bulletText.length) {
+                      // Check voor bold markers
+                      if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
+                        // Toggle bold state
+                        isBold = !isBold;
+                        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                        i += 2; // Skip de markers
+                        continue;
+                      }
                       
-                      // Zoek de maximale tekst die past
-                      while (textIndex < segmentText.length) {
-                        const nextChar = segmentText[textIndex];
-                        const charWidth = pdf.getTextWidth(nextChar);
+                      // Bereken of het karakter nog op deze regel past
+                      const char = bulletText[i];
+                      const charWidth = pdf.getTextWidth(char);
+                      
+                      if (lineWidth + charWidth > maxWidth) {
+                        // Begin een nieuwe regel
+                        currentY += 6;
+                        lineX = 25;
+                        lineWidth = 0;
                         
-                        if (partialWidth + charWidth <= lineRemainingWidth) {
-                          partialText += nextChar;
-                          partialWidth += charWidth;
-                          textIndex++;
-                        } else {
-                          break;
+                        // Check of we een nieuwe pagina nodig hebben
+                        if (currentY > 270) {
+                          pdf.addPage();
+                          currentY = 20;
                         }
                       }
                       
-                      // Als er niets past, ga naar de volgende regel
-                      if (partialText === '') {
+                      // Render het karakter
+                      pdf.text(char, lineX, currentY);
+                      lineX += charWidth;
+                      lineWidth += charWidth;
+                      i++;
+                    }
+                    
+                    // Update yPos voor de volgende bullet
+                    yPos = currentY + 6; // Ruimte na meerdere regels
+                  }
+                } else {
+                  // Verbeterde methode voor bullets met bold tekst of speciale tekens
+                  // Parse de bold secties
+                  const segments = [];
+                  let currentText = '';
+                  let isBold = false;
+                  
+                  for (let i = 0; i < bulletText.length; i++) {
+                    if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
+                      if (currentText) {
+                        segments.push({ text: currentText, bold: isBold });
+                        currentText = '';
+                      }
+                      isBold = !isBold;
+                      i++; // Skip het tweede karakter van **
+                    } else {
+                      currentText += bulletText[i];
+                    }
+                  }
+                  
+                  if (currentText) {
+                    segments.push({ text: currentText, bold: isBold });
+                  }
+                  
+                  // Verbeterde tekstweergave met respect voor regeleinden en speciale tekens
+                  // Controleer eerst of het geheel op één regel past
+                  const fullText = segments.map(s => s.text).join('');
+                  const wrappedLines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
+                  
+                  if (wrappedLines.length === 1) {
+                    // Alles past op één regel - render met juiste formatting
+                    let startX = 25; // Indent voor bulletpoints
+                    for (const segment of segments) {
+                      pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                      
+                      // Altijd controleren op speciale tekens
+                      const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
+                      if (containsSpecialChars) {
+                        // Speciale behandeling voor tekst met speciale tekens
+                        // Render karakter voor karakter
+                        let xOffset = startX;
+                        for (let char of segment.text) {
+                          pdf.text(char, xOffset, yPos);
+                          xOffset += pdf.getTextWidth(char);
+                        }
+                        startX = xOffset;
+                      } else {
+                        pdf.text(segment.text, startX, yPos);
+                        startX += pdf.getTextWidth(segment.text);
+                      }
+                    }
+                    yPos += 4; // Verminderde ruimte voor één-regel bullets
+                  } else {
+                    // Tekst moet over meerdere regels verdeeld worden
+                    let lineY = yPos;
+                    let lineStartX = 25;
+                    let lineRemainingWidth = 160; // Maximum breedte voor de regel
+                    
+                    // Maak een kopie van de segments om mee te werken
+                    const workingSegments = [...segments];
+                    let currentSegmentIndex = 0;
+                    
+                    while (currentSegmentIndex < workingSegments.length) {
+                      // Haal het huidige segment op
+                      const currentSegment = workingSegments[currentSegmentIndex];
+                      pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
+                      
+                      // Hoeveel tekst past er nog op deze regel?
+                      const segmentText = currentSegment.text;
+                      const textWidth = pdf.getTextWidth(segmentText);
+                      
+                      if (textWidth <= lineRemainingWidth) {
+                        // Hele segment past op huidige regel
+                        pdf.text(segmentText, lineStartX, lineY);
+                        lineStartX += textWidth;
+                        lineRemainingWidth -= textWidth;
+                        currentSegmentIndex++; // Ga naar volgende segment
+                      } else {
+                        // Segment past niet volledig op huidige regel
+                        // Bereken hoeveel tekst wel past
+                        let textIndex = 0;
+                        let partialText = '';
+                        let partialWidth = 0;
+                        
+                        // Zoek de maximale tekst die past
+                        while (textIndex < segmentText.length) {
+                          const nextChar = segmentText[textIndex];
+                          const charWidth = pdf.getTextWidth(nextChar);
+                          
+                          if (partialWidth + charWidth <= lineRemainingWidth) {
+                            partialText += nextChar;
+                            partialWidth += charWidth;
+                            textIndex++;
+                          } else {
+                            break;
+                          }
+                        }
+                        
+                        // Als er niets past, ga naar de volgende regel
+                        if (partialText === '') {
+                          lineY += 6;
+                          lineStartX = 25;
+                          lineRemainingWidth = 160;
+                          
+                          // Check of we een nieuwe pagina nodig hebben
+                          if (lineY > 270) {
+                            pdf.addPage();
+                            lineY = 20;
+                          }
+                          continue;
+                        }
+                        
+                        // Teken het deel dat past
+                        pdf.text(partialText, lineStartX, lineY);
+                        
+                        // Update het segment met de resterende tekst
+                        workingSegments[currentSegmentIndex] = {
+                          ...currentSegment,
+                          text: segmentText.substring(textIndex)
+                        };
+                        
+                        // Ga naar de volgende regel
                         lineY += 6;
                         lineStartX = 25;
                         lineRemainingWidth = 160;
@@ -418,32 +531,11 @@ export default function PdfDownloadButtonContentful({
                           pdf.addPage();
                           lineY = 20;
                         }
-                        continue;
-                      }
-                      
-                      // Teken het deel dat past
-                      pdf.text(partialText, lineStartX, lineY);
-                      
-                      // Update het segment met de resterende tekst
-                      workingSegments[currentSegmentIndex] = {
-                        ...currentSegment,
-                        text: segmentText.substring(textIndex)
-                      };
-                      
-                      // Ga naar de volgende regel
-                      lineY += 6;
-                      lineStartX = 25;
-                      lineRemainingWidth = 160;
-                      
-                      // Check of we een nieuwe pagina nodig hebben
-                      if (lineY > 270) {
-                        pdf.addPage();
-                        lineY = 20;
                       }
                     }
+                    
+                    yPos = lineY + 6; // Verhoog de ruimte na de bullet significant (was lineY + 3)
                   }
-                  
-                  yPos = lineY + 6; // Verhoog de ruimte na de bullet significant (was lineY + 3)
                 }
               } else {
                 // Eenvoudige bullet zonder bold of speciale tekens
@@ -717,53 +809,136 @@ export default function PdfDownloadButtonContentful({
                     const hasSpecialChars = /[₂²≈₁₃₄]/g.test(item);
                     
                     if (hasBold || hasSpecialChars) {
-                      // Process bold formatting
-                      let startX = 25;
-                      const segments = [];
-                      let currentText = '';
-                      let isBold = false;
+                      // Check extra op specifieke patronen die problemen veroorzaken
+                      const containsCO2 = /vermindering\s+van\s+co₂/i.test(item.toLowerCase());
+                      const containsSpacedText = /^V\s*e\s*r\s*m\s*i\s*n\s*d\s*e\s*r\s*i\s*n\s*g/i.test(item);
                       
-                      // Split en format de bold tekst
-                      for (let i = 0; i < item.length; i++) {
-                        if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
-                          if (currentText) {
-                            segments.push({ text: currentText, bold: isBold });
-                            currentText = '';
-                          }
-                          isBold = !isBold;
-                          i++; // Skip het tweede karakter van **
-                        } else {
-                          currentText += item[i];
-                        }
-                      }
-                      
-                      if (currentText) {
-                        segments.push({ text: currentText, bold: isBold });
-                      }
-                      
-                      // Render de segments met juiste font
-                      for (const segment of segments) {
-                        pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                      if (containsCO2 || containsSpacedText) {
+                        // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
+                        pdf.setFont('helvetica', 'normal'); // Start met normale tekst
                         
-                        // Altijd controleren op speciale tekens
-                        const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
-                        if (containsSpecialChars) {
-                          // Speciale behandeling voor tekst met speciale tekens
-                          // Render karakter voor karakter
-                          let xOffset = startX;
-                          for (let char of segment.text) {
-                            pdf.text(char, xOffset, yPos);
-                            xOffset += pdf.getTextWidth(char);
+                        // Eerst controleren of de tekst op één regel past
+                        const fullText = formatBoldText(item); // Verwijder bolding-markers voor breedte-berekening
+                        const maxWidth = 160; // Max breedte voor bullet tekst
+                        const wrappedLines = pdf.splitTextToSize(fullText, maxWidth);
+                        
+                        if (wrappedLines.length === 1) {
+                          // Alles past op één regel - render karakter voor karakter
+                          let xPos = 25;
+                          let i = 0;
+                          let isBold = false;
+                          
+                          while (i < item.length) {
+                            // Check voor bold markers
+                            if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
+                              // Toggle bold state
+                              isBold = !isBold;
+                              pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                              i += 2; // Skip de markers
+                            } else {
+                              // Render karakter voor karakter
+                              pdf.text(item[i], xPos, yPos);
+                              xPos += pdf.getTextWidth(item[i]);
+                              i++;
+                            }
                           }
-                          startX = xOffset;
+                          
+                          yPos += 4; // Standaard ruimte na één regel
                         } else {
-                          const segmentLines = pdf.splitTextToSize(segment.text, 163);
-                          pdf.text(segmentLines, startX, yPos);
-                          startX += pdf.getTextWidth(segment.text);
+                          // Tekst moet over meerdere regels verdeeld worden
+                          let currentY = yPos;
+                          let lineX = 25;
+                          let lineWidth = 0;
+                          let i = 0;
+                          let isBold = false;
+                          
+                          while (i < item.length) {
+                            // Check voor bold markers
+                            if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
+                              // Toggle bold state
+                              isBold = !isBold;
+                              pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                              i += 2; // Skip de markers
+                              continue;
+                            }
+                            
+                            // Bereken of het karakter nog op deze regel past
+                            const char = item[i];
+                            const charWidth = pdf.getTextWidth(char);
+                            
+                            if (lineWidth + charWidth > maxWidth) {
+                              // Begin een nieuwe regel
+                              currentY += 6;
+                              lineX = 25;
+                              lineWidth = 0;
+                              
+                              // Check of we een nieuwe pagina nodig hebben
+                              if (currentY > 270) {
+                                pdf.addPage();
+                                currentY = 20;
+                              }
+                            }
+                            
+                            // Render het karakter
+                            pdf.text(char, lineX, currentY);
+                            lineX += charWidth;
+                            lineWidth += charWidth;
+                            i++;
+                          }
+                          
+                          // Update yPos voor de volgende bullet
+                          yPos = currentY + 6; // Ruimte na meerdere regels
                         }
+                      } else {
+                        // Normale verwerking voor andere bullets
+                        // Process bold formatting
+                        let startX = 25;
+                        const segments = [];
+                        let currentText = '';
+                        let isBold = false;
+                        
+                        // Split en format de bold tekst
+                        for (let i = 0; i < item.length; i++) {
+                          if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
+                            if (currentText) {
+                              segments.push({ text: currentText, bold: isBold });
+                              currentText = '';
+                            }
+                            isBold = !isBold;
+                            i++; // Skip het tweede karakter van **
+                          } else {
+                            currentText += item[i];
+                          }
+                        }
+                        
+                        if (currentText) {
+                          segments.push({ text: currentText, bold: isBold });
+                        }
+                        
+                        // Render de segments met juiste font
+                        for (const segment of segments) {
+                          pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                          
+                          // Altijd controleren op speciale tekens
+                          const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
+                          if (containsSpecialChars) {
+                            // Speciale behandeling voor tekst met speciale tekens
+                            // Render karakter voor karakter
+                            let xOffset = startX;
+                            for (let char of segment.text) {
+                              pdf.text(char, xOffset, yPos);
+                              xOffset += pdf.getTextWidth(char);
+                            }
+                            startX = xOffset;
+                          } else {
+                            const segmentLines = pdf.splitTextToSize(segment.text, 163);
+                            pdf.text(segmentLines, startX, yPos);
+                            startX += pdf.getTextWidth(segment.text);
+                          }
+                        }
+                        
+                        yPos += 12; // Behoud ruimte tussen bullets in governance sectie
                       }
-                      
-                      yPos += 12; // Behoud ruimte tussen bullets in governance sectie
                     } else {
                       // Normale tekst zonder bold
                       const bulletText = formatBoldText(item.trim());
