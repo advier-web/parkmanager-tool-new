@@ -72,7 +72,9 @@ export default function PdfDownloadButtonContentful({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
-        compress: true
+        compress: true,
+        hotfixes: ['px_scaling'],
+        filters: ['ASCIIHexEncode']
       });
       
       // Set document properties
@@ -87,11 +89,35 @@ export default function PdfDownloadButtonContentful({
         creator: 'Parkmanager Tool'
       });
       
-      // Identificeer markdown elementen
-      const parseMarkdown = (text: string | undefined): { type: string; content: string; level?: number }[] => {
+      // Update the formatSpecialText function to handle CO₂ more reliably
+      const formatSpecialText = (text: string): string => {
+        if (!text) return '';
+        
+        // Eerst controleren of de tekst het unicode subscript 2 bevat (₂)
+        // en deze vervangen door een stabielere representatie
+        let processed = text
+          // Voor CO₂ eerst als een geheel woord behandelen
+          .replace(/CO₂-uitstoot/g, 'CO2-uitstoot') // Vervang eerst alle volledige termen
+          .replace(/CO₂/g, 'CO2') // Vervang daarna de losse CO₂ termen
+          
+          // Dan kijken naar variaties met spaties
+          .replace(/C O ₂/g, 'CO2')
+          .replace(/C O 2/g, 'CO2')
+          .replace(/C O ,/g, 'CO2')
+          
+          // Tenslotte, de volledige "uitstoot" patronen met spaties
+          .replace(/CO2[\s-]*uitstoot/g, 'CO2-uitstoot')
+          .replace(/CO[\s-]*2[\s-]*uitstoot/g, 'CO2-uitstoot')
+          .replace(/C\s*O\s*2[\s-]*uitstoot/g, 'CO2-uitstoot');
+        
+        return processed;
+      };
+      
+      // Parse markdown function - verbeterde versie om ook __ en ** te herkennen
+      const parseMarkdown = (text: string | undefined): { type: string; content: string; level?: number; isBold?: boolean }[] => {
         if (!text) return [];
         
-        const segments: { type: string; content: string; level?: number }[] = [];
+        const segments: { type: string; content: string; level?: number; isBold?: boolean }[] = [];
         const lines = text.split('\n');
         
         let inBulletList = false;
@@ -99,6 +125,7 @@ export default function PdfDownloadButtonContentful({
         
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
+          
           if (!line) {
             if (inBulletList && bulletItems.length > 0) {
               segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
@@ -109,7 +136,7 @@ export default function PdfDownloadButtonContentful({
             continue;
           }
           
-          // Headers (# Heading)
+          // Headers (### Heading or ## Heading or # Heading)
           const headerMatch = line.match(/^(#{1,3})\s+(.+)$/);
           if (headerMatch) {
             if (inBulletList && bulletItems.length > 0) {
@@ -121,13 +148,30 @@ export default function PdfDownloadButtonContentful({
             const level = headerMatch[1].length; // aantal # symbolen
             segments.push({ 
               type: 'header', 
-              content: headerMatch[2],
+              content: formatSpecialText(headerMatch[2]), // Clean up the header text
               level: level 
             });
             continue;
           }
           
-          // Bullet points
+          // Gehele regel is bold text (__text__ of **text**)
+          const boldLineMatch = line.match(/^__(.+)__$/) || line.match(/^\*\*(.+)\*\*$/);
+          if (boldLineMatch) {
+            if (inBulletList && bulletItems.length > 0) {
+              segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
+              bulletItems = [];
+              inBulletList = false;
+            }
+            
+            segments.push({
+              type: 'paragraph',
+              content: formatSpecialText(boldLineMatch[1]),
+              isBold: true
+            });
+            continue;
+          }
+          
+          // Bullet points (- item or * item or • item)
           if (line.match(/^[-*•]\s+/)) {
             inBulletList = true;
             bulletItems.push(line.replace(/^[-*•]\s+/, ''));
@@ -153,11 +197,229 @@ export default function PdfDownloadButtonContentful({
         return segments;
       };
       
-      // Functie om tekst met bold te formatteren
-      const formatBoldText = (text: string): string => {
-        // Zorg dat speciale tekens zoals CO₂ en ≈ behouden blijven
-        return text.replace(/\*\*(.*?)\*\*/g, '$1')
-                  .replace(/__(.*?)__/g, '$1');
+      // Functie om bullet lists correct weer te geven
+      const renderBulletList = (pdf: jsPDF, content: string, startY: number, pageWidth = 170, leftMargin = 20): number => {
+        let yPos = startY;
+        const bulletItems = content.split('\n');
+        
+        for (const item of bulletItems) {
+          if (!item.trim()) continue;
+          
+          // Check for page break
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
+          // Check for bold header pattern with __ markers
+          const boldHeaderMatch = item.match(/^__([^_]+)__:\s*(.*)/);
+          
+          if (boldHeaderMatch) {
+            // Draw bullet point
+            pdf.text('•', leftMargin, yPos);
+            
+            // Get header and content
+            const header = boldHeaderMatch[1].trim();
+            const itemContent = boldHeaderMatch[2].trim();
+            
+            // Draw header in bold
+            pdf.setFont('helvetica', 'bold');
+            pdf.text(header + ':', leftMargin + 5, yPos);
+            
+            // Calculate header width for content positioning
+            const headerWidth = pdf.getTextWidth(header + ':');
+            
+            // Reset font for content
+            pdf.setFont('helvetica', 'normal');
+            
+            // Handle content after the header
+            if (itemContent) {
+              // Calculate available width
+              const maxWidth = pageWidth - (leftMargin + 5 + headerWidth + 3);
+              
+              // Process the content for CO₂
+              const processedContent = formatSpecialText(itemContent);
+              
+              // Plaats de eerste regel na de header als er ruimte is
+              if (maxWidth > 20) {
+                // Split tekst met juiste breedte
+                const contentLines = pdf.splitTextToSize(processedContent, maxWidth);
+                
+                if (contentLines.length > 0) {
+                  // First line
+                  pdf.text(contentLines[0], leftMargin + 5 + headerWidth + 3, yPos);
+                  
+                  // Subsequent lines (if any) aligned with bullet point indentation
+                  for (let i = 1; i < contentLines.length; i++) {
+                    yPos += 5; // Verminderde regelafstand
+                    
+                    // Check for page break
+                    if (yPos > 270) {
+                      pdf.addPage();
+                      yPos = 20;
+                    }
+                    
+                    pdf.text(contentLines[i], leftMargin + 5, yPos);
+                  }
+                }
+              } else {
+                // Not enough space to put content after header, start on next line
+                yPos += 5; // Verminderde regelafstand
+                
+                // Check for page break
+                if (yPos > 270) {
+                  pdf.addPage();
+                  yPos = 20;
+                }
+                
+                // All content on new lines aligned with bullet indentation
+                const contentLines = pdf.splitTextToSize(processedContent, pageWidth - (leftMargin + 5));
+                pdf.text(contentLines, leftMargin + 5, yPos);
+                
+                // Adjust y position for subsequent lines
+                if (contentLines.length > 1) {
+                  yPos += (contentLines.length - 1) * 5; // Verminderde regelafstand
+                }
+              }
+            }
+          } else {
+            // Regular bullet point
+            
+            // Draw bullet
+            pdf.text('•', leftMargin, yPos);
+            
+            // Process the content for CO₂
+            const processedItem = formatSpecialText(item);
+            
+            // Split into lines with proper width
+            const lines = pdf.splitTextToSize(processedItem, pageWidth - (leftMargin + 5));
+            
+            // Draw text
+            pdf.text(lines, leftMargin + 5, yPos);
+            
+            // Adjust y position for wrapped lines
+            if (lines.length > 1) {
+              yPos += (lines.length - 1) * 5; // Verminderde regelafstand
+            }
+          }
+          
+          // Move to next bullet point
+          yPos += 5; // Verminderde ruimte tussen bullets (was 6)
+        }
+        
+        return yPos;
+      };
+      
+      // Functie om paragrafen correct weer te geven
+      const renderParagraph = (pdf: jsPDF, content: string, startY: number, isBold = false, pageWidth = 170, leftMargin = 20): number => {
+        let yPos = startY;
+        
+        // Check for page break
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        // Process content for CO₂ text
+        const processedContent = formatSpecialText(content);
+        
+        // Set font based on whether this is a bold paragraph
+        if (isBold) {
+          pdf.setFont('helvetica', 'bold');
+        } else {
+          pdf.setFont('helvetica', 'normal');
+        }
+        
+        // Split text into lines that fit the page width
+        const lines = pdf.splitTextToSize(processedContent, pageWidth - leftMargin);
+        
+        // Draw text
+        pdf.text(lines, leftMargin, yPos);
+        
+        // Reset font to normal if we changed it
+        if (isBold) {
+          pdf.setFont('helvetica', 'normal');
+        }
+        
+        // Calculate new y position
+        yPos += lines.length * 5; // Verminderde regelafstand
+        
+        return yPos;
+      };
+      
+      // Functie om een sectie toe te voegen
+      const addSection = (pdf: jsPDF, title: string, content: string | undefined, startY: number): number => {
+        if (!content) return startY;
+        
+        let yPos = startY;
+        
+        // Check for page break
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        // Add section title
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(title, 20, yPos);
+        yPos += 8; // Verminderde ruimte na sectie titel
+        
+        // Reset font for content
+        pdf.setFontSize(9); // Kleinere tekstgrootte voor body tekst
+        pdf.setFont('helvetica', 'normal');
+        
+        // Parse content into segments
+        const segments = parseMarkdown(content);
+        
+        // Process each segment
+        for (const segment of segments) {
+          // Check for page break
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
+          if (segment.type === 'empty-line') {
+            yPos += 1; // Verminderde witruimte bij lege regels (was 2)
+          } else if (segment.type === 'header') {
+            // Handle headers
+            pdf.setFont('helvetica', 'bold');
+            
+            if (segment.level === 1) {
+              // Extra check om witruimte boven H1 te verminderen
+              if (segments.indexOf(segment) > 0) { // Niet het eerste element
+                yPos += 4; // Verminderde witruimte boven H1 (was 8)
+              }
+              
+              pdf.setFontSize(16);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 8; // Witruimte onder H1
+            } else if (segment.level === 2) {
+              pdf.setFontSize(14);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 6; // Witruimte onder H2
+            } else { // level === 3
+              pdf.setFontSize(12);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 5; // Meer witruimte onder H3 (was 4)
+            }
+            
+            // Reset font
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9); // Terug naar kleinere body tekstgrootte
+          } else if (segment.type === 'paragraph') {
+            // Handle paragraphs (with improved bold support)
+            yPos = renderParagraph(pdf, segment.content, yPos, segment.isBold);
+            yPos += 1; // Verminderde witruimte na paragraaf (was 1.5)
+          } else if (segment.type === 'bullet-list') {
+            // Handle bullet lists
+            yPos = renderBulletList(pdf, segment.content, yPos);
+            yPos += 2; // Verminderde witruimte na lijst
+          }
+        }
+        
+        return yPos;
       };
       
       // Add the title at the top of the first page
@@ -167,258 +429,100 @@ export default function PdfDownloadButtonContentful({
       pdf.text(title, 20, yPos);
       yPos += 15;
       
-      // Hoofdfunctie voor het toevoegen van een sectie
-      const addSection = (title: string, content: string | undefined): void => {
-        if (!content) return;
+      if (contentType === 'mobilityService') {
+        const sections = [
+          { title: 'Beschrijving', content: mobilityData?.description },
+          { title: 'Collectief vs. Individueel', content: mobilityData?.collectiefVsIndiviueel },
+          { title: 'Effecten', content: mobilityData?.effecten },
+          { title: 'Investering', content: mobilityData?.investering },
+          { title: 'Implementatie', content: mobilityData?.implementatie },
+          { title: 'Toelichting Governance Modellen', content: mobilityData?.governancemodellenToelichting }
+        ];
         
-        // Add section title
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(16);
-        pdf.text(title, 20, yPos);
-        yPos += 10; // Meer ruimte onder sectiehoofdingen
-        
-        // Parse markdown content
-        const segments = parseMarkdown(content);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
-        
-        for (const segment of segments) {
-          if (segment.type === 'empty-line') {
-            yPos += 4; // Kleinere spatiëring voor lege regels
-            continue;
-          }
-          
-          if (segment.type === 'header') {
-            // Paginawissel indien nodig
-            if (yPos > 270) {
-              pdf.addPage();
-              yPos = 20;
-            }
-            
-            if (segment.level === 1) {
-              pdf.setFont('helvetica', 'bold');
-              pdf.setFontSize(16);
-              pdf.text(segment.content, 20, yPos);
-              yPos += 8;
-            } else if (segment.level === 2) {
-              pdf.setFont('helvetica', 'bold');
-              pdf.setFontSize(14);
-              pdf.text(segment.content, 20, yPos);
-              yPos += 7;
-            } else if (segment.level === 3) {
-              pdf.setFont('helvetica', 'bold');
-              pdf.setFontSize(12);
-              pdf.text(segment.content, 20, yPos);
-              yPos += 6;
-            }
-            
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(11);
-            continue;
-          }
-          
-          if (segment.type === 'bullet-list') {
-            // Extra ruimte boven bulletlijsten
-            yPos += 5;
-            
-            // Paginawissel indien nodig
-            if (yPos > 270) {
-              pdf.addPage();
-              yPos = 20;
-            }
-            
-            const bulletItems = segment.content.split('\n');
-            for (const item of bulletItems) {
-              pdf.setFont('helvetica', 'normal');
-              
-              // Paginawissel indien nodig
-              if (yPos > 270) {
-                pdf.addPage();
-                yPos = 20;
-              }
-              
-              // Teken het bullet point
-              pdf.text('•', 20, yPos);
-              
-              const bulletText = item.trim();
-              // Simpele tekst render
-              const lines = pdf.splitTextToSize(bulletText, 160);
-              pdf.text(lines, 25, yPos);
-              
-              if (lines.length === 1) {
-                yPos += 5;
-              } else {
-                yPos += lines.length * 5;
-              }
-            }
-            
-            // Extra ruimte onder bulletlijsten
-            yPos += 5;
-            continue;
-          }
-          
-          if (segment.type === 'paragraph') {
-            // Paginawissel indien nodig
-            if (yPos > 270) {
-              pdf.addPage();
-              yPos = 20;
-            }
-            
-            const processedText = formatBoldText(segment.content);
-            const lines = pdf.splitTextToSize(processedText, 170);
-            pdf.text(lines, 20, yPos);
-            yPos += lines.length * 6;
-            
-            // Extra ruimte na paragrafen 
-            yPos += 4;
-          }
-        }
-      };
-
-      // Different content types have different fields
-      if (contentType === 'mobilityService' && mobilityData) {
-        // Add the mobility service fields
-        if (mobilityData.paspoort) {
-          addSection('Paspoort', mobilityData.paspoort);
-        }
-        
-        if (mobilityData.description) {
-          addSection('Beschrijving', mobilityData.description);
-        }
-        
-        if (mobilityData.collectiefVsIndiviueel) {
-          addSection('Collectief vs. Individueel', mobilityData.collectiefVsIndiviueel);
-        }
-        
-        if (mobilityData.effecten) {
-          addSection('Effecten', mobilityData.effecten);
-        }
-        
-        if (mobilityData.investering) {
-          addSection('Investering', mobilityData.investering);
-        }
-        
-        if (mobilityData.implementatie) {
-          addSection('Implementatie', mobilityData.implementatie);
-        }
-        
-        // Add governance models if they exist
-        const governanceModels = mobilityData.governanceModels || [];
-        if (governanceModels.length > 0) {
-          // Paginawissel indien nodig
-          if (yPos > 270) {
-            pdf.addPage();
-            yPos = 20;
-          }
-          
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(16);
-          pdf.text('Governance Modellen', 20, yPos);
-          yPos += 10;
-          
-          governanceModels.forEach((model, index) => {
-            if (typeof model === 'object' && model !== null && 'title' in model && 'description' in model) {
-              // Paginawissel indien nodig
-              if (yPos > 270) {
-                pdf.addPage();
-                yPos = 20;
-              }
-              
-              // Add subsection title
-              pdf.setFont('helvetica', 'bold');
-              pdf.setFontSize(14);
-              pdf.text(model.title, 20, yPos);
-              yPos += 8;
-              
-              // Add description
-              if (model.description) {
-                addSection('', model.description);
-              }
-              
-              // Extra ruimte na een model
-              yPos += 8;
-              
-              // Page break if needed
-              if (yPos > 270 && index < governanceModels.length - 1) {
-                pdf.addPage();
-                yPos = 20;
-              }
-            }
-          });
-          
-          // Add governance models toelichting
-          if (mobilityData.governancemodellenToelichting) {
-            addSection('Toelichting Governance Modellen', mobilityData.governancemodellenToelichting);
+        // Process each section
+        for (const section of sections) {
+          if (section.content) {
+            yPos = addSection(pdf, section.title, section.content, yPos);
+            yPos += 8; // Verminderde witruimte tussen secties
           }
         }
       } else if (contentType === 'governanceModel' && governanceData) {
-        // Add the governance model fields
-        console.log('Governance data advantages:', governanceData.advantages);
-        console.log('Governance data disadvantages:', governanceData.disadvantages);
-        
+        // Process description
         if (governanceData.description) {
-          addSection('Beschrijving', governanceData.description);
+          yPos = addSection(pdf, 'Beschrijving', governanceData.description, yPos);
+          yPos += 8; // Verminderde witruimte (was 10)
         }
         
+        // Process other sections
         if (governanceData.aansprakelijkheid) {
-          addSection('Aansprakelijkheid', governanceData.aansprakelijkheid);
+          yPos = addSection(pdf, 'Aansprakelijkheid', governanceData.aansprakelijkheid, yPos);
+          yPos += 8; // Verminderde witruimte (was 10)
         }
         
-        // Verbeterde afhandeling van voordelen, controleer specifiek het type
+        // Voordelen
         if (governanceData.advantages) {
           if (Array.isArray(governanceData.advantages) && governanceData.advantages.length > 0) {
-            const voordelenList = governanceData.advantages.map(item => `• ${item}`).join('\n\n');
-            addSection('Voordelen', voordelenList);
+            // Fix voor onjuiste bullets: gebruik geen extra bullet in de lijst-items
+            const voordelenList = governanceData.advantages.map(item => item).join('\n\n');
+            yPos = addSection(pdf, 'Voordelen', voordelenList, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           } else if (typeof governanceData.advantages === 'string') {
-            const voordelen = governanceData.advantages as string;
-            if (voordelen.trim() !== '') {
-              addSection('Voordelen', voordelen);
-            }
+            yPos = addSection(pdf, 'Voordelen', governanceData.advantages, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           }
         }
         
-        // Verbeterde afhandeling van nadelen, controleer specifiek het type
+        // Nadelen
         if (governanceData.disadvantages) {
           if (Array.isArray(governanceData.disadvantages) && governanceData.disadvantages.length > 0) {
-            const nadelenList = governanceData.disadvantages.map(item => `• ${item}`).join('\n\n');
-            addSection('Nadelen', nadelenList);
+            // Fix voor onjuiste bullets: gebruik geen extra bullet in de lijst-items
+            const nadelenList = governanceData.disadvantages.map(item => item).join('\n\n');
+            yPos = addSection(pdf, 'Nadelen', nadelenList, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           } else if (typeof governanceData.disadvantages === 'string') {
-            const nadelen = governanceData.disadvantages as string;
-            if (nadelen.trim() !== '') {
-              addSection('Nadelen', nadelen);
-            }
+            yPos = addSection(pdf, 'Nadelen', governanceData.disadvantages, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           }
         }
         
+        // Benodigdheden
         if (governanceData.benodigdhedenOprichting) {
-          // Controleer of benodigdhedenOprichting een array is
           if (Array.isArray(governanceData.benodigdhedenOprichting) && governanceData.benodigdhedenOprichting.length > 0) {
-            const benodigdhedenList = governanceData.benodigdhedenOprichting.map(item => `• ${item}`).join('\n\n');
-            addSection('Benodigdheden Oprichting', benodigdhedenList);
+            // Fix voor onjuiste bullets: gebruik geen extra bullet in de lijst-items
+            const benodigdhedenList = governanceData.benodigdhedenOprichting.map(item => item).join('\n\n');
+            yPos = addSection(pdf, 'Benodigdheden Oprichting', benodigdhedenList, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           } else {
-            addSection('Benodigdheden Oprichting', String(governanceData.benodigdhedenOprichting));
+            yPos = addSection(pdf, 'Benodigdheden Oprichting', String(governanceData.benodigdhedenOprichting), yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           }
         }
         
+        // Links
         if (governanceData.links) {
-          // Controleer of links een array is
           if (Array.isArray(governanceData.links) && governanceData.links.length > 0) {
-            const linksList = governanceData.links.map(item => `• ${item}`).join('\n\n');
-            addSection('Links', linksList);
+            // Fix voor onjuiste bullets: gebruik geen extra bullet in de lijst-items
+            const linksList = governanceData.links.map(item => item).join('\n\n');
+            yPos = addSection(pdf, 'Links', linksList, yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           } else {
-            addSection('Links', String(governanceData.links));
+            yPos = addSection(pdf, 'Links', String(governanceData.links), yPos);
+            yPos += 8; // Verminderde witruimte (was 10)
           }
         }
         
+        // Doorlooptijd
         if (governanceData.doorlooptijdLang) {
-          addSection('Doorlooptijd', governanceData.doorlooptijdLang);
+          yPos = addSection(pdf, 'Doorlooptijd', governanceData.doorlooptijdLang, yPos);
+          yPos += 8; // Verminderde witruimte (was 10)
         } else if (governanceData.doorlooptijd) {
-          addSection('Doorlooptijd', governanceData.doorlooptijd);
+          yPos = addSection(pdf, 'Doorlooptijd', governanceData.doorlooptijd, yPos);
+          yPos += 8; // Verminderde witruimte (was 10)
         }
         
+        // Implementatie
         if (governanceData.implementatie) {
-          addSection('Implementatie', governanceData.implementatie);
+          yPos = addSection(pdf, 'Implementatie', governanceData.implementatie, yPos);
         }
       }
       
