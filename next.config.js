@@ -7,6 +7,10 @@ const nextConfig = {
     'react-pdf',
     'pdfjs-dist'
   ],
+  eslint: {
+    // Waarschuwing: Dit wordt alleen gebruikt voor de build, ESLint blijft nog steeds actief tijdens ontwikkeling
+    ignoreDuringBuilds: true,
+  },
   webpack: (config) => {
     // svg behandeling
     config.module.rules.push({

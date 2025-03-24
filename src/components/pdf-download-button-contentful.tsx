@@ -40,7 +40,6 @@ export default function PdfDownloadButtonContentful({
         
         // Fetch the governance model data
         governanceData = await getGovernanceModelForPdf(mobilityServiceId);
-        console.log('Governance data for PDF:', JSON.stringify(governanceData, null, 2));
       } else {
         throw new Error("Onbekend contentType: alleen 'mobilityService' of 'governanceModel' worden ondersteund");
       }

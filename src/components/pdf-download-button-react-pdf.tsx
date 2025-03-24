@@ -37,7 +37,7 @@ export default function PdfDownloadButton({
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getMobilitySolutionForPdfMock(mobilityServiceId);
+        const data = await getMobilitySolutionForPdfMock();
         setPdfData(data);
       } catch (err) {
         console.error('Fout bij ophalen data voor PDF:', err);

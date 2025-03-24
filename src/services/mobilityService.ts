@@ -31,8 +31,6 @@ export const getGovernanceModelForPdf = async (governanceModelId: string): Promi
     throw new Error(`Geen governance model gevonden met ID: ${governanceModelId}`);
   }
   
-  console.log('Raw governance model data from Contentful:', JSON.stringify(data, null, 2));
-  
   // Zorg dat alle velden beschikbaar zijn voor de PDF
   return {
     ...data,
@@ -49,7 +47,7 @@ export const getGovernanceModelForPdf = async (governanceModelId: string): Promi
 };
 
 // Mock data om de PDF functionaliteit te testen zonder Contentful
-export const getMobilitySolutionForPdfMock = async (id: string): Promise<MobilitySolution> => {
+export const getMobilitySolutionForPdfMock = async (): Promise<MobilitySolution> => {
   // In een echte implementatie haal je deze data van Contentful
   // Bijvoorbeeld: const response = await contentfulClient.getEntry(id);
   // return transformContentfulResponse(response);
@@ -77,4 +75,36 @@ export const getMobilitySolutionForPdfMock = async (id: string): Promise<Mobilit
     ],
     governancemodellenToelichting: "De keuze voor een governance model hangt af van verschillende factoren zoals:\n\n* Beschikbare financiële middelen\n* Lokale politieke context\n* Bestaande samenwerkingsverbanden\n* Gebruikersbereidheid om te participeren\n\nVoor kleinere gemeenten is het coöperatieve model vaak geschikter, terwijl grotere steden meestal meer baat hebben bij het publiek-private samenwerkingsmodel vanwege de complexiteit en schaal."
   };
-}; 
+};
+
+// Mock data voor een governance model voor testing
+export const getMockGovernanceModelForPdf = async (): Promise<GovernanceModel> => {
+  return {
+    title: "Coöperatief Model",
+    description: "Een gebruikersgestuurd model waarbij eindgebruikers mede-eigenaar zijn van de mobiliteitsoplossing.",
+    aansprakelijkheid: "De aansprakelijkheid wordt gedeeld door alle leden van de coöperatie.",
+    advantages: [
+      "Directe invloed van gebruikers op besluitvorming",
+      "Eerlijke verdeling van kosten en baten",
+      "Sterke focus op gemeenschapsbelangen"
+    ],
+    disadvantages: [
+      "Vereist actieve betrokkenheid van leden",
+      "Besluitvorming kan langzamer verlopen",
+      "Kan moeilijker zijn om financiering aan te trekken"
+    ],
+    benodigdhedenOprichting: [
+      "Oprichtingsakte",
+      "Statuten",
+      "Ledenregister",
+      "Bestuursstructuur"
+    ],
+    links: [
+      "https://example.com/cooperatieve-modellen",
+      "https://example.com/mobiliteit-cooperatie"
+    ],
+    doorlooptijdLang: "De gemiddelde doorlooptijd voor het opzetten van een coöperatief model is 6-12 maanden.",
+    implementatie: "Het implementatietraject verloopt in vier fasen: initiatie, formalisatie, operationalisatie, en evaluatie."
+  };
+};
+
