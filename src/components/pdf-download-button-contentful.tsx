@@ -20,14 +20,78 @@ type GovernanceModel = {
 export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: PdfDownloadButtonContentfulProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Eenvoudige functie om markdown tekens te verwijderen
-  const cleanText = (text: string): string => {
-    if (!text) return '';
+  // Functie om markdown op te schonen en opmaak te behouden
+  const processText = (text: string): { segments: Array<{ text: string, isBold: boolean, isHeader: boolean }> } => {
+    if (!text) return { segments: [] };
     
-    // Verwijder alle markdown tekens
-    return text
-      .replace(/[#*_\[\]`]/g, '')      // Verwijder markdown speciale tekens
-      .replace(/\n- /g, '\n• ');       // Zet lijstitems om in bullets
+    const segments: Array<{ text: string, isBold: boolean, isHeader: boolean }> = [];
+    
+    // Splits de tekst in secties op basis van headers en verwerk elke sectie
+    const sections = text.split(/^(#{1,3} .+)$/m);
+    
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i].trim();
+      if (!section) continue;
+      
+      // Check of dit een header is
+      if (/^#{1,3} .+$/m.test(section)) {
+        const headerText = section.replace(/^#{1,3} (.+)$/m, '$1');
+        segments.push({ text: headerText, isBold: true, isHeader: true });
+      } else {
+        // Verwerk de rest van de tekst om bold te behouden
+        let currentText = section;
+        
+        // Verwerk bold tekst
+        while (currentText.includes('**') || currentText.includes('__')) {
+          const boldStart = Math.min(
+            currentText.indexOf('**') !== -1 ? currentText.indexOf('**') : Infinity,
+            currentText.indexOf('__') !== -1 ? currentText.indexOf('__') : Infinity
+          );
+          
+          if (boldStart === Infinity) break;
+          
+          // Voeg normale tekst toe voor de bold
+          if (boldStart > 0) {
+            segments.push({ 
+              text: currentText.substring(0, boldStart)
+                .replace(/\n- /g, '\n• '), // Converteer bullet points 
+              isBold: false, 
+              isHeader: false 
+            });
+          }
+          
+          // Bepaal het eindpunt van de bold tekst
+          const boldDelimiter = currentText.substring(boldStart, boldStart + 2);
+          const boldEnd = currentText.indexOf(boldDelimiter, boldStart + 2);
+          
+          if (boldEnd === -1) break; // Geen sluitend delimeter gevonden
+          
+          // Voeg bold tekst toe
+          segments.push({ 
+            text: currentText.substring(boldStart + 2, boldEnd)
+              .replace(/\n- /g, '\n• '), // Converteer bullet points
+            isBold: true, 
+            isHeader: false 
+          });
+          
+          // Update de huidige tekst
+          currentText = currentText.substring(boldEnd + 2);
+        }
+        
+        // Voeg eventuele resterende tekst toe
+        if (currentText) {
+          segments.push({ 
+            text: currentText
+              .replace(/\n- /g, '\n• ') // Converteer bullet points
+              .replace(/^\* /gm, '• '), // Converteer asterisk bullet points
+            isBold: false, 
+            isHeader: false 
+          });
+        }
+      }
+    }
+    
+    return { segments };
   };
 
   const generatePdf = async () => {
@@ -39,84 +103,157 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
       
       try {
         // Maak een nieuw PDF document
-        const doc = new jsPDF();
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: true
+        });
         
         // Basis instellingen
         const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 20;
         const contentWidth = pageWidth - (2 * margin);
         let y = margin;
         
-        // Helper functie voor tekst toevoegen
-        const addText = (text: string, fontSize = 12, isBold = false) => {
-          doc.setFontSize(fontSize);
-          doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+        // Helper functie om tekst met opmaak toe te voegen
+        const addFormattedText = (
+          content: string, 
+          sectionTitle?: string,
+          initialY: number = y
+        ): number => {
+          if (!content) return initialY;
           
-          const cleanedText = cleanText(text || '');
-          const lines = doc.splitTextToSize(cleanedText, contentWidth);
+          let newY = initialY;
           
-          // Nieuwe pagina indien nodig
-          if (y + (lines.length * fontSize * 0.5) > doc.internal.pageSize.getHeight() - margin) {
-            doc.addPage();
-            y = margin;
+          // Voeg sectie titel toe indien aanwezig
+          if (sectionTitle) {
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text(sectionTitle, margin, newY);
+            newY += 8; // kleinere afstand na een sectie titel
           }
           
-          // Tekst toevoegen
-          doc.text(lines, margin, y);
-          y += (lines.length * fontSize * 0.5) + 5;
+          // Verwerk de tekst met opmaak
+          const { segments } = processText(content);
+          
+          for (const segment of segments) {
+            doc.setFont('helvetica', segment.isBold ? 'bold' : 'normal');
+            
+            // Bepaal lettergrootte op basis van type
+            if (segment.isHeader) {
+              doc.setFontSize(14);
+            } else {
+              doc.setFontSize(11);
+            }
+            
+            // Bereken de beschikbare ruimte op de huidige pagina
+            const availableHeight = pageHeight - newY - margin;
+            
+            // Splits tekst in regels die binnen de breedte passen
+            const lines = doc.splitTextToSize(segment.text, contentWidth);
+            
+            // Bereken de benodigde hoogte voor deze tekstsegment
+            const lineHeight = segment.isHeader ? 7 : 5;
+            const textHeight = lines.length * lineHeight;
+            
+            // Check of we een nieuwe pagina nodig hebben
+            if (textHeight > availableHeight) {
+              doc.addPage();
+              newY = margin;
+            }
+            
+            // Teken de tekst
+            doc.text(lines, margin, newY);
+            
+            // Update Y positie
+            newY += textHeight;
+            
+            // Voeg extra ruimte toe na headers
+            if (segment.isHeader) {
+              newY += 3;
+            }
+          }
+          
+          // Voeg een kleine ruimte toe aan het eind van elke sectie
+          return newY + 5;
         };
         
         // Titel
         doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
         doc.text(data.title, margin, y);
-        y += 15;
+        y += 12;
         
         // Horizontale lijn
-        doc.setDrawColor(200);
+        doc.setDrawColor(180);
+        doc.setLineWidth(0.5);
         doc.line(margin, y, pageWidth - margin, y);
-        y += 10;
+        y += 8;
         
-        // Samenvatting
+        // Voeg de paspoort informatie toe
         if (data.paspoort) {
-          addText('Paspoort', 16, true);
-          addText(data.paspoort);
-          y += 5;
+          y = addFormattedText(data.paspoort, 'Paspoort', y);
         }
         
-        // Beschrijving
+        // Voeg de beschrijving toe
         if (data.description) {
-          addText('Beschrijving', 16, true);
-          addText(data.description);
-          y += 5;
+          y = addFormattedText(data.description, 'Beschrijving', y);
         }
         
-        // Collectief vs individueel
+        // Voeg collectief vs individueel toe
         if (data.collectiefVsIndiviueel) {
-          addText('Collectief vs. Individueel', 16, true);
-          addText(data.collectiefVsIndiviueel);
-          y += 5;
+          y = addFormattedText(data.collectiefVsIndiviueel, 'Collectief vs. Individueel', y);
         }
         
-        // Effecten
+        // Voeg effecten toe
         if (data.effecten) {
-          addText('Effecten', 16, true);
-          addText(data.effecten);
-          y += 5;
+          y = addFormattedText(data.effecten, 'Effecten', y);
         }
         
-        // Investering
+        // Voeg investering toe
         if (data.investering) {
-          addText('Investering', 16, true);
-          addText(data.investering);
-          y += 5;
+          y = addFormattedText(data.investering, 'Investering', y);
         }
         
-        // Implementatie
+        // Voeg implementatie toe
         if (data.implementatie) {
-          addText('Implementatie', 16, true);
-          addText(data.implementatie);
-          y += 5;
+          y = addFormattedText(data.implementatie, 'Implementatie', y);
+        }
+        
+        // Voeg governance modellen toe als ze beschikbaar zijn
+        if (data.governanceModels && data.governanceModels.length > 0) {
+          // Voeg sectie titel toe
+          doc.setFontSize(16);
+          doc.setFont('helvetica', 'bold');
+          doc.text('Governance Modellen', margin, y);
+          y += 8;
+          
+          data.governanceModels
+            .filter((model): model is GovernanceModel => 
+              typeof model === 'object' && 
+              model !== null && 
+              'title' in model && 
+              'description' in model
+            )
+            .forEach((model) => {
+              // Voeg model titel toe
+              doc.setFontSize(14);
+              doc.setFont('helvetica', 'bold');
+              doc.text(model.title, margin, y);
+              y += 8;
+              
+              // Voeg model beschrijving toe
+              if (model.description) {
+                y = addFormattedText(model.description, undefined, y);
+              }
+            });
+        }
+        
+        // Voeg governance modellen toelichting toe
+        if (data.governancemodellenToelichting) {
+          y = addFormattedText(data.governancemodellenToelichting, 'Toelichting Governance Modellen', y);
         }
         
         // PDF opslaan
