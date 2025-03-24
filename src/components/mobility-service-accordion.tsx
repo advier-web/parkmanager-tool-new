@@ -1,88 +1,57 @@
 'use client';
 
-import { useRef } from 'react';
-import { MobilitySolution } from '../domain/models';
+import { MobilitySolution } from '@/domain/models';
 import { Accordion } from './accordion';
 import { ItemWithMarkdown } from './item-with-markdown';
-import { PdfDownloadButton } from './pdf-download-button';
+import { PdfDownloadButtonContentful } from './pdf-download-button-contentful';
 
 interface MobilityServiceAccordionProps {
-  service: MobilitySolution;
+  solution: MobilitySolution;
 }
 
-export function MobilityServiceAccordion({ service }: MobilityServiceAccordionProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  
-  // Functie om lange content af te kappen voor PDF-weergave om problemen te voorkomen
-  const prepareContentForPdf = () => {
-    if (contentRef.current) {
-      // Zorg ervoor dat alle afbeeldingen correct geladen zijn
-      const images = contentRef.current.querySelectorAll('img');
-      images.forEach(img => {
-        if (!img.complete) {
-          (img as HTMLImageElement).style.display = 'none'; // Verberg niet-geladen afbeeldingen
-        }
-      });
-    }
-  };
-  
+export function MobilityServiceAccordion({ solution }: MobilityServiceAccordionProps) {
   return (
-    <Accordion title={service.title}>
-      <div ref={contentRef} className="space-y-8 py-2">
-        {service.paspoort && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Paspoort</h2>
-            <ItemWithMarkdown content={service.paspoort} />
-          </div>
-        )}
-        
-        {service.description && (
+    <Accordion title={solution.title}>
+      <div className="space-y-8 py-2">
+        {solution.description && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Beschrijving</h2>
-            <ItemWithMarkdown content={service.description} />
+            <ItemWithMarkdown content={solution.description} />
           </div>
         )}
-        
-        {service.collectiefVsIndiviueel && (
+        {solution.summary && (
           <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Collectief vs. Individueel</h2>
-            <ItemWithMarkdown content={service.collectiefVsIndiviueel} />
+            <h2 className="font-semibold text-lg mb-3">Samenvatting</h2>
+            <ItemWithMarkdown content={solution.summary} />
           </div>
         )}
-        
-        {service.effecten && (
+        {solution.benefits && solution.benefits.length > 0 && (
           <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Effecten</h2>
-            <ItemWithMarkdown content={service.effecten} />
+            <h2 className="font-semibold text-lg mb-3">Voordelen</h2>
+            <ItemWithMarkdown content={solution.benefits.map(benefit => `- ${benefit}`).join('\n')} />
           </div>
         )}
-        
-        {service.investering && (
+        {solution.challenges && solution.challenges.length > 0 && (
           <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Investering</h2>
-            <ItemWithMarkdown content={service.investering} />
+            <h2 className="font-semibold text-lg mb-3">Uitdagingen</h2>
+            <ItemWithMarkdown content={solution.challenges.map(challenge => `- ${challenge}`).join('\n')} />
           </div>
         )}
-        
-        {service.implementatie && (
+        {solution.implementationTime && (
           <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Implementatie</h2>
-            <ItemWithMarkdown content={service.implementatie} />
+            <h2 className="font-semibold text-lg mb-3">Implementatietijd</h2>
+            <ItemWithMarkdown content={solution.implementationTime} />
           </div>
         )}
-        
-        {service.governancemodellenToelichting && (
-          <div>
-            <h2 className="font-semibold text-lg mb-3">Toelichting bestuursvormen</h2>
-            <ItemWithMarkdown content={service.governancemodellenToelichting} />
+        {solution.costs && (
+          <div className="border-b pb-6">
+            <h2 className="font-semibold text-lg mb-3">Kosten</h2>
+            <ItemWithMarkdown content={solution.costs} />
           </div>
         )}
-
-        <PdfDownloadButton 
-          contentRef={contentRef} 
-          fileName={`mobiliteitsoplossing-${service.title.toLowerCase().replace(/\s+/g, '-')}`} 
-          title={service.title}
-          onBeforeDownload={prepareContentForPdf}
+        <PdfDownloadButtonContentful
+          mobilityServiceId={solution.id}
+          fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
         />
       </div>
     </Accordion>

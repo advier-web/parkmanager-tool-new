@@ -346,4 +346,72 @@ export async function getWebsiteCollectiefVervoerFromContentful(
     console.error('[CONTENTFUL] Error fetching websiteCollectiefVervoer content:', error);
     throw handleContentfulError(error);
   }
+}
+
+/**
+ * Haalt een specifieke mobility solution op uit Contentful met alle velden voor PDF export
+ */
+export async function getMobilitySolutionForPdf(id: string, options: { preview?: boolean } = {}): Promise<MobilitySolution> {
+  const client = getContentfulClient(options.preview);
+  
+  try {
+    const entry = await client.getEntry(id, {
+      include: 2 // Include 2 levels of linked entries (voor governanceModels)
+    });
+    
+    if (!entry || !entry.fields) {
+      throw new Error(`Geen mobility solution gevonden met ID: ${id}`);
+    }
+    
+    // Haal eerst de gekoppelde governance modellen op
+    const governanceModels = entry.fields.governanceModels 
+      ? await Promise.all(
+          (entry.fields.governanceModels as any[])
+            .filter(item => item.sys?.id)
+            .map(async (item) => {
+              const model = await client.getEntry(item.sys.id);
+              return {
+                sys: { id: model.sys.id }, // Gebruik het correcte formaat voor governanceModels
+                title: String(model.fields.title || ''),
+                description: String(model.fields.description || '')
+              };
+            })
+        )
+      : [];
+
+    // Transformeer de entry naar het juiste formaat voor PDF
+    return {
+      id: entry.sys.id,
+      title: String(entry.fields.title || ''),
+      description: String(entry.fields.description || ''),
+      summary: String(entry.fields.summary || ''),
+      benefits: Array.isArray(entry.fields.benefits) ? entry.fields.benefits.map(String) : [],
+      challenges: Array.isArray(entry.fields.challenges) ? entry.fields.challenges.map(String) : [],
+      implementationTime: String(entry.fields.implementationTime || 'onbekend'),
+      costs: String(entry.fields.costs || 'onbekend'),
+      category: String(entry.fields.category || 'overig'),
+      icon: entry.fields.icon ? String(entry.fields.icon) : undefined,
+      
+      // Implementation plan field
+      implementatie: String(entry.fields.implementatie || ''),
+      
+      // Nieuwe velden van Contentful
+      paspoort: String(entry.fields.paspoort || ''),
+      collectiefVsIndiviueel: String(entry.fields.collectiefVsIndiviueel || ''),
+      effecten: String(entry.fields.effecten || ''),
+      investering: String(entry.fields.investering || ''),
+      governanceModels,
+      governancemodellenToelichting: String(entry.fields.governancemodellenToelichting || ''),
+      
+      // Rating fields
+      parkeer_bereikbaarheidsproblemen: Number(entry.fields.parkeer_bereikbaarheidsproblemen || 0),
+      gezondheid: Number(entry.fields.gezondheid || 0),
+      personeelszorg_en_behoud: Number(entry.fields.personeelszorg_en_behoud || 0),
+      imago: Number(entry.fields.imago || 0),
+      milieuverordening: Number(entry.fields.milieuverordening || 0),
+    };
+  } catch (error) {
+    console.error('Error fetching mobility solution for PDF:', error);
+    throw error;
+  }
 } 

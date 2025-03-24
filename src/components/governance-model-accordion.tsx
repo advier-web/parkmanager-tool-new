@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { GovernanceModel } from '../domain/models';
 import { Accordion } from './accordion';
 import { ItemWithMarkdown } from './item-with-markdown';
-import { PdfDownloadButton } from './pdf-download-button';
+import { PdfDownloadButtonContentful } from './pdf-download-button-contentful';
 
 interface GovernanceModelAccordionProps {
   model: GovernanceModel;
@@ -245,11 +245,9 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </div>
         )}
         
-        <PdfDownloadButton 
-          contentRef={contentRef} 
-          fileName={`governance-model-${model.title.toLowerCase().replace(/\s+/g, '-')}`} 
-          title={model.title}
-          onBeforeDownload={prepareContentForPdf}
+        <PdfDownloadButtonContentful
+          mobilityServiceId={model.id}
+          fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
         />
       </div>
     </Accordion>
