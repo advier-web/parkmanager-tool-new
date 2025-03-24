@@ -396,6 +396,9 @@ export default function PdfDownloadButtonContentful({
               pdf.text(segment.content, 20, yPos);
               yPos += 8; // Witruimte onder H1
             } else if (segment.level === 2) {
+              // Meer witruimte boven H2
+              yPos += 10; // Vergrote witruimte boven H2 (was impliciet 0)
+              
               pdf.setFontSize(14);
               pdf.text(segment.content, 20, yPos);
               yPos += 6; // Witruimte onder H2
