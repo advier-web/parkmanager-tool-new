@@ -288,7 +288,7 @@ export default function PdfDownloadButtonContentful({
                     pdf.text(segment.text, startX, yPos);
                     startX += pdf.getTextWidth(segment.text);
                   }
-                  yPos += 8; // Verhoogd van 6 naar 8 voor meer ruimte
+                  yPos += 6; // Standaard regelafstand (was 8)
                 } else {
                   // Tekst moet over meerdere regels verdeeld worden
                   let lineY = yPos;
@@ -371,18 +371,18 @@ export default function PdfDownloadButtonContentful({
                     }
                   }
                   
-                  yPos = lineY + 3; // Verhoog de ruimte tussen bullets (was lineY + 1)
+                  yPos = lineY + 6; // Verhoog de ruimte na de bullet significant (was lineY + 3)
                 }
               } else {
                 // Eenvoudige bullet zonder bold elementen
                 const lines = pdf.splitTextToSize(bulletText, 160);
                 pdf.text(lines, 25, yPos);
-                yPos += lines.length * 6 + 2; // Voeg 2 extra punten ruimte toe na elke bullet
+                yPos += lines.length * 5 + 6; // Kleinere line height (5 ipv 6) maar meer extra ruimte (6 ipv 2)
               }
             }
             
             // Extra ruimte onder bulletlijsten
-            yPos += 4;
+            yPos += 8; // Significant meer ruimte tussen bullet lists (was 4)
             continue;
           }
           
@@ -612,18 +612,18 @@ export default function PdfDownloadButtonContentful({
                         startX += pdf.getTextWidth(text);
                       }
                       
-                      yPos += 10; // Meer ruimte tussen bullets met bold (was 6, nu 10)
+                      yPos += 12; // Nog meer ruimte tussen bullets in governance sectie (was 10)
                     } else {
                       // Normale tekst zonder bold
                       const bulletText = formatBoldText(item.trim());
                       const lines = pdf.splitTextToSize(bulletText, 163);
                       pdf.text(lines, 25, yPos);
-                      yPos += lines.length * 6 + 4; // Meer ruimte tussen bullets (was 6, nu 6+4)
+                      yPos += lines.length * 5 + 7; // Kleinere line height (5 ipv 6) maar meer ruimte (7 ipv 4)
                     }
                   }
                   
                   // Extra ruimte na bulletlijsten
-                  yPos += 4;
+                  yPos += 8; // Meer ruimte (was niet expliciet aangegeven)
                   continue;
                 }
                 
