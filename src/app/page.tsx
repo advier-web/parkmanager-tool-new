@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useWebsiteCollectiefVervoer, useMobilitySolutions, useGovernanceModels } from '../hooks/use-domain-models';
+import { useWebsiteCollectiefVervoer, useMobilitySolutions, useGovernanceModels, useBusinessParkReasons } from '../hooks/use-domain-models';
 import { SiteHeader } from '../components/site-header';
 import { MarkdownContent } from '../components/markdown-content';
 import { MobilityServiceAccordion } from '../components/mobility-service-accordion';
 import { GovernanceModelsSection } from '../components/governance-models-section';
+import { BusinessParkReasonsSection } from '../components/business-park-reasons-section';
 import Link from 'next/link';
 
 interface SectionRef {
@@ -25,6 +26,11 @@ export default function Home() {
     isLoading: isLoadingGovernance,
     error: governanceError
   } = useGovernanceModels();
+  const {
+    data: businessParkReasons,
+    isLoading: isLoadingReasons,
+    error: reasonsError
+  } = useBusinessParkReasons();
   
   // State voor de sticky navigatie
   const [showStickyNav, setShowStickyNav] = useState(false);
@@ -226,6 +232,24 @@ export default function Home() {
         <section id="aanleidingen" className="mb-16 pb-8 border-b border-gray-200">
           <h2 className="text-2xl font-bold mb-6">Aanleidingen voor collectieve vervoersoplossingen</h2>
           <MarkdownContent content={data.aanleidingenVoorCollectieveVervoersoplossingen} />
+          
+          {isLoadingReasons && (
+            <div className="py-4 text-center">
+              <p>Aanleidingen worden geladen...</p>
+            </div>
+          )}
+          
+          {reasonsError && (
+            <div className="py-4 px-4 bg-red-50 text-red-700 rounded-md my-4">
+              <p>Fout bij het laden van de aanleidingen</p>
+            </div>
+          )}
+          
+          {businessParkReasons && businessParkReasons.length > 0 && (
+            <div className="mt-6">
+              <BusinessParkReasonsSection reasons={businessParkReasons} />
+            </div>
+          )}
         </section>
         
         <section id="overzicht" className="mb-16 pb-8 border-b border-gray-200">
