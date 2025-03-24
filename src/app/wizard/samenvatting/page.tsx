@@ -112,7 +112,7 @@ export default function SummaryPage() {
               <hr className="my-8 border-gray-200" />
               
               <section>
-                <h3 className="text-xl font-semibold mb-4 text-green-700">Geselecteerde aanleidingen</h3>
+                <h3 className="text-xl font-semibold mb-4">Geselecteerde aanleidingen</h3>
                 {selectedReasons.length > 0 && reasons ? (
                   <div className="space-y-6">
                     {reasons
@@ -136,7 +136,7 @@ export default function SummaryPage() {
               <hr className="my-8 border-gray-200" />
               
               <section>
-                <h3 className="text-xl font-semibold mb-4 text-blue-700">Geselecteerde mobiliteitsoplossingen</h3>
+                <h3 className="text-xl font-semibold mb-4">Geselecteerde mobiliteitsoplossingen</h3>
                 {selectedSolutions.length > 0 ? (
                   <div className="space-y-6">
                     {solutions
@@ -166,7 +166,7 @@ export default function SummaryPage() {
               <hr className="my-8 border-gray-200" />
               
               <section>
-                <h3 className="text-xl font-semibold mb-4 text-purple-700">Gekozen governance model</h3>
+                <h3 className="text-xl font-semibold mb-4">Gekozen governance model</h3>
                 {selectedGovernanceModel && governanceModels ? (
                   (() => {
                     const model = governanceModels.find(model => model.id === selectedGovernanceModel);
