@@ -453,7 +453,7 @@ export default function MobilitySolutionsPage() {
             )}
             
             {/* Display solutions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-1 gap-6 mt-8">
               {!filteredSolutions || isLoadingSolutions ? (
                 // Loading state
                 Array.from({ length: 4 }).map((_, index) => (
@@ -469,7 +469,7 @@ export default function MobilitySolutionsPage() {
                 ))
               ) : filteredSolutions.length === 0 ? (
                 // No solutions found
-                <div className="col-span-2">
+                <div>
                   <p className="text-center text-gray-500 my-8">
                     Geen mobiliteitsoplossingen gevonden die voldoen aan de geselecteerde criteria.
                   </p>
