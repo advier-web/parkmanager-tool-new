@@ -21,10 +21,10 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
   const [isLoading, setIsLoading] = useState(false);
 
   // Functie om markdown op te schonen en opmaak te behouden
-  const processText = (text: string): { segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number }> } => {
+  const processText = (text: string): { segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number, isList?: boolean }> } => {
     if (!text) return { segments: [] };
     
-    const segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number }> = [];
+    const segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number, isList?: boolean }> = [];
     
     // Splits de tekst in secties op basis van headers en verwerk elke sectie
     const sections = text.split(/^(#{1,3} .+)$/m);
@@ -39,65 +39,139 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
         const headerText = section.replace(/^#{1,3} (.+)$/m, '$1');
         segments.push({ text: headerText, isBold: true, isHeader: true, level: headerLevel });
       } else {
-        // Verwerk de rest van de tekst om bold te behouden
-        let currentText = section;
+        // Verwerk eerst alle bulletpoints om er echte lijsten van te maken
+        let processedText = section;
         
         // Fix voor het dubbelpunt probleem: zorg dat het dubbelpunt op dezelfde regel komt
-        currentText = currentText.replace(/(\S)\s*:\s*\n+/g, '$1: ');
+        processedText = processedText.replace(/(\S)\s*:\s*\n+/g, '$1: ');
         
-        // Fix voor bullets: zorg dat de bullet en tekst op dezelfde regel staan
-        currentText = currentText.replace(/\n+([•*-])\s+/g, '\n$1 ');
-        currentText = currentText.replace(/^([•*-])\s+/g, '$1 ');
+        // Bereid de rest van de tekst voor
+        let currentText = processedText;
         
-        // Verwerk bold tekst
-        while (currentText.includes('**') || currentText.includes('__')) {
-          const boldStart = Math.min(
-            currentText.indexOf('**') !== -1 ? currentText.indexOf('**') : Infinity,
-            currentText.indexOf('__') !== -1 ? currentText.indexOf('__') : Infinity
-          );
+        // Detecteer bulletlijsten (regels beginnend met bullet markers)
+        const bulletRegex = /^([•*-])\s+(.+)(?:\n|$)/gm;
+        const bulletMatches = [...currentText.matchAll(bulletRegex)];
+        
+        if (bulletMatches.length > 0) {
+          // We hebben een lijst gevonden
+          let processedLists = currentText;
+          const listMatches = [];
+          let lastIndex = 0;
           
-          if (boldStart === Infinity) break;
+          // Extraheer normale tekst en lijsten
+          while ((bulletRegex.lastIndex = lastIndex) !== currentText.length) {
+            const match = bulletRegex.exec(currentText);
+            if (!match) break;
+            
+            // Vind het begin en eind van de huidige lijst
+            const listStart = match.index;
+            let listEnd = match.index + match[0].length;
+            
+            // Controleer of er meer bullets volgen
+            let nextIndex = listEnd;
+            let nextMatch;
+            while ((nextMatch = bulletRegex.exec(currentText)) !== null && 
+                  nextMatch.index === nextIndex) {
+              listEnd = nextMatch.index + nextMatch[0].length;
+              nextIndex = listEnd;
+            }
+            
+            // Voeg normale tekst toe voor de lijst
+            if (listStart > lastIndex) {
+              const normalText = currentText.substring(lastIndex, listStart);
+              if (normalText.trim()) {
+                segments.push({
+                  text: normalText.trim()
+                    .replace(/\n+/g, '\n'),
+                  isBold: false,
+                  isHeader: false
+                });
+              }
+            }
+            
+            // Verzamel alle items van de lijst
+            const listText = currentText.substring(listStart, listEnd);
+            const listItems = listText.split('\n')
+              .filter(line => line.trim().match(/^[•*-]/))
+              .map(line => line.trim().replace(/^[•*-]\s+/, ''))
+              .join('\n• ');
+            
+            // Voeg de lijst toe als een speciaal segment
+            segments.push({
+              text: '• ' + listItems,
+              isBold: false,
+              isHeader: false,
+              isList: true
+            });
+            
+            lastIndex = listEnd;
+          }
           
-          // Voeg normale tekst toe voor de bold
-          if (boldStart > 0) {
+          // Voeg tekst toe na de laatste lijst indien aanwezig
+          if (lastIndex < currentText.length) {
+            const normalText = currentText.substring(lastIndex).trim();
+            if (normalText) {
+              segments.push({
+                text: normalText.replace(/\n+/g, '\n'),
+                isBold: false,
+                isHeader: false
+              });
+            }
+          }
+        } else {
+          // Geen lijsten, verwerk bold zoals voorheen
+          let currentText = processedText;
+          
+          // Verwerk bold tekst
+          while (currentText.includes('**') || currentText.includes('__')) {
+            const boldStart = Math.min(
+              currentText.indexOf('**') !== -1 ? currentText.indexOf('**') : Infinity,
+              currentText.indexOf('__') !== -1 ? currentText.indexOf('__') : Infinity
+            );
+            
+            if (boldStart === Infinity) break;
+            
+            // Voeg normale tekst toe voor de bold
+            if (boldStart > 0) {
+              segments.push({ 
+                text: currentText.substring(0, boldStart)
+                  .replace(/\n- /g, '\n• ') // Converteer bullet points 
+                  .replace(/^- /gm, '• '), // Converteer begin bulllet points
+                isBold: false, 
+                isHeader: false 
+              });
+            }
+            
+            // Bepaal het eindpunt van de bold tekst
+            const boldDelimiter = currentText.substring(boldStart, boldStart + 2);
+            const boldEnd = currentText.indexOf(boldDelimiter, boldStart + 2);
+            
+            if (boldEnd === -1) break; // Geen sluitend delimeter gevonden
+            
+            // Voeg bold tekst toe
             segments.push({ 
-              text: currentText.substring(0, boldStart)
-                .replace(/\n- /g, '\n• ') // Converteer bullet points 
-                .replace(/^- /gm, '• '), // Converteer begin bulllet points
+              text: currentText.substring(boldStart + 2, boldEnd)
+                .replace(/\n- /g, '\n• ') // Converteer bullet points
+                .replace(/^- /gm, '• '), // Converteer begin bullet points
+              isBold: true, 
+              isHeader: false 
+            });
+            
+            // Update de huidige tekst
+            currentText = currentText.substring(boldEnd + 2);
+          }
+          
+          // Voeg eventuele resterende tekst toe
+          if (currentText) {
+            segments.push({ 
+              text: currentText
+                .replace(/\n- /g, '\n• ') // Converteer bullet points
+                .replace(/^- /gm, '• ') // Converteer begin bullet points
+                .replace(/^\* /gm, '• '), // Converteer asterisk bullet points
               isBold: false, 
               isHeader: false 
             });
           }
-          
-          // Bepaal het eindpunt van de bold tekst
-          const boldDelimiter = currentText.substring(boldStart, boldStart + 2);
-          const boldEnd = currentText.indexOf(boldDelimiter, boldStart + 2);
-          
-          if (boldEnd === -1) break; // Geen sluitend delimeter gevonden
-          
-          // Voeg bold tekst toe
-          segments.push({ 
-            text: currentText.substring(boldStart + 2, boldEnd)
-              .replace(/\n- /g, '\n• ') // Converteer bullet points
-              .replace(/^- /gm, '• '), // Converteer begin bullet points
-            isBold: true, 
-            isHeader: false 
-          });
-          
-          // Update de huidige tekst
-          currentText = currentText.substring(boldEnd + 2);
-        }
-        
-        // Voeg eventuele resterende tekst toe
-        if (currentText) {
-          segments.push({ 
-            text: currentText
-              .replace(/\n- /g, '\n• ') // Converteer bullet points
-              .replace(/^- /gm, '• ') // Converteer begin bullet points
-              .replace(/^\* /gm, '• '), // Converteer asterisk bullet points
-            isBold: false, 
-            isHeader: false 
-          });
         }
       }
     }
@@ -149,6 +223,9 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
           // Verwerk de tekst met opmaak
           const { segments } = processText(content);
           
+          let lastListItem = false;
+          let titleForBullet = "";
+          
           for (const segment of segments) {
             doc.setFont('helvetica', segment.isBold ? 'bold' : 'normal');
             
@@ -162,6 +239,10 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
               if (segment.level === 3) {
                 newY += 5; // Extra ruimte voor h3 headers
               }
+              
+              // Sla de titel op voor eventuele bullets die volgen
+              titleForBullet = segment.text;
+              lastListItem = false;
             } else {
               doc.setFontSize(11);
             }
@@ -171,9 +252,44 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
             
             // Fix voor het ":" probleem
             let textToRender = segment.text;
+            
+            // Detecteer of dit segment een lijsttitel is (bevat een dubbelpunt aan het einde)
+            const isBulletTitle = !segment.isList && textToRender.trim().endsWith(':');
+            
             if (textToRender.startsWith(':')) {
               // Als het een losstaande dubbelpunt is, combineer het met de vorige regel
               textToRender = textToRender.substring(1).trim();
+            }
+            
+            // Speciale verwerking voor bulletpoints
+            if (segment.isList) {
+              // Maak elke bullet item een aparte regel met juiste inspringing
+              const bulletItems = textToRender.split('\n• ');
+              let formattedBullets = [];
+              
+              for (let i = 0; i < bulletItems.length; i++) {
+                if (!bulletItems[i].trim()) continue;
+                
+                // Verwerk eerste item (kan zonder bullet aanduiding komen)
+                if (i === 0 && !bulletItems[i].startsWith('•')) {
+                  formattedBullets.push('• ' + bulletItems[i].trim());
+                } else {
+                  formattedBullets.push(bulletItems[i].trim().startsWith('•') ? 
+                    bulletItems[i].trim() : '• ' + bulletItems[i].trim());
+                }
+              }
+              
+              // Converteer de bulletpoints naar het juiste formaat
+              textToRender = formattedBullets.join('\n');
+              
+              // Markeer dat we een lijst aan het verwerken zijn
+              lastListItem = true;
+            } else if (isBulletTitle) {
+              // Dit is een titel voor een lijst, maar geen lijst zelf
+              titleForBullet = textToRender.replace(/:$/, '');
+              lastListItem = false;
+            } else {
+              lastListItem = false;
             }
             
             // Fix voor overmatige letter-spacing door karaktercodering
@@ -182,12 +298,61 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
               .trim();
             
             // Splits tekst in regels die binnen de breedte passen
-            // Stel een kleinere charSpace in om letter-spacing te verminderen
             doc.setCharSpace(0); // Zet character spacing terug naar normaal
-            const lines = doc.splitTextToSize(textToRender, contentWidth);
+            
+            // Voor bulletpoints, pas speciale inspringing toe
+            let lines;
+            if (segment.isList) {
+              // Maak eerst een array van bulletpoint regels
+              const bulletLines = textToRender.split('\n');
+              lines = [];
+              
+              // Verwerk elke bulletpoint regel met inspringing
+              for (const bulletLine of bulletLines) {
+                if (!bulletLine.trim()) continue;
+                
+                // Splits bullet punt in onderdelen (bullet + tekst)
+                const bulletMatch = bulletLine.match(/^(\s*[•*-]\s*)(.+)$/);
+                if (bulletMatch) {
+                  const [_, bulletMarker, bulletText] = bulletMatch;
+                  
+                  // Bereken inspringing voor doorlopende tekst
+                  const bulletIndent = margin + 5;
+                  const textIndent = margin + 7; // Kleine inspringing voor het tekst-gedeelte
+                  const wrappedWidth = contentWidth - 7; // Verminder breedte voor inspringing
+                  
+                  // Voeg bullet toe
+                  lines.push(bulletLine);
+                  
+                  // Bereken doorlopende regels als tekst te lang is
+                  const wrappedText = doc.splitTextToSize(bulletText, wrappedWidth);
+                  if (wrappedText.length > 1) {
+                    // Verwijder eerste regel (die is al toegevoegd met bullet)
+                    wrappedText.shift();
+                    
+                    // Voeg overige regels toe met inspringing
+                    for (const line of wrappedText) {
+                      lines.push('    ' + line); // Extra inspringing
+                    }
+                  }
+                } else {
+                  lines.push(bulletLine);
+                }
+              }
+            } else {
+              lines = doc.splitTextToSize(textToRender, contentWidth);
+            }
             
             // Bereken de benodigde hoogte voor deze tekstsegment
-            const lineHeight = segment.isHeader ? 7 : 5;
+            let lineHeight;
+            if (segment.isHeader) {
+              lineHeight = 7;
+            } else if (segment.isList) {
+              lineHeight = 6; // Iets meer ruimte tussen bullet points
+            } else {
+              lineHeight = 5;
+            }
+            
             const textHeight = lines.length * lineHeight;
             
             // Check of we een nieuwe pagina nodig hebben
@@ -196,15 +361,32 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
               newY = margin;
             }
             
-            // Teken de tekst
-            doc.text(lines, margin, newY);
-            
-            // Update Y positie
-            newY += textHeight;
+            // Teken de tekst met de juiste opmaak
+            if (segment.isList) {
+              // Teken elke bulletpoint regel afzonderlijk
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Bepaal of dit een bullet (eerste niveau) of een doorlopende regel is
+                const isActualBullet = line.trim().startsWith('•');
+                const indent = isActualBullet ? margin : margin + 7;
+                
+                doc.text(line, indent, newY + (i * lineHeight));
+              }
+              newY += textHeight;
+            } else {
+              // Teken gewone tekst
+              doc.text(lines, margin, newY);
+              newY += textHeight;
+            }
             
             // Voeg extra ruimte toe na headers
             if (segment.isHeader) {
               newY += segment.level === 1 ? 5 : (segment.level === 2 ? 4 : 3);
+            } 
+            // Voeg minder ruimte toe na een bulletpoint, tenzij het de laatste is
+            else if (segment.isList) {
+              newY += 2;
             }
           }
           
