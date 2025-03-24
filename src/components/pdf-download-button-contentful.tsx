@@ -44,41 +44,136 @@ export default function PdfDownloadButtonContentful({
         creator: 'Parkmanager Tool'
       });
       
-      // Helper function to clean markdown text
-      const cleanText = (text: string | undefined): string => {
-        if (!text) return '';
-        return text
-          .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold markdown
-          .replace(/__(.*?)__/g, '$1')     // Remove underscore bold
-          .replace(/\*(.*?)\*/g, '$1')      // Remove italic markdown
-          .replace(/_(.*?)_/g, '$1')       // Remove underscore italic
-          .replace(/#+\s(.*?)(\n|$)/g, '$1\n') // Clean headers but keep text
-          .replace(/(?:\r\n|\r|\n){2,}/g, '\n\n'); // Reduce multiple newlines
+      // Identificeer markdown elementen
+      const parseMarkdown = (text: string | undefined): { type: string; content: string; level?: number }[] => {
+        if (!text) return [];
+        
+        const segments: { type: string; content: string; level?: number }[] = [];
+        const lines = text.split('\n');
+        
+        let inBulletList = false;
+        let bulletItems: string[] = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) {
+            if (inBulletList && bulletItems.length > 0) {
+              segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
+              bulletItems = [];
+              inBulletList = false;
+            }
+            segments.push({ type: 'empty-line', content: '' });
+            continue;
+          }
+          
+          // Headers (# Heading)
+          const headerMatch = line.match(/^(#{1,3})\s+(.+)$/);
+          if (headerMatch) {
+            if (inBulletList && bulletItems.length > 0) {
+              segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
+              bulletItems = [];
+              inBulletList = false;
+            }
+            
+            const level = headerMatch[1].length; // aantal # symbolen
+            segments.push({ 
+              type: 'header', 
+              content: headerMatch[2],
+              level: level 
+            });
+            continue;
+          }
+          
+          // Bullet points
+          if (line.match(/^[-*•]\s+/)) {
+            inBulletList = true;
+            bulletItems.push(line.replace(/^[-*•]\s+/, ''));
+            continue;
+          }
+          
+          // Als we in een bulletlijst waren maar nu een reguliere regel tegenkomen
+          if (inBulletList && bulletItems.length > 0) {
+            segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
+            bulletItems = [];
+            inBulletList = false;
+          }
+          
+          // Reguliere paragraaf
+          segments.push({ type: 'paragraph', content: line });
+        }
+        
+        // Als er nog bulletpoints in de buffer staan
+        if (inBulletList && bulletItems.length > 0) {
+          segments.push({ type: 'bullet-list', content: bulletItems.join('\n') });
+        }
+        
+        return segments;
       };
       
-      // Helper function to add text with wrapping
+      // Functie om tekst met bold te formatteren
+      const formatBoldText = (text: string): string => {
+        return text.replace(/\*\*(.*?)\*\*/g, '$1')
+                  .replace(/__(.*?)__/g, '$1');
+      };
+      
+      // Helper functie voor tekst met regeleinden
       const addWrappedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number): number => {
-        const lines = pdf.splitTextToSize(text, maxWidth);
-        pdf.text(lines, x, y);
-        return y + (lines.length * lineHeight);
+        // Check voor bold stukken
+        const hasBold = text.includes('**') || text.includes('__');
+        
+        if (!hasBold) {
+          // Normale tekst zonder formatting
+          const lines = pdf.splitTextToSize(text, maxWidth);
+          pdf.text(lines, x, y);
+          return y + (lines.length * lineHeight);
+        } else {
+          // Tekst met bold formatting
+          const segments = [];
+          let currentText = '';
+          let isBold = false;
+          
+          // Regex om bold secties te vinden (zowel ** als __)
+          const boldPattern = /(\*\*|__)(.*?)(\*\*|__)/g;
+          let lastIndex = 0;
+          let match;
+          
+          while ((match = boldPattern.exec(text)) !== null) {
+            // Voeg normale tekst toe die voor de match staat
+            const normalText = text.substring(lastIndex, match.index);
+            if (normalText.length > 0) {
+              segments.push({ text: normalText, bold: false });
+            }
+            
+            // Voeg de bold tekst toe
+            segments.push({ text: match[2], bold: true });
+            
+            lastIndex = match.index + match[0].length;
+          }
+          
+          // Voeg eventuele resterende normale tekst toe
+          if (lastIndex < text.length) {
+            segments.push({ text: text.substring(lastIndex), bold: false });
+          }
+          
+          // Als er geen bold segmenten gevonden zijn, gebruik de hele tekst
+          if (segments.length === 0) {
+            segments.push({ text, bold: false });
+          }
+          
+          // Render de segmenten met juiste opmaak
+          let currentY = y;
+          for (const segment of segments) {
+            pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+            const lines = pdf.splitTextToSize(segment.text, maxWidth);
+            pdf.text(lines, x, currentY);
+            currentY += lines.length * lineHeight;
+          }
+          
+          return currentY;
+        }
       };
       
-      // Add title
-      pdf.setFontSize(22);
-      pdf.setFont('helvetica', 'bold');
-      let yPos = 20;
-      yPos = addWrappedText(data.title, 20, yPos, 170, 10) + 5;
-      
-      // Add horizontal line
-      pdf.setDrawColor(150, 150, 150);
-      pdf.line(20, yPos, 190, yPos);
-      yPos += 10;
-      
-      // Reset font for normal text
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      
-      // Add sections with proper spacing
+      // Hoofdfunctie voor het toevoegen van een sectie
       const addSection = (title: string, content: string | undefined): void => {
         if (!content) return;
         
@@ -86,29 +181,235 @@ export default function PdfDownloadButtonContentful({
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(16);
         pdf.text(title, 20, yPos);
-        yPos += 8;
+        yPos += 10; // Meer ruimte onder sectiehoofdingen
         
-        // Add content with normal font
+        // Parse markdown content
+        const segments = parseMarkdown(content);
+        
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(11);
         
-        // Process bullet points for better display
-        const processedContent = cleanText(content).split('\n').map(line => {
-          // Convert markdown bullet points to proper bullet points
-          if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-            return '• ' + line.trim().substring(1).trim();
+        for (const segment of segments) {
+          if (segment.type === 'empty-line') {
+            yPos += 4; // Kleinere spatiëring voor lege regels
+            continue;
           }
-          return line;
-        }).join('\n');
-        
-        yPos = addWrappedText(processedContent, 20, yPos, 170, 6) + 10;
-        
-        // Add extra space after section
-        if (yPos > 270) {
-          pdf.addPage();
-          yPos = 20;
+          
+          if (segment.type === 'header') {
+            // Paginawissel indien nodig
+            if (yPos > 270) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            
+            if (segment.level === 1) {
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(16);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 8;
+            } else if (segment.level === 2) {
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(14);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 7;
+            } else if (segment.level === 3) {
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(12);
+              pdf.text(segment.content, 20, yPos);
+              yPos += 6;
+            }
+            
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            continue;
+          }
+          
+          if (segment.type === 'bullet-list') {
+            // Extra ruimte boven bulletlijsten
+            yPos += 5;
+            
+            // Paginawissel indien nodig
+            if (yPos > 270) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            
+            const bulletItems = segment.content.split('\n');
+            for (const item of bulletItems) {
+              pdf.setFont('helvetica', 'normal');
+              
+              // Teken het bullet point
+              pdf.text('•', 20, yPos);
+              
+              // Bereken beschikbare ruimte (iets minder breed door indent)
+              const bulletText = item.trim();
+              const hasBold = bulletText.includes('**') || bulletText.includes('__');
+              
+              if (hasBold) {
+                // Tekst met bold elementen
+                pdf.setFont('helvetica', 'normal');
+                const processedText = formatBoldText(bulletText);
+                const lines = pdf.splitTextToSize(processedText, 163); // Smaller voor indentatie
+                
+                // Detecteer bold secties en render die apart
+                const segments = [];
+                let currentText = '';
+                let isBold = false;
+                
+                // Split en format de bold tekst
+                for (let i = 0; i < bulletText.length; i++) {
+                  if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
+                    if (currentText) {
+                      segments.push({ text: currentText, bold: isBold });
+                      currentText = '';
+                    }
+                    isBold = !isBold;
+                    i++; // Skip het tweede karakter van **
+                  } else {
+                    currentText += bulletText[i];
+                  }
+                }
+                
+                if (currentText) {
+                  segments.push({ text: currentText, bold: isBold });
+                }
+                
+                // Render de segments met juiste opmaak
+                let startX = 25; // Indent voor bulletpoints
+                for (const segment of segments) {
+                  pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                  const segmentWidth = pdf.getTextWidth(segment.text);
+                  pdf.text(segment.text, startX, yPos);
+                  startX += segmentWidth;
+                }
+                
+                yPos += 6; // Lijnhoogte na bullets
+              } else {
+                // Eenvoudige bullet zonder bold elementen
+                const lines = pdf.splitTextToSize(bulletText, 163); // Smaller voor indentatie
+                pdf.text(lines, 25, yPos);
+                yPos += lines.length * 6;
+              }
+              
+              // Paginawissel indien nodig
+              if (yPos > 270) {
+                pdf.addPage();
+                yPos = 20;
+              }
+            }
+            
+            // Extra ruimte onder bulletlijsten
+            yPos += 4;
+            continue;
+          }
+          
+          if (segment.type === 'paragraph') {
+            // Paginawissel indien nodig
+            if (yPos > 270) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            
+            // Check voor bold tekst
+            const hasBold = segment.content.includes('**') || segment.content.includes('__');
+            
+            if (hasBold) {
+              // Bold tekst gevonden, verwerk deze
+              const segments = [];
+              let startIdx = 0;
+              let currentText = '';
+              let isBold = false;
+              
+              // Split en format de bold tekst
+              const text = segment.content;
+              for (let i = 0; i < text.length; i++) {
+                if (text.substr(i, 2) === '**' || text.substr(i, 2) === '__') {
+                  if (currentText) {
+                    segments.push({ text: currentText, bold: isBold });
+                    currentText = '';
+                  }
+                  isBold = !isBold;
+                  i++; // Skip het tweede karakter van **
+                } else {
+                  currentText += text[i];
+                }
+              }
+              
+              if (currentText) {
+                segments.push({ text: currentText, bold: isBold });
+              }
+              
+              // Render de segmenten met juiste font
+              let currentY = yPos;
+              let lineWidth = 0;
+              let currentLine = '';
+              const maxWidth = 170; // Maximum breedte
+              
+              for (const segment of segments) {
+                pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                const segmentWidth = pdf.getTextWidth(segment.text);
+                
+                // Split indien nodig over meerdere regels
+                const words = segment.text.split(' ');
+                for (const word of words) {
+                  const wordWidth = pdf.getTextWidth(word + ' ');
+                  
+                  if (lineWidth + wordWidth > maxWidth) {
+                    // Begin nieuwe regel
+                    pdf.text(currentLine, 20, currentY);
+                    currentY += 6;
+                    currentLine = word + ' ';
+                    lineWidth = wordWidth;
+                    
+                    // Nieuwe pagina indien nodig
+                    if (currentY > 270) {
+                      pdf.addPage();
+                      currentY = 20;
+                    }
+                  } else {
+                    // Voeg toe aan huidige regel
+                    currentLine += word + ' ';
+                    lineWidth += wordWidth;
+                  }
+                }
+              }
+              
+              // Render laatste regel indien nodig
+              if (currentLine) {
+                pdf.text(currentLine, 20, currentY);
+                currentY += 6;
+              }
+              
+              yPos = currentY + 4; // Extra ruimte na paragrafen
+            } else {
+              // Normale paragraaf zonder bold
+              const processedText = formatBoldText(segment.content);
+              const lines = pdf.splitTextToSize(processedText, 170);
+              pdf.text(lines, 20, yPos);
+              yPos += (lines.length * 6) + 4; // Extra ruimte na paragrafen
+            }
+          }
+          
+          // Paginawissel indien nodig
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
         }
       };
+      
+      // Add title
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
+      let yPos = 20;
+      const titleLines = pdf.splitTextToSize(data.title, 170);
+      pdf.text(titleLines, 20, yPos);
+      yPos += (titleLines.length * 10) + 5;
+      
+      // Add horizontal line
+      pdf.setDrawColor(150, 150, 150);
+      pdf.line(20, yPos, 190, yPos);
+      yPos += 10;
       
       // Add each section
       if (data.paspoort) {
@@ -138,44 +439,193 @@ export default function PdfDownloadButtonContentful({
       // Add governance models if they exist
       const governanceModels = data.governanceModels || [];
       if (governanceModels.length > 0) {
+        // Paginawissel indien nodig
+        if (yPos > 270) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(16);
         pdf.text('Governance Modellen', 20, yPos);
-        yPos += 8;
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
+        yPos += 10;
         
         governanceModels.forEach((model, index) => {
           if (typeof model === 'object' && model !== null && 'title' in model && 'description' in model) {
+            // Paginawissel indien nodig
+            if (yPos > 270) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            
             // Add subsection title
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(14);
             pdf.text(model.title, 20, yPos);
-            yPos += 6;
+            yPos += 8;
             
-            // Add description
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(11);
-            
-            const processedDescription = cleanText(model.description).split('\n').map(line => {
-              if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-                return '• ' + line.trim().substring(1).trim();
+            // Add description with full markdown parsing
+            if (model.description) {
+              const segments = parseMarkdown(model.description);
+              
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(11);
+              
+              for (const segment of segments) {
+                if (segment.type === 'empty-line') {
+                  yPos += 4;
+                  continue;
+                }
+                
+                if (segment.type === 'bullet-list') {
+                  // Extra ruimte boven bulletlijsten
+                  yPos += 5;
+                  
+                  const bulletItems = segment.content.split('\n');
+                  for (const item of bulletItems) {
+                    // Paginawissel indien nodig
+                    if (yPos > 270) {
+                      pdf.addPage();
+                      yPos = 20;
+                    }
+                    
+                    // Teken het bullet point
+                    pdf.text('•', 20, yPos);
+                    
+                    // Check voor bold tekst
+                    const hasBold = item.includes('**') || item.includes('__');
+                    
+                    if (hasBold) {
+                      // Process bold formatting
+                      let startX = 25;
+                      const segments = [];
+                      let currentText = '';
+                      let isBold = false;
+                      
+                      // Split en format de bold tekst
+                      for (let i = 0; i < item.length; i++) {
+                        if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
+                          if (currentText) {
+                            segments.push({ text: currentText, bold: isBold });
+                            currentText = '';
+                          }
+                          isBold = !isBold;
+                          i++; // Skip het tweede karakter van **
+                        } else {
+                          currentText += item[i];
+                        }
+                      }
+                      
+                      if (currentText) {
+                        segments.push({ text: currentText, bold: isBold });
+                      }
+                      
+                      // Render de segments met juiste font
+                      for (const segment of segments) {
+                        pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                        const text = segment.text;
+                        const lines = pdf.splitTextToSize(text, 163);
+                        pdf.text(lines, startX, yPos);
+                        startX += pdf.getTextWidth(text);
+                      }
+                    } else {
+                      // Normale tekst zonder bold
+                      const bulletText = formatBoldText(item.trim());
+                      const lines = pdf.splitTextToSize(bulletText, 163);
+                      pdf.text(lines, 25, yPos);
+                    }
+                    
+                    yPos += 6;
+                  }
+                  
+                  // Extra ruimte na bulletlijsten
+                  yPos += 4;
+                  continue;
+                }
+                
+                if (segment.type === 'paragraph') {
+                  // Paginawissel indien nodig
+                  if (yPos > 270) {
+                    pdf.addPage();
+                    yPos = 20;
+                  }
+                  
+                  // Check voor bold tekst
+                  const hasBold = segment.content.includes('**') || segment.content.includes('__');
+                  
+                  if (hasBold) {
+                    // Bold tekst verwerken
+                    const segments = [];
+                    let currentText = '';
+                    let isBold = false;
+                    
+                    for (let i = 0; i < segment.content.length; i++) {
+                      if (segment.content.substr(i, 2) === '**' || segment.content.substr(i, 2) === '__') {
+                        if (currentText) {
+                          segments.push({ text: currentText, bold: isBold });
+                          currentText = '';
+                        }
+                        isBold = !isBold;
+                        i++; // Skip het tweede karakter van **
+                      } else {
+                        currentText += segment.content[i];
+                      }
+                    }
+                    
+                    if (currentText) {
+                      segments.push({ text: currentText, bold: isBold });
+                    }
+                    
+                    // Render segments
+                    let startX = 20;
+                    for (const segment of segments) {
+                      pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                      const text = segment.text;
+                      const segmentWidth = pdf.getTextWidth(text);
+                      
+                      // Wrap text if needed
+                      if (startX + segmentWidth > 190) {
+                        yPos += 6;
+                        startX = 20;
+                      }
+                      
+                      const lines = pdf.splitTextToSize(text, 170 - (startX - 20));
+                      pdf.text(lines, startX, yPos);
+                      
+                      // Update position
+                      if (lines.length > 1) {
+                        yPos += (lines.length - 1) * 6;
+                        startX = 20 + pdf.getTextWidth(lines[lines.length - 1]);
+                      } else {
+                        startX += segmentWidth;
+                      }
+                    }
+                    
+                    yPos += 6; // Ga naar de volgende regel
+                  } else {
+                    // Normale tekst zonder bold
+                    const processedText = formatBoldText(segment.content);
+                    const lines = pdf.splitTextToSize(processedText, 170);
+                    pdf.text(lines, 20, yPos);
+                    yPos += lines.length * 6;
+                  }
+                  
+                  // Extra ruimte na paragrafen
+                  yPos += 4;
+                }
               }
-              return line;
-            }).join('\n');
+            }
             
-            yPos = addWrappedText(processedDescription, 20, yPos, 170, 6) + 8;
+            // Extra ruimte na een model
+            yPos += 8;
             
-            // Add page break if needed
+            // Page break if needed
             if (yPos > 270 && index < governanceModels.length - 1) {
               pdf.addPage();
               yPos = 20;
             }
           }
         });
-        
-        yPos += 5;
       }
       
       // Add governance models toelichting
@@ -183,7 +633,7 @@ export default function PdfDownloadButtonContentful({
         addSection('Toelichting Governance Modellen', data.governancemodellenToelichting);
       }
       
-      // Generate the file name
+      // Genereer bestandsnaam
       const pdfFileName = fileName || 
         `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`;
       
