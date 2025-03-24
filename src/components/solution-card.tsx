@@ -109,6 +109,11 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
   
   // Render de score indicator voor een aanleiding
   const renderScoreIndicator = (reason: BusinessParkReason) => {
+    // Skip rendering voor "Ik weet het nog niet" aanleiding
+    if (reason.title.toLowerCase() === "ik weet het nog niet") {
+      return null;
+    }
+    
     const score = findScoreForIdentifier(solution, reason.identifier || '');
     const isTooltipVisible = !!visibleTooltips[reason.id];
     
