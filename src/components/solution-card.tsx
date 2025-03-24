@@ -1,4 +1,4 @@
-import { MobilitySolution } from '../domain/models';
+import { MobilitySolution, BusinessParkReason } from '../domain/models';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface SolutionCardProps {
@@ -6,9 +6,89 @@ interface SolutionCardProps {
   isSelected: boolean;
   onToggleSelect: (solutionId: string) => void;
   onMoreInfo?: (solution: MobilitySolution) => void;
+  selectedReasons?: BusinessParkReason[];
 }
 
-export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo }: SolutionCardProps) {
+export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo, selectedReasons = [] }: SolutionCardProps) {
+  // Helper function om score te vinden voor een identifier (case-insensitief)
+  const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
+    if (!identifier) return 0;
+    
+    // Directe match
+    const directValue = solution[identifier as keyof MobilitySolution];
+    if (typeof directValue === 'number') {
+      return directValue;
+    }
+    
+    // Case-insensitive match
+    const matchingKey = Object.keys(solution).find(key => 
+      key.toLowerCase() === identifier.toLowerCase()
+    );
+    
+    if (matchingKey) {
+      const value = solution[matchingKey as keyof MobilitySolution];
+      if (typeof value === 'number') {
+        return value;
+      }
+    }
+    
+    // Bekende mappings voor ingebouwde inconsistenties
+    const mappings: Record<string, string[]> = {
+      'gezondheid': ['gezondheid', 'Gezondheid', 'health'],
+      'personeelszorg_en_behoud': ['personeelszorg_en_behoud', 'Personeelszorg en -behoud', 'personeel'],
+      'parkeer_bereikbaarheidsproblemen': [
+        'parkeer_bereikbaarheidsproblemen', 
+        'Parkeer- en bereikbaarheidsprobleem',
+        'Parkeer- en bereikbaarheidsproblemen',
+        'parkeer_en_bereikbaarheidsproblemen',
+        'Parkeer en bereikbaarheidsprobleem',
+        'parkeerprobleem',
+        'bereikbaarheidsprobleem'
+      ],
+      'imago': ['imago', 'Imago'],
+      'milieuverordening': ['milieuverordening', 'Milieuverordening']
+    };
+    
+    if (mappings[identifier.toLowerCase()]) {
+      // Probeer alle mogelijke varianten
+      for (const variant of mappings[identifier.toLowerCase()]) {
+        const value = solution[variant as keyof MobilitySolution];
+        if (typeof value === 'number') {
+          return value;
+        }
+      }
+    }
+    
+    return 0;
+  };
+  
+  // Render de score indicator voor een aanleiding
+  const renderScoreIndicator = (reason: BusinessParkReason) => {
+    const score = findScoreForIdentifier(solution, reason.identifier || '');
+    
+    let color = '';
+    let label = '';
+    
+    // Bepaal kleur en label op basis van de score
+    if (score >= 7) {
+      color = 'bg-green-500';
+      label = `Deze oplossing draagt veel bij aan ${reason.title.toLowerCase()}`;
+    } else if (score >= 4) {
+      color = 'bg-orange-500';
+      label = `Deze oplossing draagt enigszins bij aan ${reason.title.toLowerCase()}`;
+    } else {
+      color = 'bg-red-500';
+      label = `Deze oplossing draagt weinig bij aan ${reason.title.toLowerCase()}`;
+    }
+    
+    return (
+      <div key={reason.id} className="flex items-center mt-2">
+        <div className={`w-3 h-3 rounded-full ${color} mr-2`}></div>
+        <span className="text-xs text-gray-600">{label}</span>
+      </div>
+    );
+  };
+  
   return (
     <div
       className={`
@@ -50,6 +130,14 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo 
               </ul>
             </div>
           </div>
+          
+          {/* Toon scores voor geselecteerde aanleidingen */}
+          {selectedReasons.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-700 mb-1">Bijdrage aan geselecteerde aanleidingen:</p>
+              {selectedReasons.map(reason => renderScoreIndicator(reason))}
+            </div>
+          )}
           
           <div className="flex flex-wrap gap-2 mt-2 mb-2">
             <div className="flex items-center">
