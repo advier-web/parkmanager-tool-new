@@ -258,8 +258,32 @@ export default function SummaryPage() {
               
               <section>
                 <h3 className="text-xl font-semibold mb-2">Gekozen governance model</h3>
-                {selectedGovernanceModelTitle ? (
-                  <p>{selectedGovernanceModelTitle}</p>
+                {selectedGovernanceModel && governanceModels ? (
+                  (() => {
+                    const model = governanceModels.find(model => model.id === selectedGovernanceModel);
+                    return model ? (
+                      <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                        <h4 className="font-medium text-lg mb-2">{model.title}</h4>
+                        {model.summary ? (
+                          <p className="mb-3 text-gray-700">{model.summary}</p>
+                        ) : model.samenvatting ? (
+                          <p className="mb-3 text-gray-700">{model.samenvatting}</p>
+                        ) : model.description ? (
+                          <p className="mb-3 text-gray-700">{model.description}</p>
+                        ) : null}
+                        <div className="mt-3">
+                          <PdfDownloadButtonContentful
+                            mobilityServiceId={model.id}
+                            fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
+                            contentType="governanceModel"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">Governance model informatie kon niet worden geladen.</p>
+                    );
+                  })()
                 ) : (
                   <p className="text-gray-500">Geen governance model geselecteerd.</p>
                 )}
