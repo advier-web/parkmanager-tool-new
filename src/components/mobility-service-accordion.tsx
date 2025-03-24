@@ -3,7 +3,7 @@
 import { MobilitySolution } from '@/domain/models';
 import { Accordion } from './accordion';
 import { ItemWithMarkdown } from './item-with-markdown';
-import { PdfDownloadButtonContentful } from './pdf-download-button-contentful';
+import PdfDownloadButtonContentful from './pdf-download-button-contentful';
 
 interface MobilityServiceAccordionProps {
   solution: MobilitySolution;

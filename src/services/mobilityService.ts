@@ -1,9 +1,25 @@
 import { getMobilitySolutionForPdf as getContentfulMobilitySolution } from '@/services/contentful-service';
-import { MobilitySolution } from '../types/mobilityTypes';
+import { MobilitySolution, GovernanceModel } from '../types/mobilityTypes';
 
 // Verzamel mobiliteitsoplossing data voor een pdf
 export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Promise<MobilitySolution> => {
-  return getContentfulMobilitySolution(mobilityServiceId);
+  const data = await getContentfulMobilitySolution(mobilityServiceId);
+  
+  // Map de governance models naar het juiste type als ze bestaan
+  const mappedGovernanceModels = data.governanceModels?.map(model => {
+    if (typeof model === 'string') {
+      return model;
+    }
+    // Zorg dat de object structuur overeenkomt met GovernanceModel in mobilityTypes
+    return model as unknown as GovernanceModel;
+  });
+  
+  // Aanvullen met verplichte velden uit onze specifieke PDF interface
+  return {
+    ...data,
+    slug: data.title?.toLowerCase().replace(/[^\w\s-]/g, '-').replace(/\s+/g, '-') || mobilityServiceId,
+    governanceModels: mappedGovernanceModels
+  };
 };
 
 // Mock data om de PDF functionaliteit te testen zonder Contentful

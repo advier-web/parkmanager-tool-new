@@ -2,6 +2,22 @@ export interface GovernanceModel {
   title: string;
   description: string;
   sys?: { id: string };
+  id?: string;
+  summary?: string;
+  advantages?: string[];
+  disadvantages?: string[];
+  applicableScenarios?: string[];
+  organizationalStructure?: string;
+  legalForm?: string;
+  stakeholders?: string[];
+  samenvatting?: string;
+  aansprakelijkheid?: string;
+  benodigdhedenOprichting?: any;
+  doorlooptijd?: string;
+  doorlooptijdLang?: string;
+  implementatie?: string;
+  links?: any;
+  voorbeeldContracten?: any[];
 }
 
 export interface MobilitySolution {
