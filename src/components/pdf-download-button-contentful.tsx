@@ -112,6 +112,7 @@ export default function PdfDownloadButtonContentful({
       
       // Functie om tekst met bold te formatteren
       const formatBoldText = (text: string): string => {
+        // Zorg dat speciale tekens zoals CO₂ en ≈ behouden blijven
         return text.replace(/\*\*(.*?)\*\*/g, '$1')
                   .replace(/__(.*?)__/g, '$1');
       };
@@ -285,10 +286,24 @@ export default function PdfDownloadButtonContentful({
                   let startX = 25; // Indent voor bulletpoints
                   for (const segment of segments) {
                     pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                    pdf.text(segment.text, startX, yPos);
-                    startX += pdf.getTextWidth(segment.text);
+                    
+                    // Check of het special tekens bevat
+                    const containsSpecialChars = segment.text.match(/[²₂≈]/);
+                    if (containsSpecialChars) {
+                      // Speciale behandeling voor tekst met speciale tekens
+                      // Render karakter voor karakter
+                      let xOffset = startX;
+                      for (let char of segment.text) {
+                        pdf.text(char, xOffset, yPos);
+                        xOffset += pdf.getTextWidth(char);
+                      }
+                      startX = xOffset;
+                    } else {
+                      pdf.text(segment.text, startX, yPos);
+                      startX += pdf.getTextWidth(segment.text);
+                    }
                   }
-                  yPos += 6; // Standaard regelafstand (was 8)
+                  yPos += 4; // Verminderde ruimte voor één-regel bullets (was 6)
                 } else {
                   // Tekst moet over meerdere regels verdeeld worden
                   let lineY = yPos;
@@ -377,7 +392,11 @@ export default function PdfDownloadButtonContentful({
                 // Eenvoudige bullet zonder bold elementen
                 const lines = pdf.splitTextToSize(bulletText, 160);
                 pdf.text(lines, 25, yPos);
-                yPos += lines.length * 5 + 6; // Kleinere line height (5 ipv 6) maar meer extra ruimte (6 ipv 2)
+                if (lines.length === 1) {
+                  yPos += 4; // Verminderde ruimte voor één-regel bullets
+                } else {
+                  yPos += lines.length * 5 + 6; // Behoud meer ruimte voor meerdere regels
+                }
               }
             }
             
@@ -606,19 +625,36 @@ export default function PdfDownloadButtonContentful({
                       // Render de segments met juiste font
                       for (const segment of segments) {
                         pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                        const text = segment.text;
-                        const lines = pdf.splitTextToSize(text, 163);
-                        pdf.text(lines, startX, yPos);
-                        startX += pdf.getTextWidth(text);
+                        
+                        // Check of het special tekens bevat
+                        const containsSpecialChars = segment.text.match(/[²₂≈]/);
+                        if (containsSpecialChars) {
+                          // Speciale behandeling voor tekst met speciale tekens
+                          // Render karakter voor karakter
+                          let xOffset = startX;
+                          for (let char of segment.text) {
+                            pdf.text(char, xOffset, yPos);
+                            xOffset += pdf.getTextWidth(char);
+                          }
+                          startX = xOffset;
+                        } else {
+                          const segmentLines = pdf.splitTextToSize(segment.text, 163);
+                          pdf.text(segmentLines, startX, yPos);
+                          startX += pdf.getTextWidth(segment.text);
+                        }
                       }
                       
-                      yPos += 12; // Nog meer ruimte tussen bullets in governance sectie (was 10)
+                      yPos += 12; // Behoud ruimte tussen bullets in governance sectie
                     } else {
                       // Normale tekst zonder bold
                       const bulletText = formatBoldText(item.trim());
                       const lines = pdf.splitTextToSize(bulletText, 163);
                       pdf.text(lines, 25, yPos);
-                      yPos += lines.length * 5 + 7; // Kleinere line height (5 ipv 6) maar meer ruimte (7 ipv 4)
+                      if (lines.length === 1) {
+                        yPos += 4; // Verminderde ruimte voor één-regel bullets
+                      } else {
+                        yPos += lines.length * 5 + 7; // Behoud meer ruimte voor meerdere regels
+                      }
                     }
                   }
                   
