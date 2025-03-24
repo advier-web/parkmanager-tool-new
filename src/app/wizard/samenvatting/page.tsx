@@ -216,7 +216,7 @@ export default function SummaryPage() {
               </section>
               
               <section>
-                <h3 className="text-xl font-semibold mb-2">Geselecteerde redenen</h3>
+                <h3 className="text-xl font-semibold mb-2">Geselecteerde aanleidingen</h3>
                 {selectedReasonTitles.length > 0 ? (
                   <ul className="list-disc pl-5">
                     {selectedReasonTitles.map((title, index) => (
@@ -224,7 +224,7 @@ export default function SummaryPage() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-500">Geen redenen geselecteerd.</p>
+                  <p className="text-gray-500">Geen aanleidingen geselecteerd.</p>
                 )}
               </section>
               
@@ -286,15 +286,6 @@ export default function SummaryPage() {
                   })()
                 ) : (
                   <p className="text-gray-500">Geen governance model geselecteerd.</p>
-                )}
-              </section>
-              
-              <section>
-                <h3 className="text-xl font-semibold mb-2">Implementatieplan</h3>
-                {selectedImplementationPlanTitle ? (
-                  <p>{selectedImplementationPlanTitle}</p>
-                ) : (
-                  <p className="text-gray-500">Geen implementatieplan beschikbaar.</p>
                 )}
               </section>
               
