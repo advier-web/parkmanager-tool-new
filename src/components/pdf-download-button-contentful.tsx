@@ -275,105 +275,103 @@ export default function PdfDownloadButtonContentful({
                   segments.push({ text: currentText, bold: isBold });
                 }
                 
-                // Converteer de segments naar platte tekst voor initial wrapping
+                // Verbeterde tekstweergave met respect voor regeleinden
+                // Controleer eerst of het geheel op één regel past
                 const fullText = segments.map(s => s.text).join('');
-                const lines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
+                const wrappedLines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
                 
-                // Render de tekst regel voor regel met correcte bold-formatting
-                let currentY = yPos;
-                
-                if (lines.length === 1) {
-                  // Korte tekst die op één regel past - render met juiste formatting
+                if (wrappedLines.length === 1) {
+                  // Alles past op één regel - render met juiste formatting
                   let startX = 25; // Indent voor bulletpoints
                   for (const segment of segments) {
                     pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                    pdf.text(segment.text, startX, currentY);
+                    pdf.text(segment.text, startX, yPos);
                     startX += pdf.getTextWidth(segment.text);
                   }
                   yPos += 6; // Standaard regelafstand
                 } else {
-                  // Langere tekst over meerdere regels
-                  // Eerste regel met indent
-                  let remainingText = fullText;
+                  // Tekst moet over meerdere regels verdeeld worden
+                  let lineY = yPos;
+                  let lineStartX = 25;
+                  let lineRemainingWidth = 160; // Maximum breedte voor de regel
                   
-                  // Eerste regel met indent
-                  let firstLine = lines[0];
-                  let startX = 25; // Indent voor bullet points
-                  let remaining = firstLine;
+                  // Maak een kopie van de segments om mee te werken
+                  const workingSegments = [...segments];
+                  let currentSegmentIndex = 0;
                   
-                  // Render eerste regel met juiste bold-formatting
-                  for (let i = 0; i < segments.length && remaining.length > 0; i++) {
-                    const segment: { text: string; bold: boolean } = segments[i];
-                    pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
+                  while (currentSegmentIndex < workingSegments.length) {
+                    // Haal het huidige segment op
+                    const currentSegment = workingSegments[currentSegmentIndex];
+                    pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
                     
-                    if (segment.text.length <= remaining.length) {
-                      // Hele segment past op deze regel
-                      pdf.text(segment.text, startX, currentY);
-                      startX += pdf.getTextWidth(segment.text);
-                      remaining = remaining.substring(segment.text.length);
-                      remainingText = remainingText.substring(segment.text.length);
+                    // Hoeveel tekst past er nog op deze regel?
+                    const segmentText = currentSegment.text;
+                    const textWidth = pdf.getTextWidth(segmentText);
+                    
+                    if (textWidth <= lineRemainingWidth) {
+                      // Hele segment past op huidige regel
+                      pdf.text(segmentText, lineStartX, lineY);
+                      lineStartX += textWidth;
+                      lineRemainingWidth -= textWidth;
+                      currentSegmentIndex++; // Ga naar volgende segment
                     } else {
-                      // Segment moet gesplitst worden
-                      const partialText = segment.text.substring(0, remaining.length);
-                      pdf.text(partialText, startX, currentY);
-                      segments[i] = { 
-                        ...segment, 
-                        text: segment.text.substring(remaining.length) 
-                      };
-                      remaining = "";
-                      remainingText = remainingText.substring(partialText.length);
-                      break;
-                    }
-                  }
-                  
-                  currentY += 6; // Volgende regel
-                  
-                  // Resterende regels met inspringing
-                  if (remainingText.length > 0) {
-                    // Resterende tekst wrappen
-                    const remainingLines = pdf.splitTextToSize(remainingText, 160);
-                    
-                    for (let i = 0; i < remainingLines.length; i++) {
-                      // Paginawissel indien nodig
-                      if (currentY > 270) {
-                        pdf.addPage();
-                        currentY = 20;
-                      }
+                      // Segment past niet volledig op huidige regel
+                      // Bereken hoeveel tekst wel past
+                      let textIndex = 0;
+                      let partialText = '';
+                      let partialWidth = 0;
                       
-                      let line = remainingLines[i];
-                      startX = 25; // Zelfde inspringing voor alle regels
-                      
-                      // Zoek welke segments nog tekst hebben om te renderen
-                      for (let k = 0; k < segments.length && line.length > 0; k++) {
-                        if (!segments[k].text) continue; // Skip lege segments
+                      // Zoek de maximale tekst die past
+                      while (textIndex < segmentText.length) {
+                        const nextChar = segmentText[textIndex];
+                        const charWidth = pdf.getTextWidth(nextChar);
                         
-                        const segment: { text: string; bold: boolean } = segments[k];
-                        pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                        
-                        if (segment.text.length <= line.length) {
-                          // Hele segment past op deze regel
-                          pdf.text(segment.text, startX, currentY);
-                          startX += pdf.getTextWidth(segment.text);
-                          line = line.substring(segment.text.length);
-                          segments[k] = { ...segment, text: '' }; // Segment is nu volledig gebruikt
+                        if (partialWidth + charWidth <= lineRemainingWidth) {
+                          partialText += nextChar;
+                          partialWidth += charWidth;
+                          textIndex++;
                         } else {
-                          // Slechts een deel van het segment past op deze regel
-                          const partialText = segment.text.substring(0, line.length);
-                          pdf.text(partialText, startX, currentY);
-                          segments[k] = { 
-                            ...segment, 
-                            text: segment.text.substring(line.length) 
-                          };
-                          line = "";
                           break;
                         }
                       }
                       
-                      currentY += 6; // Volgende regel
+                      // Als er niets past, ga naar de volgende regel
+                      if (partialText === '') {
+                        lineY += 6;
+                        lineStartX = 25;
+                        lineRemainingWidth = 160;
+                        
+                        // Check of we een nieuwe pagina nodig hebben
+                        if (lineY > 270) {
+                          pdf.addPage();
+                          lineY = 20;
+                        }
+                        continue;
+                      }
+                      
+                      // Teken het deel dat past
+                      pdf.text(partialText, lineStartX, lineY);
+                      
+                      // Update het segment met de resterende tekst
+                      workingSegments[currentSegmentIndex] = {
+                        ...currentSegment,
+                        text: segmentText.substring(textIndex)
+                      };
+                      
+                      // Ga naar de volgende regel
+                      lineY += 6;
+                      lineStartX = 25;
+                      lineRemainingWidth = 160;
+                      
+                      // Check of we een nieuwe pagina nodig hebben
+                      if (lineY > 270) {
+                        pdf.addPage();
+                        lineY = 20;
+                      }
                     }
                   }
                   
-                  yPos = currentY; // Update yPos voor volgende bullet
+                  yPos = lineY + 1; // Update yPos na alle tekst
                 }
               } else {
                 // Eenvoudige bullet zonder bold elementen
