@@ -328,132 +328,83 @@ export default function PdfDownloadButtonContentful({
                   // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
                   pdf.setFont('helvetica', 'normal'); // Start met normale tekst
                   
-                  // Eerst controleren of de tekst op één regel past
-                  const fullText = formatBoldText(bulletText); // Verwijder bolding-markers voor breedte-berekening
-                  const maxWidth = 160; // Max breedte voor bullet tekst
-                  const wrappedLines = pdf.splitTextToSize(fullText, maxWidth);
+                  // Tekst moet over meerdere regels verdeeld worden
+                  let lineY = yPos;
+                  let lineX = 25;
+                  let lineWidth = 0;
+                  let i = 0;
+                  let isBold = false;
                   
-                  if (wrappedLines.length === 1) {
-                    // Alles past op één regel - render karakter voor karakter
-                    let xPos = 25;
-                    let i = 0;
-                    let isBold = false;
+                  // Parse de tekst met bold-markers en render woord voor woord
+                  while (i < bulletText.length) {
+                    // Verzamel een volledig woord of een serie van spaties of een bold marker
+                    let currentPart = '';
+                    let isSpace = false;
+                    let isBoldMarker = false;
                     
-                    while (i < bulletText.length) {
-                      // Check voor bold markers
-                      if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
-                        // Toggle bold state
-                        isBold = !isBold;
-                        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-                        i += 2; // Skip de markers
-                      } else if (bulletText[i] === ' ') {
-                        // Spatie gevonden, render spatie
-                        pdf.text(' ', xPos, yPos);
-                        xPos += pdf.getTextWidth(' ');
-                        i++;
+                    // Check of we een bold marker tegenkomen
+                    if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
+                      isBold = !isBold;
+                      pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                      i += 2; // Skip de marker
+                      continue;
+                    }
+                    
+                    // Check of dit een spatie is
+                    if (bulletText[i] === ' ') {
+                      // Render een spatie
+                      if (lineX + pdf.getTextWidth(' ') > 25 + 160) {
+                        // Spatie past niet op deze regel, begin een nieuwe regel
+                        lineY += 6;
+                        lineX = 25;
+                        lineWidth = 0;
+                        // Check for page break
+                        if (lineY > 270) {
+                          pdf.addPage();
+                          lineY = 20;
+                        }
                       } else {
-                        // Begin van een woord gevonden
-                        // Verzamel het hele woord voordat we het renderen om afbreking te voorkomen
-                        let word = '';
-                        while (i < bulletText.length && 
-                               bulletText[i] !== ' ' && 
-                               bulletText.substr(i, 2) !== '**' && 
-                               bulletText.substr(i, 2) !== '__') {
-                          word += bulletText[i];
-                          i++;
-                        }
-                        
-                        // Check of het woord past op de huidige regel
-                        const wordWidth = pdf.getTextWidth(word);
-                        
-                        if (xPos + wordWidth > 25 + maxWidth && xPos > 25) {
-                          // Woord past niet op huidige regel, begin nieuwe regel
-                          yPos += 6;
-                          xPos = 25;
-                          
-                          // Check of we een nieuwe pagina nodig hebben
-                          if (yPos > 270) {
-                            pdf.addPage();
-                            yPos = 20;
-                          }
-                        }
-                        
-                        // Render het volledige woord
-                        pdf.text(word, xPos, yPos);
-                        xPos += wordWidth;
+                        // Spatie past, render het
+                        pdf.text(' ', lineX, lineY);
+                        lineX += pdf.getTextWidth(' ');
+                      }
+                      i++;
+                      continue;
+                    }
+                    
+                    // Geen spatie, geen bold marker, dus een regulier woord
+                    // Verzamel het volledige woord
+                    let word = '';
+                    while (i < bulletText.length && 
+                           bulletText[i] !== ' ' && 
+                           bulletText.substr(i, 2) !== '**' && 
+                           bulletText.substr(i, 2) !== '__') {
+                      word += bulletText[i];
+                      i++;
+                    }
+                    
+                    // Bereken of het woord past op de huidige regel
+                    const wordWidth = pdf.getTextWidth(word);
+                    
+                    // Als het woord niet past op de huidige regel, begin een nieuwe
+                    if (lineX + wordWidth > 25 + 160 && lineX > 25) {
+                      lineY += 6;
+                      lineX = 25;
+                      lineWidth = 0;
+                      
+                      // Check for page break
+                      if (lineY > 270) {
+                        pdf.addPage();
+                        lineY = 20;
                       }
                     }
                     
-                    yPos += 4; // Standaard ruimte na één regel
-                  } else {
-                    // Tekst moet over meerdere regels verdeeld worden
-                    let lineY = yPos;
-                    let lineStartX = 25;
-                    let lineRemainingWidth = 160; // Maximum breedte voor de regel
-                    
-                    // Maak een kopie van de segments om mee te werken
-                    const workingSegments = [...segments] as { text: string; bold: boolean }[];
-                    let currentSegmentIndex = 0;
-                    
-                    while (currentSegmentIndex < workingSegments.length) {
-                      // Haal het huidige segment op
-                      const currentSegment = workingSegments[currentSegmentIndex];
-                      pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
-                      
-                      // Hoeveel tekst past er nog op deze regel?
-                      const segmentText = currentSegment.text;
-                      
-                      // Split het segment in woorden
-                      const words = segmentText.split(' ');
-                      let currentLine = '';
-                      let currentLineWidth = 0;
-                      
-                      for (let i = 0; i < words.length; i++) {
-                        const word = words[i];
-                        const wordWithSpace = i < words.length - 1 ? word + ' ' : word;
-                        const wordWidth = pdf.getTextWidth(wordWithSpace);
-                        
-                        // Check of het woord past op de huidige regel
-                        if (currentLineWidth + wordWidth <= lineRemainingWidth) {
-                          // Woord past, toevoegen aan huidige regel
-                          currentLine += wordWithSpace;
-                          currentLineWidth += wordWidth;
-                        } else {
-                          // Woord past niet, we moeten huidige regel afdrukken en nieuwe regel beginnen
-                          if (currentLine.length > 0) {
-                            // Render huidige regel
-                            pdf.text(currentLine, lineStartX, lineY);
-                            // Ga naar de volgende regel
-                            lineY += 6;
-                            lineStartX = 25;
-                            lineRemainingWidth = 160;
-                            
-                            // Check of we een nieuwe pagina nodig hebben
-                            if (lineY > 270) {
-                              pdf.addPage();
-                              lineY = 20;
-                            }
-                          }
-                          
-                          // Begin nieuwe regel met dit woord
-                          currentLine = wordWithSpace;
-                          currentLineWidth = wordWidth;
-                        }
-                      }
-                      
-                      // Render eventueel overgebleven tekst
-                      if (currentLine.length > 0) {
-                        pdf.text(currentLine, lineStartX, lineY);
-                        lineStartX += currentLineWidth;
-                        lineRemainingWidth -= currentLineWidth;
-                      }
-                      
-                      // Ga naar volgende segment
-                      currentSegmentIndex++;
-                    }
-                    
-                    yPos = lineY + 6; // Verhoog de ruimte na de bullet
+                    // Render het woord
+                    pdf.text(word, lineX, lineY);
+                    lineX += wordWidth;
                   }
+                  
+                  yPos = lineY + 6; // Verhoog de ruimte na de bullet
                 } else {
                   // Verbeterde methode voor bullets met bold tekst of speciale tekens
                   // Parse de bold secties
@@ -862,132 +813,83 @@ export default function PdfDownloadButtonContentful({
                         // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
                         pdf.setFont('helvetica', 'normal'); // Start met normale tekst
                         
-                        // Eerst controleren of de tekst op één regel past
-                        const fullText = formatBoldText(item); // Verwijder bolding-markers voor breedte-berekening
-                        const maxWidth = 160; // Max breedte voor bullet tekst
-                        const wrappedLines = pdf.splitTextToSize(fullText, maxWidth);
+                        // Tekst moet over meerdere regels verdeeld worden
+                        let lineY = yPos;
+                        let lineX = 25;
+                        let lineWidth = 0;
+                        let i = 0;
+                        let isBold = false;
                         
-                        if (wrappedLines.length === 1) {
-                          // Alles past op één regel - render karakter voor karakter
-                          let xPos = 25;
-                          let i = 0;
-                          let isBold = false;
+                        // Parse de tekst met bold-markers en render woord voor woord
+                        while (i < item.length) {
+                          // Verzamel een volledig woord of een serie van spaties of een bold marker
+                          let currentPart = '';
+                          let isSpace = false;
+                          let isBoldMarker = false;
                           
-                          while (i < item.length) {
-                            // Check voor bold markers
-                            if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
-                              // Toggle bold state
-                              isBold = !isBold;
-                              pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-                              i += 2; // Skip de markers
-                            } else if (item[i] === ' ') {
-                              // Spatie gevonden, render spatie
-                              pdf.text(' ', xPos, yPos);
-                              xPos += pdf.getTextWidth(' ');
-                              i++;
+                          // Check of we een bold marker tegenkomen
+                          if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
+                            isBold = !isBold;
+                            pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+                            i += 2; // Skip de marker
+                            continue;
+                          }
+                          
+                          // Check of dit een spatie is
+                          if (item[i] === ' ') {
+                            // Render een spatie
+                            if (lineX + pdf.getTextWidth(' ') > 25 + 160) {
+                              // Spatie past niet op deze regel, begin een nieuwe regel
+                              lineY += 6;
+                              lineX = 25;
+                              lineWidth = 0;
+                              // Check for page break
+                              if (lineY > 270) {
+                                pdf.addPage();
+                                lineY = 20;
+                              }
                             } else {
-                              // Begin van een woord gevonden
-                              // Verzamel het hele woord voordat we het renderen om afbreking te voorkomen
-                              let word = '';
-                              while (i < item.length && 
-                                     item[i] !== ' ' && 
-                                     item.substr(i, 2) !== '**' && 
-                                     item.substr(i, 2) !== '__') {
-                                word += item[i];
-                                i++;
-                              }
-                              
-                              // Check of het woord past op de huidige regel
-                              const wordWidth = pdf.getTextWidth(word);
-                              
-                              if (xPos + wordWidth > 25 + maxWidth && xPos > 25) {
-                                // Woord past niet op huidige regel, begin nieuwe regel
-                                yPos += 6;
-                                xPos = 25;
-                                
-                                // Check of we een nieuwe pagina nodig hebben
-                                if (yPos > 270) {
-                                  pdf.addPage();
-                                  yPos = 20;
-                                }
-                              }
-                              
-                              // Render het volledige woord
-                              pdf.text(word, xPos, yPos);
-                              xPos += wordWidth;
+                              // Spatie past, render het
+                              pdf.text(' ', lineX, lineY);
+                              lineX += pdf.getTextWidth(' ');
+                            }
+                            i++;
+                            continue;
+                          }
+                          
+                          // Geen spatie, geen bold marker, dus een regulier woord
+                          // Verzamel het volledige woord
+                          let word = '';
+                          while (i < item.length && 
+                                 item[i] !== ' ' && 
+                                 item.substr(i, 2) !== '**' && 
+                                 item.substr(i, 2) !== '__') {
+                            word += item[i];
+                            i++;
+                          }
+                          
+                          // Bereken of het woord past op de huidige regel
+                          const wordWidth = pdf.getTextWidth(word);
+                          
+                          // Als het woord niet past op de huidige regel, begin een nieuwe
+                          if (lineX + wordWidth > 25 + 160 && lineX > 25) {
+                            lineY += 6;
+                            lineX = 25;
+                            lineWidth = 0;
+                            
+                            // Check for page break
+                            if (lineY > 270) {
+                              pdf.addPage();
+                              lineY = 20;
                             }
                           }
                           
-                          yPos += 4; // Standaard ruimte na één regel
-                        } else {
-                          // Tekst moet over meerdere regels verdeeld worden
-                          let lineY = yPos;
-                          let lineStartX = 25;
-                          let lineRemainingWidth = 160; // Maximum breedte voor de regel
-                          
-                          // Maak een kopie van de segments om mee te werken
-                          const workingSegments = [...segments] as { text: string; bold: boolean }[];
-                          let currentSegmentIndex = 0;
-                          
-                          while (currentSegmentIndex < workingSegments.length) {
-                            // Haal het huidige segment op
-                            const currentSegment = workingSegments[currentSegmentIndex];
-                            pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
-                            
-                            // Hoeveel tekst past er nog op deze regel?
-                            const segmentText = currentSegment.text;
-                            
-                            // Split het segment in woorden
-                            const words = segmentText.split(' ');
-                            let currentLine = '';
-                            let currentLineWidth = 0;
-                            
-                            for (let i = 0; i < words.length; i++) {
-                              const word = words[i];
-                              const wordWithSpace = i < words.length - 1 ? word + ' ' : word;
-                              const wordWidth = pdf.getTextWidth(wordWithSpace);
-                              
-                              // Check of het woord past op de huidige regel
-                              if (currentLineWidth + wordWidth <= lineRemainingWidth) {
-                                // Woord past, toevoegen aan huidige regel
-                                currentLine += wordWithSpace;
-                                currentLineWidth += wordWidth;
-                              } else {
-                                // Woord past niet, we moeten huidige regel afdrukken en nieuwe regel beginnen
-                                if (currentLine.length > 0) {
-                                  // Render huidige regel
-                                  pdf.text(currentLine, lineStartX, lineY);
-                                  // Ga naar de volgende regel
-                                  lineY += 6;
-                                  lineStartX = 25;
-                                  lineRemainingWidth = 160;
-                                  
-                                  // Check of we een nieuwe pagina nodig hebben
-                                  if (lineY > 270) {
-                                    pdf.addPage();
-                                    lineY = 20;
-                                  }
-                                }
-                                
-                                // Begin nieuwe regel met dit woord
-                                currentLine = wordWithSpace;
-                                currentLineWidth = wordWidth;
-                              }
-                            }
-                            
-                            // Render eventueel overgebleven tekst
-                            if (currentLine.length > 0) {
-                              pdf.text(currentLine, lineStartX, lineY);
-                              lineStartX += currentLineWidth;
-                              lineRemainingWidth -= currentLineWidth;
-                            }
-                            
-                            // Ga naar volgende segment
-                            currentSegmentIndex++;
-                          }
-                          
-                          yPos = lineY + 6; // Verhoog de ruimte na de bullet
+                          // Render het woord
+                          pdf.text(word, lineX, lineY);
+                          lineX += wordWidth;
                         }
+                        
+                        yPos = lineY + 6; // Verhoog de ruimte na de bullet
                       } else {
                         // Normale verwerking voor andere bullets
                         // Process bold formatting
