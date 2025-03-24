@@ -169,7 +169,8 @@ export default function GovernanceModelsPage() {
 
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg p-8 shadow-md">
+          {/* Inleiding sectie */}
+          <div className="bg-white rounded-lg p-8 shadow-md mb-8">
             <h2 className="text-2xl font-bold mb-4">Stap 3: Governance Modellen</h2>
             <p className="mb-6">
               Kies een passend governance model voor de organisatie en het beheer van uw mobiliteitsoplossingen.
@@ -177,7 +178,7 @@ export default function GovernanceModelsPage() {
             </p>
             
             {selectedSolutionTitles.length > 0 && (
-              <div className="bg-blue-50 p-4 rounded-md mb-6">
+              <div className="bg-blue-50 p-4 rounded-md">
                 <h3 className="text-md font-semibold mb-2">Uw geselecteerde oplossingen:</h3>
                 <ul className="list-disc pl-5">
                   {selectedSolutionTitles.map((title, index) => (
@@ -205,82 +206,81 @@ export default function GovernanceModelsPage() {
                 <p className="text-gray-600">Geen governance modellen gevonden.</p>
               </div>
             )}
+          </div>
             
-            {/* Current Governance Model Section (always at the top) */}
-            {!isLoading && currentModel && (
-              <div className="mb-8">
-                <div className={`p-4 rounded-t-md border ${currentModelIsRecommended ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                  <h3 className={`text-xl font-semibold ${currentModelIsRecommended ? 'text-green-800' : 'text-yellow-800'}`}>
-                    Uw huidige governance model
-                  </h3>
-                  <p className={`mt-1 ${currentModelIsRecommended ? 'text-green-700' : 'text-yellow-700'}`}>
-                    {currentModelIsRecommended 
-                      ? 'Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde mobiliteitsoplossingen.'
-                      : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde mobiliteitsoplossingen. Overweeg één van de aanbevolen modellen hieronder.'}
-                  </p>
-                </div>
-                <div className={`border-x border-b p-1 rounded-b-md ${currentModelIsRecommended ? 'border-green-200' : 'border-yellow-200'}`}>
+          {/* Current Governance Model Section (always at the top) */}
+          {!isLoading && currentModel && (
+            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+              <div className={`p-4 rounded-md ${currentModelIsRecommended ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'} mb-4`}>
+                <h3 className={`text-xl font-semibold ${currentModelIsRecommended ? 'text-green-800' : 'text-yellow-800'}`}>
+                  Uw huidige governance model
+                </h3>
+                <p className={`mt-1 ${currentModelIsRecommended ? 'text-green-700' : 'text-yellow-700'}`}>
+                  {currentModelIsRecommended 
+                    ? 'Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde mobiliteitsoplossingen.'
+                    : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde mobiliteitsoplossingen. Overweeg één van de aanbevolen modellen hieronder.'}
+                </p>
+              </div>
+              
+              <GovernanceCard
+                key={currentModel.id}
+                model={currentModel}
+                isSelected={selectedGovernanceModel === currentModel.id}
+                onSelect={handleSelectModel}
+                isRecommended={currentModelIsRecommended}
+                isCurrent={true}
+                onMoreInfo={handleShowMoreInfo}
+              />
+            </div>
+          )}
+            
+          {/* Recommended Governance Models Section */}
+          {!isLoading && getOtherRecommendedModels().length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-md mb-8">
+              <h3 className="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Aanbevolen governance modellen</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
+              </p>
+              <div className="space-y-6">
+                {getOtherRecommendedModels().map(model => (
                   <GovernanceCard
-                    key={currentModel.id}
-                    model={currentModel}
-                    isSelected={selectedGovernanceModel === currentModel.id}
+                    key={model.id}
+                    model={model}
+                    isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
-                    isRecommended={currentModelIsRecommended}
-                    isCurrent={true}
+                    isRecommended={true}
                     onMoreInfo={handleShowMoreInfo}
                   />
-                </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
             
-            {/* Recommended Governance Models Section */}
-            {!isLoading && getOtherRecommendedModels().length > 0 && (
-              <div className="mb-10">
-                <h3 className="text-xl font-semibold mb-4 text-green-700">Aanbevolen governance modellen</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
+          {/* Other Non-Recommended Governance Models Section */}
+          {!isLoading && getNonRecommendedModels().filter(model => model.id !== currentGovernanceModelId).length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-md">
+              <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
+              <div className="bg-yellow-50 p-4 rounded-md mb-6 border border-yellow-200">
+                <p className="text-amber-800">
+                  Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
                 </p>
-                <div className="space-y-6">
-                  {getOtherRecommendedModels().map(model => (
-                    <GovernanceCard
-                      key={model.id}
-                      model={model}
-                      isSelected={selectedGovernanceModel === model.id}
-                      onSelect={handleSelectModel}
-                      isRecommended={true}
-                      onMoreInfo={handleShowMoreInfo}
-                    />
-                  ))}
-                </div>
               </div>
-            )}
-            
-            {/* Other Non-Recommended Governance Models Section */}
-            {!isLoading && getNonRecommendedModels().filter(model => model.id !== currentGovernanceModelId).length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-700">Overige governance modellen</h3>
-                <div className="bg-yellow-50 p-4 rounded-md mb-6 border border-yellow-200">
-                  <p className="text-amber-800">
-                    Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
-                  </p>
-                </div>
-                <div className="space-y-6">
-                  {getNonRecommendedModels()
-                    .filter(model => model.id !== currentGovernanceModelId)
-                    .map(model => (
-                    <GovernanceCard
-                      key={model.id}
-                      model={model}
-                      isSelected={selectedGovernanceModel === model.id}
-                      onSelect={handleSelectModel}
-                      isRecommended={false}
-                      onMoreInfo={handleShowMoreInfo}
-                    />
-                  ))}
-                </div>
+              <div className="space-y-6">
+                {getNonRecommendedModels()
+                  .filter(model => model.id !== currentGovernanceModelId)
+                  .map(model => (
+                  <GovernanceCard
+                    key={model.id}
+                    model={model}
+                    isSelected={selectedGovernanceModel === model.id}
+                    onSelect={handleSelectModel}
+                    isRecommended={false}
+                    onMoreInfo={handleShowMoreInfo}
+                  />
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       
