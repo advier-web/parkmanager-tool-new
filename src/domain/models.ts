@@ -44,6 +44,18 @@ export interface MobilitySolution {
   imago?: number;
   milieuverordening?: number;
   
+  // Toelichting velden van Contentful
+  parkeerBereikbaarheidsproblemenToelichting?: string;
+  waardeVastgoedToelichting?: string;
+  personeelszorgEnBehoudToelichting?: string;
+  vervoerkostenToelichting?: string;
+  gezondheidToelichting?: string;
+  gastvrijheidToelichting?: string;
+  imagoToelichting?: string;
+  milieuverordeningToelichting?: string;
+  bedrijfsverhuizingToelichting?: string;
+  energiebalansToelichting?: string;
+  
   // Contentful reference to governance models
   governanceModels?: Array<{sys: {id: string}} | string>;
 }

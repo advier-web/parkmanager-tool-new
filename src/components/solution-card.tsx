@@ -77,13 +77,33 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
   
   // Helper functie om verklarende tekst voor een score te genereren
   const getExplanationText = (score: number, reasonIdentifier: string) => {
-    // Dit zouden we later kunnen vervangen door gegevens uit Contentful
+    // Map van identifier naar toelichting veld naam
+    const explanationFieldMap: Record<string, keyof MobilitySolution> = {
+      'parkeer_bereikbaarheidsproblemen': 'parkeerBereikbaarheidsproblemenToelichting',
+      'waarde_vastgoed': 'waardeVastgoedToelichting',
+      'personeelszorg_en_behoud': 'personeelszorgEnBehoudToelichting',
+      'vervoerkosten': 'vervoerkostenToelichting',
+      'gezondheid': 'gezondheidToelichting',
+      'gastvrijheid': 'gastvrijheidToelichting',
+      'imago': 'imagoToelichting',
+      'milieuverordening': 'milieuverordeningToelichting',
+      'bedrijfsverhuizing': 'bedrijfsverhuizingToelichting',
+      'energiebalans': 'energiebalansToelichting'
+    };
+    
+    // Haal het juiste toelichting veld op
+    const explanationField = explanationFieldMap[reasonIdentifier.toLowerCase()];
+    if (explanationField && solution[explanationField]) {
+      return solution[explanationField] as string;
+    }
+    
+    // Fallback tekst als er geen toelichting beschikbaar is
     if (score >= 7) {
-      return `Deze oplossing scoort hoog (${score}/10) voor ${reasonIdentifier} omdat het direct bijdraagt aan het verminderen van deze problematiek. De oplossing is bewezen effectief in soortgelijke situaties.`;
+      return `Deze oplossing scoort hoog (${score}/10) voor ${reasonIdentifier} omdat het direct bijdraagt aan het verminderen van deze problematiek.`;
     } else if (score >= 4) {
-      return `Deze oplossing scoort gemiddeld (${score}/10) voor ${reasonIdentifier} omdat het een gedeeltelijke bijdrage levert aan het verminderen van deze problematiek. De resultaten kunnen variëren afhankelijk van de implementatie.`;
+      return `Deze oplossing scoort gemiddeld (${score}/10) voor ${reasonIdentifier} omdat het een gedeeltelijke bijdrage levert aan het verminderen van deze problematiek.`;
     } else {
-      return `Deze oplossing scoort laag (${score}/10) voor ${reasonIdentifier} omdat het maar een beperkte bijdrage levert aan het verminderen van deze problematiek. Er zijn mogelijk effectievere alternatieven beschikbaar.`;
+      return `Deze oplossing scoort laag (${score}/10) voor ${reasonIdentifier} omdat het maar een beperkte bijdrage levert aan het verminderen van deze problematiek.`;
     }
   };
   
