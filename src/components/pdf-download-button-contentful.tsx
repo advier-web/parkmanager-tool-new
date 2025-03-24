@@ -21,10 +21,10 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
   const [isLoading, setIsLoading] = useState(false);
 
   // Functie om markdown op te schonen en opmaak te behouden
-  const processText = (text: string): { segments: Array<{ text: string, isBold: boolean, isHeader: boolean }> } => {
+  const processText = (text: string): { segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number }> } => {
     if (!text) return { segments: [] };
     
-    const segments: Array<{ text: string, isBold: boolean, isHeader: boolean }> = [];
+    const segments: Array<{ text: string, isBold: boolean, isHeader: boolean, level?: number }> = [];
     
     // Splits de tekst in secties op basis van headers en verwerk elke sectie
     const sections = text.split(/^(#{1,3} .+)$/m);
@@ -35,11 +35,19 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
       
       // Check of dit een header is
       if (/^#{1,3} .+$/m.test(section)) {
+        const headerLevel = (section.match(/^(#+)/) || [''])[0].length;
         const headerText = section.replace(/^#{1,3} (.+)$/m, '$1');
-        segments.push({ text: headerText, isBold: true, isHeader: true });
+        segments.push({ text: headerText, isBold: true, isHeader: true, level: headerLevel });
       } else {
         // Verwerk de rest van de tekst om bold te behouden
         let currentText = section;
+        
+        // Fix voor het dubbelpunt probleem: zorg dat het dubbelpunt op dezelfde regel komt
+        currentText = currentText.replace(/(\S)\s*:\s*\n+/g, '$1: ');
+        
+        // Fix voor bullets: zorg dat de bullet en tekst op dezelfde regel staan
+        currentText = currentText.replace(/\n+([•*-])\s+/g, '\n$1 ');
+        currentText = currentText.replace(/^([•*-])\s+/g, '$1 ');
         
         // Verwerk bold tekst
         while (currentText.includes('**') || currentText.includes('__')) {
@@ -54,7 +62,8 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
           if (boldStart > 0) {
             segments.push({ 
               text: currentText.substring(0, boldStart)
-                .replace(/\n- /g, '\n• '), // Converteer bullet points 
+                .replace(/\n- /g, '\n• ') // Converteer bullet points 
+                .replace(/^- /gm, '• '), // Converteer begin bulllet points
               isBold: false, 
               isHeader: false 
             });
@@ -69,7 +78,8 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
           // Voeg bold tekst toe
           segments.push({ 
             text: currentText.substring(boldStart + 2, boldEnd)
-              .replace(/\n- /g, '\n• '), // Converteer bullet points
+              .replace(/\n- /g, '\n• ') // Converteer bullet points
+              .replace(/^- /gm, '• '), // Converteer begin bullet points
             isBold: true, 
             isHeader: false 
           });
@@ -83,6 +93,7 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
           segments.push({ 
             text: currentText
               .replace(/\n- /g, '\n• ') // Converteer bullet points
+              .replace(/^- /gm, '• ') // Converteer begin bullet points
               .replace(/^\* /gm, '• '), // Converteer asterisk bullet points
             isBold: false, 
             isHeader: false 
@@ -143,7 +154,14 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
             
             // Bepaal lettergrootte op basis van type
             if (segment.isHeader) {
-              doc.setFontSize(14);
+              // Verschillende groottes voor verschillende header niveaus
+              const fontSize = segment.level === 1 ? 16 : (segment.level === 2 ? 14 : 12);
+              doc.setFontSize(fontSize);
+              
+              // Voeg extra ruimte toe boven headers, vooral voor h3
+              if (segment.level === 3) {
+                newY += 5; // Extra ruimte voor h3 headers
+              }
             } else {
               doc.setFontSize(11);
             }
@@ -151,8 +169,22 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
             // Bereken de beschikbare ruimte op de huidige pagina
             const availableHeight = pageHeight - newY - margin;
             
+            // Fix voor het ":" probleem
+            let textToRender = segment.text;
+            if (textToRender.startsWith(':')) {
+              // Als het een losstaande dubbelpunt is, combineer het met de vorige regel
+              textToRender = textToRender.substring(1).trim();
+            }
+            
+            // Fix voor overmatige letter-spacing door karaktercodering
+            textToRender = textToRender
+              .replace(/\s+/g, ' ')  // Normaliseer whitespace 
+              .trim();
+            
             // Splits tekst in regels die binnen de breedte passen
-            const lines = doc.splitTextToSize(segment.text, contentWidth);
+            // Stel een kleinere charSpace in om letter-spacing te verminderen
+            doc.setCharSpace(0); // Zet character spacing terug naar normaal
+            const lines = doc.splitTextToSize(textToRender, contentWidth);
             
             // Bereken de benodigde hoogte voor deze tekstsegment
             const lineHeight = segment.isHeader ? 7 : 5;
@@ -172,12 +204,12 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
             
             // Voeg extra ruimte toe na headers
             if (segment.isHeader) {
-              newY += 3;
+              newY += segment.level === 1 ? 5 : (segment.level === 2 ? 4 : 3);
             }
           }
           
-          // Voeg een kleine ruimte toe aan het eind van elke sectie
-          return newY + 5;
+          // Kleine ruimte aan het eind van elke sectie
+          return newY + 3;
         };
         
         // Titel
@@ -194,7 +226,12 @@ export function PdfDownloadButtonContentful({ mobilityServiceId, fileName }: Pdf
         
         // Voeg de paspoort informatie toe
         if (data.paspoort) {
-          y = addFormattedText(data.paspoort, 'Paspoort', y);
+          // Zorg dat er geen lege regels zijn in de paspoort informatie
+          const fixedPaspoort = data.paspoort
+            .replace(/:\s*\n+/g, ': ') // Fix dubbelpunten gevolgd door newline
+            .replace(/\n{2,}/g, '\n'); // Verwijder dubbele lege regels
+            
+          y = addFormattedText(fixedPaspoort, 'Paspoort', y);
         }
         
         // Voeg de beschrijving toe
