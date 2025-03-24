@@ -131,6 +131,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
   return (
     <Accordion title={model.title}>
       <div ref={contentRef} className="space-y-8 py-2">
+        {/* Beschrijving */}
         {model.description && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Beschrijving</h2>
@@ -138,6 +139,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </div>
         )}
         
+        {/* Aansprakelijkheid */}
         {model.aansprakelijkheid && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Aansprakelijkheid</h2>
@@ -145,52 +147,38 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </div>
         )}
         
-        {advantages.length > 0 && (
+        {/* Voordelen en Nadelen naast elkaar */}
+        {(advantages.length > 0 || disadvantages.length > 0) && (
           <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Voordelen</h2>
-            <div className="mt-3">
-              <ul className="list-disc pl-5 space-y-2">
-                {advantages.map((advantage, index) => (
-                  <li key={index}>
-                    <ItemWithMarkdown content={advantage} />
-                  </li>
-                ))}
-              </ul>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Voordelen */}
+              {advantages.length > 0 && (
+                <div>
+                  <h2 className="font-semibold text-lg mb-3">Voordelen</h2>
+                  <div className="space-y-4">
+                    {advantages.map((advantage, index) => (
+                      <div key={index} className="voordeel">
+                        <ItemWithMarkdown content={advantage} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Nadelen */}
+              {disadvantages.length > 0 && (
+                <div>
+                  <h2 className="font-semibold text-lg mb-3">Nadelen</h2>
+                  <div className="space-y-4">
+                    {disadvantages.map((disadvantage, index) => (
+                      <div key={index} className="nadeel">
+                        <ItemWithMarkdown content={disadvantage} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-        
-        {disadvantages.length > 0 && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Nadelen</h2>
-            <div className="mt-3">
-              <ul className="list-disc pl-5 space-y-2">
-                {disadvantages.map((disadvantage, index) => (
-                  <li key={index}>
-                    <ItemWithMarkdown content={disadvantage} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-        
-        {model.benodigdhedenOprichting && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Benodigdheden oprichting</h2>
-            {Array.isArray(model.benodigdhedenOprichting) ? (
-              <div className="mt-3">
-                <ul className="list-disc pl-5 space-y-2">
-                  {model.benodigdhedenOprichting.map((item, index) => (
-                    <li key={index}>
-                      <ItemWithMarkdown content={item} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <ItemWithMarkdown content={model.benodigdhedenOprichting} />
-            )}
           </div>
         )}
         
@@ -202,52 +190,17 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </div>
         )}
         
-        {model.implementatie && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Implementatie</h2>
-            <ItemWithMarkdown content={model.implementatie} />
-          </div>
-        )}
-        
-        {model.links && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Links</h2>
-            {Array.isArray(model.links) ? (
-              <div className="mt-3">
-                <ul className="list-disc pl-5 space-y-2">
-                  {model.links.map((link, index) => (
-                    <li key={index}>
-                      <ItemWithMarkdown content={link} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <ItemWithMarkdown content={model.links} />
-            )}
-          </div>
-        )}
-        
-        {model.voorbeeldContracten && (
-          <div className="border-b pb-6">
-            <h2 className="font-semibold text-lg mb-3">Voorbeeld contracten</h2>
-            {Array.isArray(model.voorbeeldContracten) && model.voorbeeldContracten.length > 0 ? (
-              <div className="mt-3">
-                <ul className="list-disc pl-5 space-y-2">
-                  {model.voorbeeldContracten.map((contract, index) => (
-                    <li key={index} dangerouslySetInnerHTML={{ __html: formatContractForDisplay(contract) }} />
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p dangerouslySetInnerHTML={{ __html: formatContractForDisplay(model.voorbeeldContracten) }} />
-            )}
-          </div>
-        )}
+        {/* Informatietekst voor de PDF download */}
+        <div className="mt-6 mb-4 text-gray-700">
+          <p>
+            Download meer informatie over dit bestuursmodel via onderstaande PDF. In deze PDF staat meer informatie over de benodigdheden voor oprichting en stappen die genomen moeten worden voor het implementeren van dit bestuursmodel.
+          </p>
+        </div>
         
         <PdfDownloadButtonContentful
           mobilityServiceId={model.id}
           fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
+          contentType="governanceModel"
         />
       </div>
     </Accordion>

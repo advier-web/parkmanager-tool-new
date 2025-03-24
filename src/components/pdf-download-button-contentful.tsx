@@ -2,17 +2,20 @@
 
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
+import { MobilitySolution, GovernanceModel } from '../types/mobilityTypes';
 
 interface PdfDownloadButtonContentfulProps {
   mobilityServiceId: string;
   fileName?: string;
   className?: string;
+  contentType?: 'mobilityService' | 'governanceModel';
 }
 
 export default function PdfDownloadButtonContentful({
   mobilityServiceId,
   fileName,
-  className = ''
+  className = '',
+  contentType = 'mobilityService'
 }: PdfDownloadButtonContentfulProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,11 +25,25 @@ export default function PdfDownloadButtonContentful({
       setLoading(true);
       setError(null);
 
-      // Import the service dynamically
-      const { getMobilitySolutionForPdf } = await import('../services/mobilityService');
+      let mobilityData: MobilitySolution | null = null;
+      let governanceData: GovernanceModel | null = null;
       
-      // Fetch the data
-      const data = await getMobilitySolutionForPdf(mobilityServiceId);
+      if (contentType === 'mobilityService') {
+        // Import the service dynamically
+        const { getMobilitySolutionForPdf } = await import('../services/mobilityService');
+        
+        // Fetch the data
+        mobilityData = await getMobilitySolutionForPdf(mobilityServiceId);
+      } else if (contentType === 'governanceModel') {
+        // Import the service dynamically for governance model
+        const { getGovernanceModelForPdf } = await import('../services/mobilityService');
+        
+        // Fetch the governance model data
+        governanceData = await getGovernanceModelForPdf(mobilityServiceId);
+        console.log('Governance data for PDF:', JSON.stringify(governanceData, null, 2));
+      } else {
+        throw new Error("Onbekend contentType: alleen 'mobilityService' of 'governanceModel' worden ondersteund");
+      }
       
       // Prepare the PDF
       const pdf = new jsPDF({
@@ -37,9 +54,13 @@ export default function PdfDownloadButtonContentful({
       });
       
       // Set document properties
+      const title = contentType === 'mobilityService' 
+        ? mobilityData?.title || 'Mobiliteitsdocument'
+        : governanceData?.title || 'Governance Model';
+        
       pdf.setProperties({
-        title: data.title || 'Mobiliteitsdocument',
-        subject: 'Mobiliteitsoplossing',
+        title: title,
+        subject: contentType === 'mobilityService' ? 'Mobiliteitsoplossing' : 'Governance Model',
         author: 'Parkmanager Tool',
         creator: 'Parkmanager Tool'
       });
@@ -117,166 +138,12 @@ export default function PdfDownloadButtonContentful({
                   .replace(/__(.*?)__/g, '$1');
       };
       
-      // Helper functie voor tekst met regeleinden
-      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number): number => {
-        // Check voor bold stukken
-        const hasBold = text.includes('**') || text.includes('__');
-        
-        if (!hasBold) {
-          // Normale tekst zonder formatting
-          const lines = pdf.splitTextToSize(text, maxWidth);
-          pdf.text(lines, x, y);
-          return y + (lines.length * lineHeight);
-        } else {
-          // Tekst met bold formatting
-          const segments = [];
-          let currentText = '';
-          let isBold = false;
-          
-          // Regex om bold secties te vinden (zowel ** als __)
-          const boldPattern = /(\*\*|__)(.*?)(\*\*|__)/g;
-          let lastIndex = 0;
-          let match;
-          
-          while ((match = boldPattern.exec(text)) !== null) {
-            // Voeg normale tekst toe die voor de match staat
-            const normalText = text.substring(lastIndex, match.index);
-            if (normalText.length > 0) {
-              segments.push({ text: normalText, bold: false });
-            }
-            
-            // Voeg de bold tekst toe
-            segments.push({ text: match[2], bold: true });
-            
-            lastIndex = match.index + match[0].length;
-          }
-          
-          // Voeg eventuele resterende normale tekst toe
-          if (lastIndex < text.length) {
-            segments.push({ text: text.substring(lastIndex), bold: false });
-          }
-          
-          // Als er geen bold segmenten gevonden zijn, gebruik de hele tekst
-          if (segments.length === 0) {
-            segments.push({ text, bold: false });
-          }
-          
-          // Render de segmenten met juiste opmaak
-          let currentY = y;
-          for (const segment of segments) {
-            pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-            const lines = pdf.splitTextToSize(segment.text, maxWidth);
-            pdf.text(lines, x, currentY);
-            currentY += lines.length * lineHeight;
-          }
-          
-          return currentY;
-        }
-      };
-      
-      // Verbeter de renderTextWithSpecialChars functie om consistente letter-spacing te garanderen
-      const renderTextWithSpecialChars = (text: string, x: number, y: number, pdf: jsPDF): number => {
-        // Check specifiek op CO₂ patterns
-        if (text.toLowerCase().includes('co₂') || text.toLowerCase().includes('co2')) {
-          return renderCO2Text(text, x, y, pdf);
-        }
-        
-        // Check of er speciale tekens in de tekst zitten (uitgebreid met meer speciale tekens)
-        const hasSpecialChars = /[₂²≈₁₃₄]/g.test(text);
-        
-        if (!hasSpecialChars) {
-          // Normale rendering als er geen speciale tekens zijn
-          pdf.text(text, x, y);
-          return x + pdf.getTextWidth(text);
-        } else {
-          // Karakter voor karakter renderen bij speciale tekens
-          let currentX = x;
-          
-          // Vaste letterafstand voor consistente rendering
-          const avgCharWidth = pdf.getTextWidth("n"); // Gebruik 'n' als referentie voor gemiddelde breedte
-          
-          for (let char of text) {
-            // Voor subscripts, maak de spacing compacter
-            if (/[₂₁₃₄]/.test(char)) {
-              // Render het subscript karakter met kleinere tussenruimte
-              pdf.text(char, currentX, y);
-              currentX += pdf.getTextWidth(char) * 0.8; // 20% compactere ruimte voor subscripts
-            } else {
-              // Voor normale karakters
-              pdf.text(char, currentX, y);
-              currentX += pdf.getTextWidth(char); // Normale tussenruimte
-            }
-          }
-          return currentX;
-        }
-      };
-      
-      // Voeg een speciale functie toe om CO₂-uitstoot consistent te renderen
-      const renderCO2Text = (text: string, x: number, y: number, pdf: jsPDF): number => {
-        // Specifiek voor CO₂-uitstoot en verwante tekst
-        // Split de tekst in delen: "CO", "₂", "-uitstoot" etc.
-        const co2Pattern = /(CO)([₂²])([-‚]uitstoot|[-‚]emissie|[-‚]reductie|\s+)/gi;
-        
-        if (!co2Pattern.test(text)) {
-          // Als het geen CO₂ patroon is, gebruik de normale renderer
-          return renderTextWithSpecialChars(text, x, y, pdf);
-        }
-        
-        // Reset de regex state
-        co2Pattern.lastIndex = 0;
-        
-        let lastIndex = 0;
-        let currentX = x;
-        let match;
-        
-        while ((match = co2Pattern.exec(text)) !== null) {
-          // Render tekst voor de match
-          if (match.index > lastIndex) {
-            const prefix = text.substring(lastIndex, match.index);
-            currentX = renderTextWithSpecialChars(prefix, currentX, y, pdf);
-          }
-          
-          // Render "CO" normaal
-          pdf.text(match[1], currentX, y);
-          currentX += pdf.getTextWidth(match[1]);
-          
-          // Render "₂" subscript zonder extra ruimte
-          pdf.text(match[2], currentX, y);
-          currentX += pdf.getTextWidth(match[2]) * 0.7; // Compacter voor subscript
-          
-          // Render "-uitstoot" of andere suffix zonder extra ruimte
-          if (match[3]) {
-            pdf.text(match[3], currentX, y);
-            currentX += pdf.getTextWidth(match[3]);
-          }
-          
-          lastIndex = match.index + match[0].length;
-        }
-        
-        // Render eventuele tekst na de laatste match
-        if (lastIndex < text.length) {
-          const suffix = text.substring(lastIndex);
-          currentX = renderTextWithSpecialChars(suffix, currentX, y, pdf);
-        }
-        
-        return currentX;
-      };
-      
-      // Helper voor speciale tekst rendering character by character
-      const renderTextCharByChar = (text: string, x: number, y: number, pdf: jsPDF): number => {
-        // Check specifiek op CO₂ patterns
-        if (text.toLowerCase().includes('co₂') || text.toLowerCase().includes('co2')) {
-          return renderCO2Text(text, x, y, pdf);
-        }
-        
-        // Normale karakter-voor-karakter verwerking
-        let currentX = x;
-        for (let char of text) {
-          pdf.text(char, currentX, y);
-          currentX += pdf.getTextWidth(char);
-        }
-        return currentX;
-      };
+      // Add the title at the top of the first page
+      let yPos = 20;
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(20);
+      pdf.text(title, 20, yPos);
+      yPos += 15;
       
       // Hoofdfunctie voor het toevoegen van een sectie
       const addSection = (title: string, content: string | undefined): void => {
@@ -310,53 +177,17 @@ export default function PdfDownloadButtonContentful({
             if (segment.level === 1) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(16);
-              
-              // Check op speciale tekens in headers
-              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
-              if (hasSpecialChars) {
-                // Render karakter voor karakter bij speciale tekens
-                let xPos = 20;
-                for (let char of segment.content) {
-                  pdf.text(char, xPos, yPos);
-                  xPos += pdf.getTextWidth(char);
-                }
-              } else {
-                pdf.text(segment.content, 20, yPos);
-              }
+              pdf.text(segment.content, 20, yPos);
               yPos += 8;
             } else if (segment.level === 2) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(14);
-              
-              // Check op speciale tekens in headers
-              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
-              if (hasSpecialChars) {
-                // Render karakter voor karakter bij speciale tekens
-                let xPos = 20;
-                for (let char of segment.content) {
-                  pdf.text(char, xPos, yPos);
-                  xPos += pdf.getTextWidth(char);
-                }
-              } else {
-                pdf.text(segment.content, 20, yPos);
-              }
+              pdf.text(segment.content, 20, yPos);
               yPos += 7;
             } else if (segment.level === 3) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(12);
-              
-              // Check op speciale tekens in headers
-              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
-              if (hasSpecialChars) {
-                // Render karakter voor karakter bij speciale tekens
-                let xPos = 20;
-                for (let char of segment.content) {
-                  pdf.text(char, xPos, yPos);
-                  xPos += pdf.getTextWidth(char);
-                }
-              } else {
-                pdf.text(segment.content, 20, yPos);
-              }
+              pdf.text(segment.content, 20, yPos);
               yPos += 6;
             }
             
@@ -388,270 +219,20 @@ export default function PdfDownloadButtonContentful({
               // Teken het bullet point
               pdf.text('•', 20, yPos);
               
-              // Bereken beschikbare ruimte (iets minder breed door indent)
               const bulletText = item.trim();
-              const hasBold = bulletText.includes('**') || bulletText.includes('__');
-              const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
+              // Simpele tekst render
+              const lines = pdf.splitTextToSize(bulletText, 160);
+              pdf.text(lines, 25, yPos);
               
-              if (hasBold || hasSpecialChars) {
-                // Check extra op specifieke patronen die problemen veroorzaken
-                const containsCO2 = /vermindering\s+van\s+co₂/i.test(bulletText.toLowerCase());
-                const containsSpacedText = /^V\s*e\s*r\s*m\s*i\s*n\s*d\s*e\s*r\s*i\s*n\s*g/i.test(bulletText);
-                
-                if (containsCO2 || containsSpacedText) {
-                  // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
-                  pdf.setFont('helvetica', 'normal'); // Start met normale tekst
-                  
-                  // Tekst moet over meerdere regels verdeeld worden
-                  let lineY = yPos;
-                  let lineX = 25;
-                  let lineWidth = 0;
-                  let i = 0;
-                  let isBold = false;
-                  
-                  // Parse de tekst met bold-markers en render woord voor woord
-                  while (i < bulletText.length) {
-                    // Verzamel een volledig woord of een serie van spaties of een bold marker
-                    let currentPart = '';
-                    let isSpace = false;
-                    let isBoldMarker = false;
-                    
-                    // Check of we een bold marker tegenkomen
-                    if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
-                      isBold = !isBold;
-                      pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-                      i += 2; // Skip de marker
-                      continue;
-                    }
-                    
-                    // Check of dit een spatie is
-                    if (bulletText[i] === ' ') {
-                      // Render een spatie
-                      if (lineX + pdf.getTextWidth(' ') > 25 + 160) {
-                        // Spatie past niet op deze regel, begin een nieuwe regel
-                        lineY += 6;
-                        lineX = 25;
-                        lineWidth = 0;
-                        // Check for page break
-                        if (lineY > 270) {
-                          pdf.addPage();
-                          lineY = 20;
-                        }
-                      } else {
-                        // Spatie past, render het
-                        pdf.text(' ', lineX, lineY);
-                        lineX += pdf.getTextWidth(' ');
-                      }
-                      i++;
-                      continue;
-                    }
-                    
-                    // Geen spatie, geen bold marker, dus een regulier woord
-                    // Verzamel het volledige woord
-                    let word = '';
-                    while (i < bulletText.length && 
-                           bulletText[i] !== ' ' && 
-                           bulletText.substr(i, 2) !== '**' && 
-                           bulletText.substr(i, 2) !== '__') {
-                      word += bulletText[i];
-                      i++;
-                    }
-                    
-                    // Bereken of het woord past op de huidige regel
-                    const wordWidth = pdf.getTextWidth(word);
-                    
-                    // Als het woord niet past op de huidige regel, begin een nieuwe
-                    if (lineX + wordWidth > 25 + 160 && lineX > 25) {
-                      lineY += 6;
-                      lineX = 25;
-                      lineWidth = 0;
-                      
-                      // Check for page break
-                      if (lineY > 270) {
-                        pdf.addPage();
-                        lineY = 20;
-                      }
-                    }
-                    
-                    // Render het woord
-                    if (word.toLowerCase().includes('co₂') || word.toLowerCase().includes('co2')) {
-                      // Gebruik de speciale CO₂ renderer
-                      renderCO2Text(word, lineX, lineY, pdf);
-                    } else {
-                      // Normale woord rendering
-                      pdf.text(word, lineX, lineY);
-                    }
-                    lineX += wordWidth;
-                  }
-                  
-                  yPos = lineY + 6; // Verhoog de ruimte na de bullet
-                } else {
-                  // Verbeterde methode voor bullets met bold tekst of speciale tekens
-                  // Parse de bold secties
-                  const segments = [];
-                  let currentText = '';
-                  let isBold = false;
-                  
-                  for (let i = 0; i < bulletText.length; i++) {
-                    if (bulletText.substr(i, 2) === '**' || bulletText.substr(i, 2) === '__') {
-                      if (currentText) {
-                        segments.push({ text: currentText, bold: isBold });
-                        currentText = '';
-                      }
-                      isBold = !isBold;
-                      i++; // Skip het tweede karakter van **
-                    } else {
-                      currentText += bulletText[i];
-                    }
-                  }
-                  
-                  if (currentText) {
-                    segments.push({ text: currentText, bold: isBold });
-                  }
-                  
-                  // Verbeterde tekstweergave met respect voor regeleinden en speciale tekens
-                  // Controleer eerst of het geheel op één regel past
-                  const fullText = segments.map(s => s.text).join('');
-                  const wrappedLines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
-                  
-                  if (wrappedLines.length === 1) {
-                    // Alles past op één regel - render met juiste formatting
-                    let startX = 25; // Indent voor bulletpoints
-                    for (const segment of segments) {
-                      pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                      
-                      // Altijd controleren op speciale tekens
-                      const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
-                      if (containsSpecialChars) {
-                        // Speciale behandeling voor tekst met speciale tekens
-                        // Render karakter voor karakter
-                        let xOffset = startX;
-                        for (let char of segment.text) {
-                          pdf.text(char, xOffset, yPos);
-                          xOffset += pdf.getTextWidth(char);
-                        }
-                        startX = xOffset;
-                      } else {
-                        pdf.text(segment.text, startX, yPos);
-                        startX += pdf.getTextWidth(segment.text);
-                      }
-                    }
-                    yPos += 4; // Verminderde ruimte voor één-regel bullets
-                  } else {
-                    // Tekst moet over meerdere regels verdeeld worden
-                    let lineY = yPos;
-                    let lineStartX = 25;
-                    let lineRemainingWidth = 160; // Maximum breedte voor de regel
-                    
-                    // Maak een kopie van de segments om mee te werken
-                    const workingSegments = [...segments] as { text: string; bold: boolean }[];
-                    let currentSegmentIndex = 0;
-                    
-                    while (currentSegmentIndex < workingSegments.length) {
-                      // Haal het huidige segment op
-                      const currentSegment = workingSegments[currentSegmentIndex];
-                      pdf.setFont('helvetica', currentSegment.bold ? 'bold' : 'normal');
-                      
-                      // Hoeveel tekst past er nog op deze regel?
-                      const segmentText = currentSegment.text;
-                      
-                      // Split het segment in woorden
-                      const words = segmentText.split(' ');
-                      let currentLine = '';
-                      let currentLineWidth = 0;
-                      
-                      for (let i = 0; i < words.length; i++) {
-                        const word = words[i];
-                        const wordWithSpace = i < words.length - 1 ? word + ' ' : word;
-                        const wordWidth = pdf.getTextWidth(wordWithSpace);
-                        
-                        // Check of het woord past op de huidige regel
-                        if (currentLineWidth + wordWidth <= lineRemainingWidth) {
-                          // Woord past, toevoegen aan huidige regel
-                          currentLine += wordWithSpace;
-                          currentLineWidth += wordWidth;
-                        } else {
-                          // Woord past niet, we moeten huidige regel afdrukken en nieuwe regel beginnen
-                          if (currentLine.length > 0) {
-                            // Render huidige regel
-                            pdf.text(currentLine, lineStartX, lineY);
-                            // Ga naar de volgende regel
-                            lineY += 6;
-                            lineStartX = 25;
-                            lineRemainingWidth = 160;
-                            
-                            // Check of we een nieuwe pagina nodig hebben
-                            if (lineY > 270) {
-                              pdf.addPage();
-                              lineY = 20;
-                            }
-                          }
-                          
-                          // Begin nieuwe regel met dit woord
-                          currentLine = wordWithSpace;
-                          currentLineWidth = wordWidth;
-                        }
-                      }
-                      
-                      // Render eventueel overgebleven tekst
-                      if (currentLine.length > 0) {
-                        pdf.text(currentLine, lineStartX, lineY);
-                        lineStartX += currentLineWidth;
-                        lineRemainingWidth -= currentLineWidth;
-                      }
-                      
-                      // Ga naar volgende segment
-                      currentSegmentIndex++;
-                    }
-                    
-                    yPos = lineY + 6; // Verhoog de ruimte na de bullet
-                  }
-                }
+              if (lines.length === 1) {
+                yPos += 5;
               } else {
-                // Eenvoudige bullet zonder bold of speciale tekens
-                const lines = pdf.splitTextToSize(bulletText, 160);
-                
-                // Check of tekst speciale tekens bevat, zelfs als er geen bold in zit
-                const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
-                
-                if (hasSpecialChars) {
-                  // Verwerk regels met speciale tekens
-                  let currentY = yPos;
-                  for (const line of lines) {
-                    let lineX = 25;
-                    // Check op CO₂ pattern in de lijn
-                    if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
-                      // Gebruik de speciale CO₂ rendering functie
-                      renderCO2Text(line, lineX, currentY, pdf);
-                    } else {
-                      // Normale verwerking met parts splitting voor andere speciale tekens
-                      const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                      for (const part of parts) {
-                        lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
-                      }
-                    }
-                    currentY += 5; // Line height consistent houden
-                  }
-                  
-                  if (lines.length === 1) {
-                    yPos += 4; // Verminderde ruimte voor één-regel bullets
-                  } else {
-                    yPos += 5 * (lines.length - 1) + 6; // Behoud meer ruimte voor meerdere regels
-                  }
-                } else {
-                  // Normale rendering zonder speciale tekens
-                  pdf.text(lines, 25, yPos);
-                  if (lines.length === 1) {
-                    yPos += 4; // Verminderde ruimte voor één-regel bullets
-                  } else {
-                    yPos += lines.length * 5 + 6; // Behoud meer ruimte voor meerdere regels
-                  }
-                }
+                yPos += lines.length * 5;
               }
             }
             
             // Extra ruimte onder bulletlijsten
-            yPos += 8; // Significant meer ruimte tussen bullet lists (was 4)
+            yPos += 5;
             continue;
           }
           
@@ -662,540 +243,166 @@ export default function PdfDownloadButtonContentful({
               yPos = 20;
             }
             
-            // Check voor bold tekst
-            const hasBold = segment.content.includes('**') || segment.content.includes('__');
-            
-            if (hasBold) {
-              // Bold tekst gevonden, verwerk deze
-              const segments = [];
-              let startIdx = 0;
-              let currentText = '';
-              let isBold = false;
-              
-              // Split en format de bold tekst
-              const text = segment.content;
-              for (let i = 0; i < text.length; i++) {
-                if (text.substr(i, 2) === '**' || text.substr(i, 2) === '__') {
-                  if (currentText) {
-                    segments.push({ text: currentText, bold: isBold });
-                    currentText = '';
-                  }
-                  isBold = !isBold;
-                  i++; // Skip het tweede karakter van **
-                } else {
-                  currentText += text[i];
-                }
-              }
-              
-              if (currentText) {
-                segments.push({ text: currentText, bold: isBold });
-              }
-              
-              // Render de segmenten met juiste font en speciale tekens ondersteuning
-              let currentY = yPos;
-              let lineWidth = 0;
-              let currentLine = '';
-              const maxWidth = 170; // Maximum breedte
-              
-              for (const segment of segments) {
-                pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                
-                // Split indien nodig over meerdere regels
-                const words = segment.text.split(' ');
-                for (let i = 0; i < words.length; i++) {
-                  const word = words[i];
-                  // Extra spatie toevoegen na elk woord behalve het laatste in een segment
-                  const wordWithSpace = i < words.length - 1 ? word + ' ' : word;
-                  const wordWidth = pdf.getTextWidth(wordWithSpace);
-                  
-                  if (lineWidth + wordWidth > maxWidth) {
-                    // Begin nieuwe regel - render eerst huidige regel
-                    if (currentLine.length > 0) {
-                      let lineX = 20;
-                      // Check op CO₂ pattern in de regel
-                      if (currentLine.toLowerCase().includes('co₂') || currentLine.toLowerCase().includes('co2')) {
-                        // Gebruik de speciale CO₂ rendering functie
-                        renderCO2Text(currentLine, lineX, currentY, pdf);
-                      } else {
-                        // Normale verwerking met parts splitting voor andere speciale tekens
-                        const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                        for (const part of parts) {
-                          lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
-                        }
-                      }
-                      
-                      currentY += 6;
-                      currentLine = '';
-                      lineWidth = 0;
-                    }
-                    
-                    // Voeg nieuw woord toe aan (nu lege) regel
-                    currentLine = wordWithSpace;
-                    lineWidth = wordWidth;
-                    
-                    // Nieuwe pagina indien nodig
-                    if (currentY > 270) {
-                      pdf.addPage();
-                      currentY = 20;
-                    }
-                  } else {
-                    // Voeg toe aan huidige regel
-                    currentLine += wordWithSpace;
-                    lineWidth += wordWidth;
-                  }
-                }
-              }
-              
-              // Render laatste regel indien nodig
-              if (currentLine) {
-                let lineX = 20;
-                // Check op CO₂ pattern in de regel
-                if (currentLine.toLowerCase().includes('co₂') || currentLine.toLowerCase().includes('co2')) {
-                  // Gebruik de speciale CO₂ rendering functie
-                  renderCO2Text(currentLine, lineX, currentY, pdf);
-                } else {
-                  // Normale verwerking met parts splitting voor andere speciale tekens
-                  const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                  for (const part of parts) {
-                    lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
-                  }
-                }
-                currentY += 6;
-              }
-              
-              yPos = currentY + 4; // Extra ruimte na paragrafen
-            } else {
-              // Normale paragraaf zonder bold
-              const processedText = formatBoldText(segment.content);
-              
-              // Check of er speciale tekens in de tekst zitten
-              const hasSpecialChars = /[₂²≈₁₃₄]/g.test(processedText);
-              
-              if (hasSpecialChars) {
-                // Split de tekst op regels
-                const textLines = pdf.splitTextToSize(processedText, 170);
-                
-                // Render elke regel met speciale tekens ondersteuning
-                let currentY = yPos;
-                for (const line of textLines) {
-                  let lineX = 20;
-                  // Check op CO₂ pattern in de lijn
-                  if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
-                    // Gebruik de speciale CO₂ rendering functie
-                    renderCO2Text(line, lineX, currentY, pdf);
-                  } else {
-                    // Normale verwerking met parts splitting voor andere speciale tekens
-                    const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                    for (const part of parts) {
-                      lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
-                    }
-                  }
-                  currentY += 6; // Consistente regelafstand van 6 punten
-                }
-                
-                yPos = currentY + 4; // Voeg consistente ruimte van 4 punten toe na elke paragraaf
-              } else {
-                // Normale rendering zonder speciale tekens
-                const lines = pdf.splitTextToSize(processedText, 170);
-                pdf.text(lines, 20, yPos);
-                yPos += lines.length * 6; // Verwijder de extra 4 punten ruimte voor consistentie
-              }
-            }
+            const processedText = formatBoldText(segment.content);
+            const lines = pdf.splitTextToSize(processedText, 170);
+            pdf.text(lines, 20, yPos);
+            yPos += lines.length * 6;
             
             // Extra ruimte na paragrafen 
-            yPos += 4; // Voeg uniforme ruimte toe na alle paragrafen in governance sectie
+            yPos += 4;
           }
-          
+        }
+      };
+
+      // Different content types have different fields
+      if (contentType === 'mobilityService' && mobilityData) {
+        // Add the mobility service fields
+        if (mobilityData.paspoort) {
+          addSection('Paspoort', mobilityData.paspoort);
+        }
+        
+        if (mobilityData.description) {
+          addSection('Beschrijving', mobilityData.description);
+        }
+        
+        if (mobilityData.collectiefVsIndiviueel) {
+          addSection('Collectief vs. Individueel', mobilityData.collectiefVsIndiviueel);
+        }
+        
+        if (mobilityData.effecten) {
+          addSection('Effecten', mobilityData.effecten);
+        }
+        
+        if (mobilityData.investering) {
+          addSection('Investering', mobilityData.investering);
+        }
+        
+        if (mobilityData.implementatie) {
+          addSection('Implementatie', mobilityData.implementatie);
+        }
+        
+        // Add governance models if they exist
+        const governanceModels = mobilityData.governanceModels || [];
+        if (governanceModels.length > 0) {
           // Paginawissel indien nodig
           if (yPos > 270) {
             pdf.addPage();
             yPos = 20;
           }
-        }
-      };
-      
-      // Add title
-      pdf.setFontSize(22);
-      pdf.setFont('helvetica', 'bold');
-      let yPos = 20;
-      const titleLines = pdf.splitTextToSize(data.title, 170);
-      pdf.text(titleLines, 20, yPos);
-      yPos += (titleLines.length * 10) + 5;
-      
-      // Add horizontal line
-      pdf.setDrawColor(150, 150, 150);
-      pdf.line(20, yPos, 190, yPos);
-      yPos += 10;
-      
-      // Add each section
-      if (data.paspoort) {
-        addSection('Paspoort', data.paspoort);
-      }
-      
-      if (data.description) {
-        addSection('Beschrijving', data.description);
-      }
-      
-      if (data.collectiefVsIndiviueel) {
-        addSection('Collectief vs. Individueel', data.collectiefVsIndiviueel);
-      }
-      
-      if (data.effecten) {
-        addSection('Effecten', data.effecten);
-      }
-      
-      if (data.investering) {
-        addSection('Investering', data.investering);
-      }
-      
-      if (data.implementatie) {
-        addSection('Implementatie', data.implementatie);
-      }
-      
-      // Add governance models if they exist
-      const governanceModels = data.governanceModels || [];
-      if (governanceModels.length > 0) {
-        // Paginawissel indien nodig
-        if (yPos > 270) {
-          pdf.addPage();
-          yPos = 20;
-        }
-        
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(16);
-        pdf.text('Governance Modellen', 20, yPos);
-        yPos += 10;
-        
-        governanceModels.forEach((model, index) => {
-          if (typeof model === 'object' && model !== null && 'title' in model && 'description' in model) {
-            // Paginawissel indien nodig
-            if (yPos > 270) {
-              pdf.addPage();
-              yPos = 20;
-            }
-            
-            // Add subsection title
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(14);
-            pdf.text(model.title, 20, yPos);
-            yPos += 8;
-            
-            // Add description with full markdown parsing
-            if (model.description) {
-              const segments = parseMarkdown(model.description);
+          
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(16);
+          pdf.text('Governance Modellen', 20, yPos);
+          yPos += 10;
+          
+          governanceModels.forEach((model, index) => {
+            if (typeof model === 'object' && model !== null && 'title' in model && 'description' in model) {
+              // Paginawissel indien nodig
+              if (yPos > 270) {
+                pdf.addPage();
+                yPos = 20;
+              }
               
-              pdf.setFont('helvetica', 'normal');
-              pdf.setFontSize(11);
+              // Add subsection title
+              pdf.setFont('helvetica', 'bold');
+              pdf.setFontSize(14);
+              pdf.text(model.title, 20, yPos);
+              yPos += 8;
               
-              for (const segment of segments) {
-                if (segment.type === 'empty-line') {
-                  yPos += 4;
-                  continue;
-                }
-                
-                if (segment.type === 'bullet-list') {
-                  // Extra ruimte boven bulletlijsten
-                  yPos += 5;
-                  
-                  const bulletItems = segment.content.split('\n');
-                  for (const item of bulletItems) {
-                    // Paginawissel indien nodig
-                    if (yPos > 270) {
-                      pdf.addPage();
-                      yPos = 20;
-                    }
-                    
-                    // Teken het bullet point
-                    pdf.text('•', 20, yPos);
-                    
-                    // Check voor bold tekst
-                    const hasBold = item.includes('**') || item.includes('__');
-                    const hasSpecialChars = /[₂²≈₁₃₄]/g.test(item);
-                    
-                    if (hasBold || hasSpecialChars) {
-                      // Check extra op specifieke patronen die problemen veroorzaken
-                      const containsCO2 = /vermindering\s+van\s+co₂/i.test(item.toLowerCase());
-                      const containsSpacedText = /^V\s*e\s*r\s*m\s*i\s*n\s*d\s*e\s*r\s*i\s*n\s*g/i.test(item);
-                      
-                      if (containsCO2 || containsSpacedText) {
-                        // Voor bullets die "Vermindering van CO₂" of gespatieerde tekst bevatten, render volledig karakter voor karakter
-                        pdf.setFont('helvetica', 'normal'); // Start met normale tekst
-                        
-                        // Tekst moet over meerdere regels verdeeld worden
-                        let lineY = yPos;
-                        let lineX = 25;
-                        let lineWidth = 0;
-                        let i = 0;
-                        let isBold = false;
-                        
-                        // Parse de tekst met bold-markers en render woord voor woord
-                        while (i < item.length) {
-                          // Verzamel een volledig woord of een serie van spaties of een bold marker
-                          let currentPart = '';
-                          let isSpace = false;
-                          let isBoldMarker = false;
-                          
-                          // Check of we een bold marker tegenkomen
-                          if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
-                            isBold = !isBold;
-                            pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-                            i += 2; // Skip de marker
-                            continue;
-                          }
-                          
-                          // Check of dit een spatie is
-                          if (item[i] === ' ') {
-                            // Render een spatie
-                            if (lineX + pdf.getTextWidth(' ') > 25 + 160) {
-                              // Spatie past niet op deze regel, begin een nieuwe regel
-                              lineY += 6;
-                              lineX = 25;
-                              lineWidth = 0;
-                              // Check for page break
-                              if (lineY > 270) {
-                                pdf.addPage();
-                                lineY = 20;
-                              }
-                            } else {
-                              // Spatie past, render het
-                              pdf.text(' ', lineX, lineY);
-                              lineX += pdf.getTextWidth(' ');
-                            }
-                            i++;
-                            continue;
-                          }
-                          
-                          // Geen spatie, geen bold marker, dus een regulier woord
-                          // Verzamel het volledige woord
-                          let word = '';
-                          while (i < item.length && 
-                                 item[i] !== ' ' && 
-                                 item.substr(i, 2) !== '**' && 
-                                 item.substr(i, 2) !== '__') {
-                            word += item[i];
-                            i++;
-                          }
-                          
-                          // Bereken of het woord past op de huidige regel
-                          const wordWidth = pdf.getTextWidth(word);
-                          
-                          // Als het woord niet past op de huidige regel, begin een nieuwe
-                          if (lineX + wordWidth > 25 + 160 && lineX > 25) {
-                            lineY += 6;
-                            lineX = 25;
-                            lineWidth = 0;
-                            
-                            // Check for page break
-                            if (lineY > 270) {
-                              pdf.addPage();
-                              lineY = 20;
-                            }
-                          }
-                          
-                          // Render het woord
-                          if (word.toLowerCase().includes('co₂') || word.toLowerCase().includes('co2')) {
-                            // Gebruik de speciale CO₂ renderer
-                            renderCO2Text(word, lineX, lineY, pdf);
-                          } else {
-                            // Normale woord rendering
-                            pdf.text(word, lineX, lineY);
-                          }
-                          lineX += wordWidth;
-                        }
-                        
-                        yPos = lineY + 6; // Verhoog de ruimte na de bullet
-                      } else {
-                        // Normale verwerking voor andere bullets
-                        // Process bold formatting
-                        let startX = 25;
-                        const segments = [];
-                        let currentText = '';
-                        let isBold = false;
-                        
-                        // Split en format de bold tekst
-                        for (let i = 0; i < item.length; i++) {
-                          if (item.substr(i, 2) === '**' || item.substr(i, 2) === '__') {
-                            if (currentText) {
-                              segments.push({ text: currentText, bold: isBold });
-                              currentText = '';
-                            }
-                            isBold = !isBold;
-                            i++; // Skip het tweede karakter van **
-                          } else {
-                            currentText += item[i];
-                          }
-                        }
-                        
-                        if (currentText) {
-                          segments.push({ text: currentText, bold: isBold });
-                        }
-                        
-                        // Render de segments met juiste font
-                        for (const segment of segments) {
-                          pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                          
-                          // Altijd controleren op speciale tekens
-                          const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
-                          if (containsSpecialChars) {
-                            // Speciale behandeling voor tekst met speciale tekens
-                            // Render karakter voor karakter
-                            let xOffset = startX;
-                            for (let char of segment.text) {
-                              pdf.text(char, xOffset, yPos);
-                              xOffset += pdf.getTextWidth(char);
-                            }
-                            startX = xOffset;
-                          } else {
-                            const segmentLines = pdf.splitTextToSize(segment.text, 163);
-                            pdf.text(segmentLines, startX, yPos);
-                            startX += pdf.getTextWidth(segment.text);
-                          }
-                        }
-                        
-                        yPos += 12; // Behoud ruimte tussen bullets in governance sectie
-                      }
-                    } else {
-                      // Normale tekst zonder bold
-                      const bulletText = formatBoldText(item.trim());
-                      const lines = pdf.splitTextToSize(bulletText, 163);
-                      
-                      // Check of bullet speciale tekens bevat
-                      const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
-                      
-                      if (hasSpecialChars) {
-                        // Verwerk regels met speciale tekens
-                        let currentY = yPos;
-                        for (const line of lines) {
-                          let lineX = 25;
-                          // Check op CO₂ pattern in de lijn
-                          if (line.toLowerCase().includes('co₂') || line.toLowerCase().includes('co2')) {
-                            // Gebruik de speciale CO₂ rendering functie
-                            renderCO2Text(line, lineX, currentY, pdf);
-                          } else {
-                            // Normale verwerking met parts splitting voor andere speciale tekens
-                            const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
-                            for (const part of parts) {
-                              lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
-                            }
-                          }
-                          currentY += 5; // Line height consistent houden
-                        }
-                        
-                        if (lines.length === 1) {
-                          yPos += 4; // Verminderde ruimte voor één-regel bullets
-                        } else {
-                          yPos += 5 * (lines.length - 1) + 7; // Behoud meer ruimte voor meerdere regels
-                        }
-                      } else {
-                        // Normale rendering zonder speciale tekens
-                        pdf.text(lines, 25, yPos);
-                        if (lines.length === 1) {
-                          yPos += 4; // Verminderde ruimte voor één-regel bullets
-                        } else {
-                          yPos += lines.length * 5 + 7; // Behoud meer ruimte voor meerdere regels
-                        }
-                      }
-                    }
-                  }
-                  
-                  // Extra ruimte na bulletlijsten
-                  yPos += 8; // Meer ruimte (was niet expliciet aangegeven)
-                  continue;
-                }
-                
-                if (segment.type === 'paragraph') {
-                  // Paginawissel indien nodig
-                  if (yPos > 270) {
-                    pdf.addPage();
-                    yPos = 20;
-                  }
-                  
-                  // Check voor bold tekst
-                  const hasBold = segment.content.includes('**') || segment.content.includes('__');
-                  
-                  if (hasBold) {
-                    // Bold tekst verwerken
-                    const segments = [];
-                    let currentText = '';
-                    let isBold = false;
-                    
-                    for (let i = 0; i < segment.content.length; i++) {
-                      if (segment.content.substr(i, 2) === '**' || segment.content.substr(i, 2) === '__') {
-                        if (currentText) {
-                          segments.push({ text: currentText, bold: isBold });
-                          currentText = '';
-                        }
-                        isBold = !isBold;
-                        i++; // Skip het tweede karakter van **
-                      } else {
-                        currentText += segment.content[i];
-                      }
-                    }
-                    
-                    if (currentText) {
-                      segments.push({ text: currentText, bold: isBold });
-                    }
-                    
-                    // Render segments
-                    let startX = 20;
-                    for (const segment of segments) {
-                      pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                      const text = segment.text;
-                      const segmentWidth = pdf.getTextWidth(text);
-                      
-                      // Wrap text if needed
-                      if (startX + segmentWidth > 190) {
-                        yPos += 6;
-                        startX = 20;
-                      }
-                      
-                      const lines = pdf.splitTextToSize(text, 170 - (startX - 20));
-                      pdf.text(lines, startX, yPos);
-                      
-                      // Update position
-                      if (lines.length > 1) {
-                        yPos += (lines.length - 1) * 6;
-                        startX = 20 + pdf.getTextWidth(lines[lines.length - 1]);
-                      } else {
-                        startX += segmentWidth;
-                      }
-                    }
-                    
-                    yPos += 6; // Ga naar de volgende regel
-                  } else {
-                    // Normale tekst zonder bold
-                    const processedText = formatBoldText(segment.content);
-                    const lines = pdf.splitTextToSize(processedText, 170);
-                    pdf.text(lines, 20, yPos);
-                    yPos += lines.length * 6; // Verwijder de extra 4 punten ruimte voor consistentie
-                  }
-                  
-                  // Extra ruimte na paragrafen 
-                  yPos += 4; // Voeg uniforme ruimte toe na alle paragrafen in governance sectie
-                }
+              // Add description
+              if (model.description) {
+                addSection('', model.description);
+              }
+              
+              // Extra ruimte na een model
+              yPos += 8;
+              
+              // Page break if needed
+              if (yPos > 270 && index < governanceModels.length - 1) {
+                pdf.addPage();
+                yPos = 20;
               }
             }
-            
-            // Extra ruimte na een model
-            yPos += 8;
-            
-            // Page break if needed
-            if (yPos > 270 && index < governanceModels.length - 1) {
-              pdf.addPage();
-              yPos = 20;
+          });
+          
+          // Add governance models toelichting
+          if (mobilityData.governancemodellenToelichting) {
+            addSection('Toelichting Governance Modellen', mobilityData.governancemodellenToelichting);
+          }
+        }
+      } else if (contentType === 'governanceModel' && governanceData) {
+        // Add the governance model fields
+        console.log('Governance data advantages:', governanceData.advantages);
+        console.log('Governance data disadvantages:', governanceData.disadvantages);
+        
+        if (governanceData.description) {
+          addSection('Beschrijving', governanceData.description);
+        }
+        
+        if (governanceData.aansprakelijkheid) {
+          addSection('Aansprakelijkheid', governanceData.aansprakelijkheid);
+        }
+        
+        // Verbeterde afhandeling van voordelen, controleer specifiek het type
+        if (governanceData.advantages) {
+          if (Array.isArray(governanceData.advantages) && governanceData.advantages.length > 0) {
+            const voordelenList = governanceData.advantages.map(item => `• ${item}`).join('\n\n');
+            addSection('Voordelen', voordelenList);
+          } else if (typeof governanceData.advantages === 'string') {
+            const voordelen = governanceData.advantages as string;
+            if (voordelen.trim() !== '') {
+              addSection('Voordelen', voordelen);
             }
           }
-        });
-      }
-      
-      // Add governance models toelichting
-      if (data.governancemodellenToelichting) {
-        addSection('Toelichting Governance Modellen', data.governancemodellenToelichting);
+        }
+        
+        // Verbeterde afhandeling van nadelen, controleer specifiek het type
+        if (governanceData.disadvantages) {
+          if (Array.isArray(governanceData.disadvantages) && governanceData.disadvantages.length > 0) {
+            const nadelenList = governanceData.disadvantages.map(item => `• ${item}`).join('\n\n');
+            addSection('Nadelen', nadelenList);
+          } else if (typeof governanceData.disadvantages === 'string') {
+            const nadelen = governanceData.disadvantages as string;
+            if (nadelen.trim() !== '') {
+              addSection('Nadelen', nadelen);
+            }
+          }
+        }
+        
+        if (governanceData.benodigdhedenOprichting) {
+          // Controleer of benodigdhedenOprichting een array is
+          if (Array.isArray(governanceData.benodigdhedenOprichting) && governanceData.benodigdhedenOprichting.length > 0) {
+            const benodigdhedenList = governanceData.benodigdhedenOprichting.map(item => `• ${item}`).join('\n\n');
+            addSection('Benodigdheden Oprichting', benodigdhedenList);
+          } else {
+            addSection('Benodigdheden Oprichting', String(governanceData.benodigdhedenOprichting));
+          }
+        }
+        
+        if (governanceData.links) {
+          // Controleer of links een array is
+          if (Array.isArray(governanceData.links) && governanceData.links.length > 0) {
+            const linksList = governanceData.links.map(item => `• ${item}`).join('\n\n');
+            addSection('Links', linksList);
+          } else {
+            addSection('Links', String(governanceData.links));
+          }
+        }
+        
+        if (governanceData.doorlooptijdLang) {
+          addSection('Doorlooptijd', governanceData.doorlooptijdLang);
+        } else if (governanceData.doorlooptijd) {
+          addSection('Doorlooptijd', governanceData.doorlooptijd);
+        }
+        
+        if (governanceData.implementatie) {
+          addSection('Implementatie', governanceData.implementatie);
+        }
       }
       
       // Genereer bestandsnaam
       const pdfFileName = fileName || 
-        `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`;
+        `${(contentType === 'mobilityService' ? mobilityData?.title : governanceData?.title) || 'document'}`.toLowerCase().replace(/[^a-z0-9]/g, '-') + '.pdf';
       
       // Save the PDF
       pdf.save(pdfFileName);

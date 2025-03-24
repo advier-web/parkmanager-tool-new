@@ -1,5 +1,6 @@
 import { getMobilitySolutionForPdf as getContentfulMobilitySolution } from '@/services/contentful-service';
 import { MobilitySolution, GovernanceModel } from '../types/mobilityTypes';
+import { getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
 
 // Verzamel mobiliteitsoplossing data voor een pdf
 export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Promise<MobilitySolution> => {
@@ -19,6 +20,31 @@ export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Prom
     ...data,
     slug: data.title?.toLowerCase().replace(/[^\w\s-]/g, '-').replace(/\s+/g, '-') || mobilityServiceId,
     governanceModels: mappedGovernanceModels
+  };
+};
+
+// Verzamel governance model data voor een pdf
+export const getGovernanceModelForPdf = async (governanceModelId: string): Promise<GovernanceModel> => {
+  const data = await getGovernanceModelByIdFromContentful(governanceModelId);
+  
+  if (!data) {
+    throw new Error(`Geen governance model gevonden met ID: ${governanceModelId}`);
+  }
+  
+  console.log('Raw governance model data from Contentful:', JSON.stringify(data, null, 2));
+  
+  // Zorg dat alle velden beschikbaar zijn voor de PDF
+  return {
+    ...data,
+    title: data.title || '',
+    description: data.description || '',
+    aansprakelijkheid: data.aansprakelijkheid || '',
+    advantages: data.advantages || [],
+    disadvantages: data.disadvantages || [],
+    benodigdhedenOprichting: Array.isArray(data.benodigdhedenOprichting) ? data.benodigdhedenOprichting : [data.benodigdhedenOprichting].filter(Boolean),
+    links: Array.isArray(data.links) ? data.links : [data.links].filter(Boolean),
+    doorlooptijdLang: data.doorlooptijdLang || data.doorlooptijd || '',
+    implementatie: data.implementatie || ''
   };
 };
 
