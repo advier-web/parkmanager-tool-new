@@ -452,31 +452,42 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
-            {Object.entries(sortedAndGroupedSolutions).map(([category, categorySolutions]) => (
-              <div key={category} className="mt-8">
-                <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
-                <div className="grid grid-cols-1 gap-6">
-                  {categorySolutions?.map(solution => {
-                    // Bereken score voor deze oplossing
-                    const validActiveFilters = reasons ? 
-                      activeFilters.filter(id => reasons.some(reason => reason.id === id)) : [];
-                    
-                    const score = calculateScoreForSolution(solution, validActiveFilters);
-                    
-                    return (
-                      <div key={solution.id} className="relative">
-                        <SolutionCard
-                          solution={solution}
-                          isSelected={selectedSolutions.includes(solution.id)}
-                          onToggleSelect={toggleSolution}
-                          onMoreInfo={handleShowMoreInfo}
-                        />
-                      </div>
-                    );
-                  })}
+            {/* Display solutions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              {!filteredSolutions || isLoadingSolutions ? (
+                // Loading state
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div 
+                    key={index}
+                    className="bg-white p-6 rounded-lg border border-gray-200 animate-pulse"
+                  >
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
+                    <div className="h-10 bg-gray-200 rounded w-1/4"></div>
+                  </div>
+                ))
+              ) : filteredSolutions.length === 0 ? (
+                // No solutions found
+                <div className="col-span-2">
+                  <p className="text-center text-gray-500 my-8">
+                    Geen mobiliteitsoplossingen gevonden die voldoen aan de geselecteerde criteria.
+                  </p>
                 </div>
-              </div>
-            ))}
+              ) : (
+                // Solutions found
+                sortSolutionsByScore(filteredSolutions).map(solution => (
+                  <SolutionCard
+                    key={solution.id}
+                    solution={solution}
+                    isSelected={selectedSolutions.includes(solution.id)}
+                    onToggleSelect={toggleSolution}
+                    onMoreInfo={handleShowMoreInfo}
+                    selectedReasons={reasons ? reasons.filter(reason => activeFilters.includes(reason.id)) : []}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
