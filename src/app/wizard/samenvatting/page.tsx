@@ -5,6 +5,7 @@ import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useImplementationPlans } from '../../../hooks/use-domain-models';
 import { isValidEmail } from '../../../utils/helper';
+import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
 
 export default function SummaryPage() {
   const [userInfo, setUserInfo] = useState({
@@ -229,12 +230,27 @@ export default function SummaryPage() {
               
               <section>
                 <h3 className="text-xl font-semibold mb-2">Geselecteerde mobiliteitsoplossingen</h3>
-                {selectedSolutionTitles.length > 0 ? (
-                  <ul className="list-disc pl-5">
-                    {selectedSolutionTitles.map((title, index) => (
-                      <li key={index}>{title}</li>
-                    ))}
-                  </ul>
+                {selectedSolutions.length > 0 ? (
+                  <div className="space-y-6">
+                    {solutions
+                      ?.filter(solution => selectedSolutions.includes(solution.id))
+                      .map((solution, index) => (
+                        <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
+                          <h4 className="font-medium text-lg mb-2">{solution.title}</h4>
+                          {solution.summary && (
+                            <p className="mb-3 text-gray-700">{solution.summary}</p>
+                          )}
+                          <div className="mt-3">
+                            <PdfDownloadButtonContentful
+                              mobilityServiceId={solution.id}
+                              fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
+                              contentType="mobilityService"
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 ) : (
                   <p className="text-gray-500">Geen mobiliteitsoplossingen geselecteerd.</p>
                 )}
