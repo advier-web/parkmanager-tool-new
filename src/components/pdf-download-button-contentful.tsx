@@ -307,9 +307,10 @@ export default function PdfDownloadButtonContentful({
               // Bereken beschikbare ruimte (iets minder breed door indent)
               const bulletText = item.trim();
               const hasBold = bulletText.includes('**') || bulletText.includes('__');
+              const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
               
-              if (hasBold) {
-                // Verbeterde methode voor bullets met bold tekst
+              if (hasBold || hasSpecialChars) {
+                // Verbeterde methode voor bullets met bold tekst of speciale tekens
                 // Parse de bold secties
                 const segments = [];
                 let currentText = '';
@@ -332,7 +333,7 @@ export default function PdfDownloadButtonContentful({
                   segments.push({ text: currentText, bold: isBold });
                 }
                 
-                // Verbeterde tekstweergave met respect voor regeleinden
+                // Verbeterde tekstweergave met respect voor regeleinden en speciale tekens
                 // Controleer eerst of het geheel op één regel past
                 const fullText = segments.map(s => s.text).join('');
                 const wrappedLines = pdf.splitTextToSize(fullText, 160); // Iets smallere breedte voor indentatie
@@ -343,8 +344,8 @@ export default function PdfDownloadButtonContentful({
                   for (const segment of segments) {
                     pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
                     
-                    // Check of het special tekens bevat
-                    const containsSpecialChars = segment.text.match(/[₂²≈]/);
+                    // Altijd controleren op speciale tekens
+                    const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
                     if (containsSpecialChars) {
                       // Speciale behandeling voor tekst met speciale tekens
                       // Render karakter voor karakter
@@ -359,7 +360,7 @@ export default function PdfDownloadButtonContentful({
                       startX += pdf.getTextWidth(segment.text);
                     }
                   }
-                  yPos += 4; // Verminderde ruimte voor één-regel bullets (was 6)
+                  yPos += 4; // Verminderde ruimte voor één-regel bullets
                 } else {
                   // Tekst moet over meerdere regels verdeeld worden
                   let lineY = yPos;
@@ -445,13 +446,37 @@ export default function PdfDownloadButtonContentful({
                   yPos = lineY + 6; // Verhoog de ruimte na de bullet significant (was lineY + 3)
                 }
               } else {
-                // Eenvoudige bullet zonder bold elementen
+                // Eenvoudige bullet zonder bold of speciale tekens
                 const lines = pdf.splitTextToSize(bulletText, 160);
-                pdf.text(lines, 25, yPos);
-                if (lines.length === 1) {
-                  yPos += 4; // Verminderde ruimte voor één-regel bullets
+                
+                // Check of tekst speciale tekens bevat, zelfs als er geen bold in zit
+                const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
+                
+                if (hasSpecialChars) {
+                  // Verwerk regels met speciale tekens
+                  let currentY = yPos;
+                  for (const line of lines) {
+                    let lineX = 25;
+                    const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                    for (const part of parts) {
+                      lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                    }
+                    currentY += 5; // Line height consistent houden
+                  }
+                  
+                  if (lines.length === 1) {
+                    yPos += 4; // Verminderde ruimte voor één-regel bullets
+                  } else {
+                    yPos += 5 * (lines.length - 1) + 6; // Behoud meer ruimte voor meerdere regels
+                  }
                 } else {
-                  yPos += lines.length * 5 + 6; // Behoud meer ruimte voor meerdere regels
+                  // Normale rendering zonder speciale tekens
+                  pdf.text(lines, 25, yPos);
+                  if (lines.length === 1) {
+                    yPos += 4; // Verminderde ruimte voor één-regel bullets
+                  } else {
+                    yPos += lines.length * 5 + 6; // Behoud meer ruimte voor meerdere regels
+                  }
                 }
               }
             }
@@ -689,8 +714,9 @@ export default function PdfDownloadButtonContentful({
                     
                     // Check voor bold tekst
                     const hasBold = item.includes('**') || item.includes('__');
+                    const hasSpecialChars = /[₂²≈₁₃₄]/g.test(item);
                     
-                    if (hasBold) {
+                    if (hasBold || hasSpecialChars) {
                       // Process bold formatting
                       let startX = 25;
                       const segments = [];
@@ -719,8 +745,8 @@ export default function PdfDownloadButtonContentful({
                       for (const segment of segments) {
                         pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
                         
-                        // Check of het special tekens bevat
-                        const containsSpecialChars = segment.text.match(/[₂²≈]/);
+                        // Altijd controleren op speciale tekens
+                        const containsSpecialChars = /[₂²≈₁₃₄]/g.test(segment.text);
                         if (containsSpecialChars) {
                           // Speciale behandeling voor tekst met speciale tekens
                           // Render karakter voor karakter
@@ -742,11 +768,35 @@ export default function PdfDownloadButtonContentful({
                       // Normale tekst zonder bold
                       const bulletText = formatBoldText(item.trim());
                       const lines = pdf.splitTextToSize(bulletText, 163);
-                      pdf.text(lines, 25, yPos);
-                      if (lines.length === 1) {
-                        yPos += 4; // Verminderde ruimte voor één-regel bullets
+                      
+                      // Check of bullet speciale tekens bevat
+                      const hasSpecialChars = /[₂²≈₁₃₄]/g.test(bulletText);
+                      
+                      if (hasSpecialChars) {
+                        // Verwerk regels met speciale tekens
+                        let currentY = yPos;
+                        for (const line of lines) {
+                          let lineX = 25;
+                          const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
+                          for (const part of parts) {
+                            lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                          }
+                          currentY += 5; // Line height consistent houden
+                        }
+                        
+                        if (lines.length === 1) {
+                          yPos += 4; // Verminderde ruimte voor één-regel bullets
+                        } else {
+                          yPos += 5 * (lines.length - 1) + 7; // Behoud meer ruimte voor meerdere regels
+                        }
                       } else {
-                        yPos += lines.length * 5 + 7; // Behoud meer ruimte voor meerdere regels
+                        // Normale rendering zonder speciale tekens
+                        pdf.text(lines, 25, yPos);
+                        if (lines.length === 1) {
+                          yPos += 4; // Verminderde ruimte voor één-regel bullets
+                        } else {
+                          yPos += lines.length * 5 + 7; // Behoud meer ruimte voor meerdere regels
+                        }
                       }
                     }
                   }
