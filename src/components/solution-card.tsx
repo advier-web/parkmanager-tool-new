@@ -1,5 +1,6 @@
 import { MobilitySolution, BusinessParkReason } from '../domain/models';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
@@ -10,6 +11,9 @@ interface SolutionCardProps {
 }
 
 export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo, selectedReasons = [] }: SolutionCardProps) {
+  // State om bij te houden welke tooltips zichtbaar zijn
+  const [visibleTooltips, setVisibleTooltips] = useState<Record<string, boolean>>({});
+  
   // Helper function om score te vinden voor een identifier (case-insensitief)
   const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
     if (!identifier) return 0;
@@ -62,9 +66,31 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
     return 0;
   };
   
+  // Toggle tooltip zichtbaarheid
+  const toggleTooltip = (reasonId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Voorkom dat de kaart wordt geselecteerd bij klikken op tooltip
+    setVisibleTooltips(prev => ({
+      ...prev,
+      [reasonId]: !prev[reasonId]
+    }));
+  };
+  
+  // Helper functie om verklarende tekst voor een score te genereren
+  const getExplanationText = (score: number, reasonIdentifier: string) => {
+    // Dit zouden we later kunnen vervangen door gegevens uit Contentful
+    if (score >= 7) {
+      return `Deze oplossing scoort hoog (${score}/10) voor ${reasonIdentifier} omdat het direct bijdraagt aan het verminderen van deze problematiek. De oplossing is bewezen effectief in soortgelijke situaties.`;
+    } else if (score >= 4) {
+      return `Deze oplossing scoort gemiddeld (${score}/10) voor ${reasonIdentifier} omdat het een gedeeltelijke bijdrage levert aan het verminderen van deze problematiek. De resultaten kunnen variëren afhankelijk van de implementatie.`;
+    } else {
+      return `Deze oplossing scoort laag (${score}/10) voor ${reasonIdentifier} omdat het maar een beperkte bijdrage levert aan het verminderen van deze problematiek. Er zijn mogelijk effectievere alternatieven beschikbaar.`;
+    }
+  };
+  
   // Render de score indicator voor een aanleiding
   const renderScoreIndicator = (reason: BusinessParkReason) => {
     const score = findScoreForIdentifier(solution, reason.identifier || '');
+    const isTooltipVisible = !!visibleTooltips[reason.id];
     
     let color = '';
     let label = '';
@@ -82,9 +108,24 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
     }
     
     return (
-      <div key={reason.id} className="flex items-center mt-2">
-        <div className={`w-3 h-3 rounded-full ${color} mr-2`}></div>
-        <span className="text-xs text-gray-600">{label}</span>
+      <div key={reason.id} className="mt-3">
+        <div className="flex items-center">
+          <div className={`w-3 h-3 rounded-full ${color} mr-2`}></div>
+          <span className="text-xs text-gray-600">{label}</span>
+          <button 
+            onClick={(e) => toggleTooltip(reason.id, e)}
+            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="Toon uitleg"
+          >
+            <InformationCircleIcon className="h-4 w-4" />
+          </button>
+        </div>
+        
+        {isTooltipVisible && (
+          <div className="ml-5 mt-2 p-3 bg-gray-50 text-xs text-gray-600 rounded border border-gray-200">
+            {getExplanationText(score, reason.identifier || reason.title)}
+          </div>
+        )}
       </div>
     );
   };
