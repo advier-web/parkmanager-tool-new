@@ -176,8 +176,8 @@ export default function PdfDownloadButtonContentful({
       
       // Helper functie voor het tekenen van tekst met speciale karakters
       const renderTextWithSpecialChars = (text: string, x: number, y: number, pdf: jsPDF): number => {
-        // Check of er speciale tekens in de tekst zitten
-        const hasSpecialChars = /[₂²≈]/g.test(text);
+        // Check of er speciale tekens in de tekst zitten (uitgebreid met meer speciale tekens)
+        const hasSpecialChars = /[₂²≈₁₃₄]/g.test(text);
         
         if (!hasSpecialChars) {
           // Normale rendering als er geen speciale tekens zijn
@@ -226,17 +226,53 @@ export default function PdfDownloadButtonContentful({
             if (segment.level === 1) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(16);
-              pdf.text(segment.content, 20, yPos);
+              
+              // Check op speciale tekens in headers
+              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
+              if (hasSpecialChars) {
+                // Render karakter voor karakter bij speciale tekens
+                let xPos = 20;
+                for (let char of segment.content) {
+                  pdf.text(char, xPos, yPos);
+                  xPos += pdf.getTextWidth(char);
+                }
+              } else {
+                pdf.text(segment.content, 20, yPos);
+              }
               yPos += 8;
             } else if (segment.level === 2) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(14);
-              pdf.text(segment.content, 20, yPos);
+              
+              // Check op speciale tekens in headers
+              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
+              if (hasSpecialChars) {
+                // Render karakter voor karakter bij speciale tekens
+                let xPos = 20;
+                for (let char of segment.content) {
+                  pdf.text(char, xPos, yPos);
+                  xPos += pdf.getTextWidth(char);
+                }
+              } else {
+                pdf.text(segment.content, 20, yPos);
+              }
               yPos += 7;
             } else if (segment.level === 3) {
               pdf.setFont('helvetica', 'bold');
               pdf.setFontSize(12);
-              pdf.text(segment.content, 20, yPos);
+              
+              // Check op speciale tekens in headers
+              const hasSpecialChars = /[₂²≈]/g.test(segment.content);
+              if (hasSpecialChars) {
+                // Render karakter voor karakter bij speciale tekens
+                let xPos = 20;
+                for (let char of segment.content) {
+                  pdf.text(char, xPos, yPos);
+                  xPos += pdf.getTextWidth(char);
+                }
+              } else {
+                pdf.text(segment.content, 20, yPos);
+              }
               yPos += 6;
             }
             
@@ -481,7 +517,7 @@ export default function PdfDownloadButtonContentful({
                   if (lineWidth + wordWidth > maxWidth) {
                     // Begin nieuwe regel - render met speciale tekens ondersteuning
                     let lineX = 20;
-                    const parts = currentLine.split(/([₂²≈])/g).filter(Boolean);
+                    const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
                     for (const part of parts) {
                       lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
                     }
@@ -506,7 +542,7 @@ export default function PdfDownloadButtonContentful({
               // Render laatste regel indien nodig
               if (currentLine) {
                 let lineX = 20;
-                const parts = currentLine.split(/([₂²≈])/g).filter(Boolean);
+                const parts = currentLine.split(/([₂²≈₁₃₄])/g).filter(Boolean);
                 for (const part of parts) {
                   lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
                 }
@@ -519,7 +555,7 @@ export default function PdfDownloadButtonContentful({
               const processedText = formatBoldText(segment.content);
               
               // Check of er speciale tekens in de tekst zitten
-              const hasSpecialChars = /[₂²≈]/g.test(processedText);
+              const hasSpecialChars = /[₂²≈₁₃₄]/g.test(processedText);
               
               if (hasSpecialChars) {
                 // Split de tekst op regels
@@ -529,21 +565,24 @@ export default function PdfDownloadButtonContentful({
                 let currentY = yPos;
                 for (const line of textLines) {
                   let lineX = 20;
-                  const parts = line.split(/([₂²≈])/g).filter(Boolean);
+                  const parts = line.split(/([₂²≈₁₃₄])/g).filter(Boolean);
                   for (const part of parts) {
                     lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
                   }
-                  currentY += 6;
+                  currentY += 6; // Consistente regelafstand van 6 punten
                 }
                 
-                yPos = currentY + 4; // Extra ruimte na paragrafen
+                yPos = currentY + 4; // Voeg consistente ruimte van 4 punten toe na elke paragraaf
               } else {
                 // Normale rendering zonder speciale tekens
                 const lines = pdf.splitTextToSize(processedText, 170);
                 pdf.text(lines, 20, yPos);
-                yPos += (lines.length * 6) + 4; // Extra ruimte na paragrafen
+                yPos += lines.length * 6; // Verwijder de extra 4 punten ruimte voor consistentie
               }
             }
+            
+            // Extra ruimte na paragrafen 
+            yPos += 4; // Voeg uniforme ruimte toe na alle paragrafen in governance sectie
           }
           
           // Paginawissel indien nodig
@@ -781,11 +820,11 @@ export default function PdfDownloadButtonContentful({
                     const processedText = formatBoldText(segment.content);
                     const lines = pdf.splitTextToSize(processedText, 170);
                     pdf.text(lines, 20, yPos);
-                    yPos += lines.length * 6;
+                    yPos += lines.length * 6; // Verwijder de extra 4 punten ruimte voor consistentie
                   }
                   
-                  // Extra ruimte na paragrafen
-                  yPos += 4;
+                  // Extra ruimte na paragrafen 
+                  yPos += 4; // Voeg uniforme ruimte toe na alle paragrafen in governance sectie
                 }
               }
             }
