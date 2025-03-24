@@ -48,11 +48,26 @@ export interface IMobilitySolutionFields {
   effecten?: string;
   investering?: string;
   governancemodellenToelichting?: string;
+  
+  // Rating fields
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;
   personeelszorg_en_behoud?: number;
   imago?: number;
   milieuverordening?: number;
+  
+  // Toelichting velden
+  parkeerBereikbaarheidsproblemenToelichting?: string;
+  waardeVastgoedToelichting?: string;
+  personeelszorgEnBehoudToelichting?: string;
+  vervoerkostenToelichting?: string;
+  gezondheidToelichting?: string;
+  gastvrijheidToelichting?: string;
+  imagoToelichting?: string;
+  milieuverordeningToelichting?: string;
+  bedrijfsverhuizingToelichting?: string;
+  energiebalansToelichting?: string;
+  
   governanceModels?: Array<{sys: {id: string}}>;
 }
 

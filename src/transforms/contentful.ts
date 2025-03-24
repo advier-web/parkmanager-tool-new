@@ -79,6 +79,18 @@ export function transformMobilitySolution(
     imago: 0,
     milieuverordening: 0,
     
+    // Toelichting velden van Contentful
+    parkeerBereikbaarheidsproblemenToelichting: typeof fields.parkeerBereikbaarheidsproblemenToelichting === 'string' ? fields.parkeerBereikbaarheidsproblemenToelichting : undefined,
+    waardeVastgoedToelichting: typeof fields.waardeVastgoedToelichting === 'string' ? fields.waardeVastgoedToelichting : undefined,
+    personeelszorgEnBehoudToelichting: typeof fields.personeelszorgEnBehoudToelichting === 'string' ? fields.personeelszorgEnBehoudToelichting : undefined,
+    vervoerkostenToelichting: typeof fields.vervoerkostenToelichting === 'string' ? fields.vervoerkostenToelichting : undefined,
+    gezondheidToelichting: typeof fields.gezondheidToelichting === 'string' ? fields.gezondheidToelichting : undefined,
+    gastvrijheidToelichting: typeof fields.gastvrijheidToelichting === 'string' ? fields.gastvrijheidToelichting : undefined,
+    imagoToelichting: typeof fields.imagoToelichting === 'string' ? fields.imagoToelichting : undefined,
+    milieuverordeningToelichting: typeof fields.milieuverordeningToelichting === 'string' ? fields.milieuverordeningToelichting : undefined,
+    bedrijfsverhuizingToelichting: typeof fields.bedrijfsverhuizingToelichting === 'string' ? fields.bedrijfsverhuizingToelichting : undefined,
+    energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
+    
     // Governance models references
     governanceModels: fields.governanceModels || undefined
   };
@@ -86,7 +98,7 @@ export function transformMobilitySolution(
   // Log alle velden uit Contentful voor debugging
   console.log('[TRANSFORM] Contentful fields for solution:');
   Object.entries(fields).forEach(([key, value]) => {
-    if (typeof value === 'number') {
+    if (typeof value === 'number' || typeof value === 'string') {
       console.log(`  ${key}: ${value} (type: ${typeof value})`);
     }
   });
