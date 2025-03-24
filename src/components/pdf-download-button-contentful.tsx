@@ -174,6 +174,26 @@ export default function PdfDownloadButtonContentful({
         }
       };
       
+      // Helper functie voor het tekenen van tekst met speciale karakters
+      const renderTextWithSpecialChars = (text: string, x: number, y: number, pdf: jsPDF): number => {
+        // Check of er speciale tekens in de tekst zitten
+        const hasSpecialChars = /[₂²≈]/g.test(text);
+        
+        if (!hasSpecialChars) {
+          // Normale rendering als er geen speciale tekens zijn
+          pdf.text(text, x, y);
+          return x + pdf.getTextWidth(text);
+        } else {
+          // Karakter voor karakter renderen bij speciale tekens
+          let currentX = x;
+          for (let char of text) {
+            pdf.text(char, currentX, y);
+            currentX += pdf.getTextWidth(char);
+          }
+          return currentX;
+        }
+      };
+      
       // Hoofdfunctie voor het toevoegen van een sectie
       const addSection = (title: string, content: string | undefined): void => {
         if (!content) return;
@@ -288,7 +308,7 @@ export default function PdfDownloadButtonContentful({
                     pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
                     
                     // Check of het special tekens bevat
-                    const containsSpecialChars = segment.text.match(/[²₂≈]/);
+                    const containsSpecialChars = segment.text.match(/[₂²≈]/);
                     if (containsSpecialChars) {
                       // Speciale behandeling voor tekst met speciale tekens
                       // Render karakter voor karakter
@@ -441,7 +461,7 @@ export default function PdfDownloadButtonContentful({
                 segments.push({ text: currentText, bold: isBold });
               }
               
-              // Render de segmenten met juiste font
+              // Render de segmenten met juiste font en speciale tekens ondersteuning
               let currentY = yPos;
               let lineWidth = 0;
               let currentLine = '';
@@ -449,18 +469,25 @@ export default function PdfDownloadButtonContentful({
               
               for (const segment of segments) {
                 pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
-                const segmentWidth = pdf.getTextWidth(segment.text);
                 
                 // Split indien nodig over meerdere regels
                 const words = segment.text.split(' ');
-                for (const word of words) {
-                  const wordWidth = pdf.getTextWidth(word + ' ');
+                for (let i = 0; i < words.length; i++) {
+                  const word = words[i];
+                  // Extra spatie toevoegen na elk woord behalve het laatste in een segment
+                  const wordWithSpace = i < words.length - 1 ? word + ' ' : word;
+                  const wordWidth = pdf.getTextWidth(wordWithSpace);
                   
                   if (lineWidth + wordWidth > maxWidth) {
-                    // Begin nieuwe regel
-                    pdf.text(currentLine, 20, currentY);
+                    // Begin nieuwe regel - render met speciale tekens ondersteuning
+                    let lineX = 20;
+                    const parts = currentLine.split(/([₂²≈])/g).filter(Boolean);
+                    for (const part of parts) {
+                      lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                    }
+                    
                     currentY += 6;
-                    currentLine = word + ' ';
+                    currentLine = wordWithSpace;
                     lineWidth = wordWidth;
                     
                     // Nieuwe pagina indien nodig
@@ -470,7 +497,7 @@ export default function PdfDownloadButtonContentful({
                     }
                   } else {
                     // Voeg toe aan huidige regel
-                    currentLine += word + ' ';
+                    currentLine += wordWithSpace;
                     lineWidth += wordWidth;
                   }
                 }
@@ -478,7 +505,11 @@ export default function PdfDownloadButtonContentful({
               
               // Render laatste regel indien nodig
               if (currentLine) {
-                pdf.text(currentLine, 20, currentY);
+                let lineX = 20;
+                const parts = currentLine.split(/([₂²≈])/g).filter(Boolean);
+                for (const part of parts) {
+                  lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                }
                 currentY += 6;
               }
               
@@ -486,9 +517,32 @@ export default function PdfDownloadButtonContentful({
             } else {
               // Normale paragraaf zonder bold
               const processedText = formatBoldText(segment.content);
-              const lines = pdf.splitTextToSize(processedText, 170);
-              pdf.text(lines, 20, yPos);
-              yPos += (lines.length * 6) + 4; // Extra ruimte na paragrafen
+              
+              // Check of er speciale tekens in de tekst zitten
+              const hasSpecialChars = /[₂²≈]/g.test(processedText);
+              
+              if (hasSpecialChars) {
+                // Split de tekst op regels
+                const textLines = pdf.splitTextToSize(processedText, 170);
+                
+                // Render elke regel met speciale tekens ondersteuning
+                let currentY = yPos;
+                for (const line of textLines) {
+                  let lineX = 20;
+                  const parts = line.split(/([₂²≈])/g).filter(Boolean);
+                  for (const part of parts) {
+                    lineX = renderTextWithSpecialChars(part, lineX, currentY, pdf);
+                  }
+                  currentY += 6;
+                }
+                
+                yPos = currentY + 4; // Extra ruimte na paragrafen
+              } else {
+                // Normale rendering zonder speciale tekens
+                const lines = pdf.splitTextToSize(processedText, 170);
+                pdf.text(lines, 20, yPos);
+                yPos += (lines.length * 6) + 4; // Extra ruimte na paragrafen
+              }
             }
           }
           
@@ -627,7 +681,7 @@ export default function PdfDownloadButtonContentful({
                         pdf.setFont('helvetica', segment.bold ? 'bold' : 'normal');
                         
                         // Check of het special tekens bevat
-                        const containsSpecialChars = segment.text.match(/[²₂≈]/);
+                        const containsSpecialChars = segment.text.match(/[₂²≈]/);
                         if (containsSpecialChars) {
                           // Speciale behandeling voor tekst met speciale tekens
                           // Render karakter voor karakter
