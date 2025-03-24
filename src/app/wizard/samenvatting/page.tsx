@@ -215,8 +215,10 @@ export default function SummaryPage() {
                 )}
               </section>
               
+              <hr className="my-8 border-gray-200" />
+              
               <section>
-                <h3 className="text-xl font-semibold mb-2">Geselecteerde aanleidingen</h3>
+                <h3 className="text-xl font-semibold mb-4 text-green-700">Geselecteerde aanleidingen</h3>
                 {selectedReasons.length > 0 && reasons ? (
                   <div className="space-y-6">
                     {reasons
@@ -237,8 +239,10 @@ export default function SummaryPage() {
                 )}
               </section>
               
+              <hr className="my-8 border-gray-200" />
+              
               <section>
-                <h3 className="text-xl font-semibold mb-2">Geselecteerde mobiliteitsoplossingen</h3>
+                <h3 className="text-xl font-semibold mb-4 text-blue-700">Geselecteerde mobiliteitsoplossingen</h3>
                 {selectedSolutions.length > 0 ? (
                   <div className="space-y-6">
                     {solutions
@@ -265,8 +269,10 @@ export default function SummaryPage() {
                 )}
               </section>
               
+              <hr className="my-8 border-gray-200" />
+              
               <section>
-                <h3 className="text-xl font-semibold mb-2">Gekozen governance model</h3>
+                <h3 className="text-xl font-semibold mb-4 text-purple-700">Gekozen governance model</h3>
                 {selectedGovernanceModel && governanceModels ? (
                   (() => {
                     const model = governanceModels.find(model => model.id === selectedGovernanceModel);
@@ -297,6 +303,8 @@ export default function SummaryPage() {
                   <p className="text-gray-500">Geen governance model geselecteerd.</p>
                 )}
               </section>
+              
+              <hr className="my-8 border-gray-200" />
               
               <section className="pt-6 border-t border-gray-200">
                 <h3 className="text-xl font-semibold mb-4">Uw gegevens</h3>
