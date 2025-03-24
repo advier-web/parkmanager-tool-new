@@ -9,19 +9,16 @@ interface PdfDownloadButtonContentfulProps {
   className?: string;
 }
 
-const PdfDownloadButtonContentful: React.FC<PdfDownloadButtonContentfulProps> = ({
+export default function PdfDownloadButtonContentful({
   mobilityServiceId,
   fileName,
   className
-}) => {
+}: PdfDownloadButtonContentfulProps) {
   return (
     <PdfDownloadButton
       mobilityServiceId={mobilityServiceId}
       fileName={fileName}
-      buttonText="Download als PDF"
       className={className}
     />
   );
-};
-
-export default PdfDownloadButtonContentful; 
+} 

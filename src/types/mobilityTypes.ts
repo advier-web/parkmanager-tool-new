@@ -1,11 +1,13 @@
 export interface GovernanceModel {
-  sys?: { id: string };
   title: string;
   description: string;
+  sys?: { id: string };
 }
 
 export interface MobilitySolution {
   title: string;
+  slug: string;
+  coverImage?: string;
   paspoort?: string;
   description?: string;
   collectiefVsIndiviueel?: string;
@@ -14,4 +16,5 @@ export interface MobilitySolution {
   implementatie?: string;
   governanceModels?: (GovernanceModel | string)[];
   governancemodellenToelichting?: string;
+  sys?: { id: string };
 } 

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Link } from '@react-pdf/renderer';
 import { GovernanceModel } from '../types/mobilityTypes';
@@ -200,7 +202,7 @@ interface PdfTemplateProps {
     effecten?: string;
     investering?: string;
     implementatie?: string;
-    governanceModels?: GovernanceModel[];
+    governanceModels?: (GovernanceModel | string)[];
     governancemodellenToelichting?: string;
   };
 }
@@ -262,12 +264,18 @@ const PdfTemplate: React.FC<PdfTemplateProps> = ({ data }) => {
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Governance Modellen</Text>
-        {data.governanceModels.map((model, index) => (
-          <View key={`gov-${index}`} style={{ marginBottom: 10 }}>
-            <Text style={styles.subsectionTitle}>{model.title}</Text>
-            {parseMarkdown(model.description)}
-          </View>
-        ))}
+        {data.governanceModels.map((model, index) => {
+          // Check of het een GovernanceModel object is
+          if (typeof model === 'object' && model !== null && 'title' in model && 'description' in model) {
+            return (
+              <View key={`gov-${index}`} style={{ marginBottom: 10 }}>
+                <Text style={styles.subsectionTitle}>{model.title}</Text>
+                {parseMarkdown(model.description)}
+              </View>
+            );
+          }
+          return null;
+        })}
       </View>
     );
   };
