@@ -44,14 +44,6 @@ export default function BusinessParkReasonsPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Categorieën</h3>
-              <p className="text-gray-600 text-sm">
-                De redenen zijn ingedeeld in categorieën om het overzicht te bewaren. 
-                U kunt redenen uit verschillende categorieën selecteren die voor uw situatie relevant zijn.
-              </p>
-            </div>
-
-            <div>
               <h3 className="text-lg font-semibold mb-2">Meerdere redenen</h3>
               <p className="text-gray-600 text-sm">
                 Selecteer gerust meerdere redenen als die van toepassing zijn. 
