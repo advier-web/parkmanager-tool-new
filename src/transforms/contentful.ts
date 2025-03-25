@@ -48,6 +48,53 @@ export function transformMobilitySolution(
   
   console.log(`[TRANSFORM] Processing mobility solution: ${fields.title}`);
   
+  // Debug logging voor velden
+  console.log('[TRANSFORM] Alle mobility solution velden:');
+  Object.keys(fields).forEach(key => {
+    // Extra debug info voor rechtsvorm velden en varianten
+    if (key.toLowerCase().includes('rechtsvorm') || 
+        key.toLowerCase().includes('vereniging') ||
+        key.toLowerCase().includes('stichting') ||
+        key.toLowerCase().includes('biz') ||
+        key.toLowerCase().includes('cooperatie') ||
+        key.toLowerCase().includes('bv') ||
+        key.toLowerCase().includes('fonds')) {
+      console.log(`  - ${key}: ${typeof fields[key]} = "${fields[key]}"`);
+    } else if (typeof fields[key] !== 'object') {
+      console.log(`  - ${key}: ${typeof fields[key]}`);
+    } else {
+      console.log(`  - ${key}: object/array`);
+    }
+  });
+  
+  // Helper functie om velden te vinden in verschillende formaten
+  const getField = (baseNames: string[]) => {
+    for (const baseName of baseNames) {
+      // Check camelCase (geenRechtsvorm)
+      if (fields[baseName]) return fields[baseName];
+      
+      // Check snake_case (geen_rechtsvorm)
+      const snakeCase = baseName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      if (fields[snakeCase]) return fields[snakeCase];
+      
+      // Check kebab-case (geen-rechtsvorm)
+      const kebabCase = baseName.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+      if (fields[kebabCase]) return fields[kebabCase];
+      
+      // Check andere variaties
+      const variations = [
+        baseName.toLowerCase(), 
+        baseName.toUpperCase(),
+        baseName.charAt(0).toUpperCase() + baseName.slice(1)
+      ];
+      
+      for (const variation of variations) {
+        if (fields[variation]) return fields[variation];
+      }
+    }
+    return undefined;
+  };
+  
   // Base solution object met standaard velden
   const solution: MobilitySolution = {
     id: entry.sys.id,
@@ -72,6 +119,17 @@ export function transformMobilitySolution(
     investering: typeof fields.investering === 'string' ? fields.investering : undefined,
     governancemodellenToelichting: typeof fields.governancemodellenToelichting === 'string' ? fields.governancemodellenToelichting : undefined,
     
+    // Rechtsvorm velden
+    geenRechtsvorm: getField(['geenRechtsvorm', 'geen_rechtsvorm', 'geen-rechtsvorm', 'GeenRechtsvorm']),
+    vereniging: getField(['vereniging', 'Vereniging']),
+    stichting: getField(['stichting', 'Stichting']),
+    ondernemersBiz: getField(['ondernemersBiz', 'ondernemers_biz', 'ondernemers-biz', 'OndernemersBiz']),
+    vastgoedBiz: getField(['vastgoedBiz', 'vastgoed_biz', 'vastgoed-biz', 'VastgoedBiz']),
+    gemengdeBiz: getField(['gemengdeBiz', 'gemengde_biz', 'gemengde-biz', 'GemengdeBiz']),
+    cooperatieUa: getField(['cooperatieUa', 'cooperatie_ua', 'cooperatie-ua', 'CooperatieUa']),
+    bv: getField(['bv', 'Bv', 'BV']),
+    ondernemersfonds: getField(['ondernemersfonds', 'Ondernemersfonds']),
+    
     // Rating fields (default 0)
     parkeer_bereikbaarheidsproblemen: 0,
     gezondheid: 0,
@@ -92,7 +150,9 @@ export function transformMobilitySolution(
     energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
     
     // Governance models references
-    governanceModels: fields.governanceModels || undefined
+    governanceModels: fields.governanceModels || undefined,
+    governanceModelsMits: fields.governanceModelsMits || undefined,
+    governanceModelsNietgeschikt: fields.governanceModelsNietgeschikt || undefined
   };
   
   // Log alle velden uit Contentful voor debugging
@@ -209,6 +269,52 @@ export function transformGovernanceModel(
   // Veiliger benadering met type assertions
   const fields = entry.fields as any;
   
+  // Debug logging voor governance model velden
+  console.log(`[TRANSFORM GOVERNANCE] Model: ${fields.title || 'Unnamed'} (ID: ${entry.sys.id})`);
+  console.log('[TRANSFORM GOVERNANCE] Available fields:');
+  Object.keys(fields).forEach(key => {
+    console.log(`  - ${key}: ${typeof fields[key]}`);
+    
+    // Extra debug info voor rechtsvorm velden en varianten
+    if (key.toLowerCase().includes('rechtsvorm') || 
+        key.toLowerCase().includes('vereniging') ||
+        key.toLowerCase().includes('stichting') ||
+        key.toLowerCase().includes('biz') ||
+        key.toLowerCase().includes('cooperatie') ||
+        key.toLowerCase().includes('bv') ||
+        key.toLowerCase().includes('fonds')) {
+      console.log(`    Value: "${fields[key]}"`);
+    }
+  });
+  
+  // Check veldnamen in verschillende formaten (camelCase, snake_case, kebab-case)
+  const getField = (baseNames: string[]) => {
+    for (const baseName of baseNames) {
+      // Check camelCase (geenRechtsvorm)
+      if (fields[baseName]) return fields[baseName];
+      
+      // Check snake_case (geen_rechtsvorm)
+      const snakeCase = baseName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      if (fields[snakeCase]) return fields[snakeCase];
+      
+      // Check kebab-case (geen-rechtsvorm)
+      const kebabCase = baseName.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+      if (fields[kebabCase]) return fields[kebabCase];
+      
+      // Check andere variaties
+      const variations = [
+        baseName.toLowerCase(), 
+        baseName.toUpperCase(),
+        baseName.charAt(0).toUpperCase() + baseName.slice(1)
+      ];
+      
+      for (const variation of variations) {
+        if (fields[variation]) return fields[variation];
+      }
+    }
+    return undefined;
+  };
+  
   return {
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : '',
@@ -226,11 +332,22 @@ export function transformGovernanceModel(
     samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
     benodigdhedenOprichting: fields.benodigdhedenOprichting || undefined,
-    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined, // Legacy veld, wordt uitgefaseerd
-    doorlooptijdLang: typeof fields.doorlooptijdLang === 'string' ? fields.doorlooptijdLang : undefined, // Nieuwe versie van doorlooptijd veld
+    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
+    doorlooptijdLang: typeof fields.doorlooptijdLang === 'string' ? fields.doorlooptijdLang : undefined,
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
     links: fields.links || undefined,
-    voorbeeldContracten: fields.voorbeeldContracten || undefined
+    voorbeeldContracten: fields.voorbeeldContracten || undefined,
+    
+    // Rechtsvorm velden met verschillende naming varianten
+    geenRechtsvorm: getField(['geenRechtsvorm', 'geen_rechtsvorm', 'geen-rechtsvorm', 'GeenRechtsvorm']),
+    vereniging: getField(['vereniging', 'Vereniging']),
+    stichting: getField(['stichting', 'Stichting']),
+    ondernemersBiz: getField(['ondernemersBiz', 'ondernemers_biz', 'ondernemers-biz', 'OndernemersBiz']),
+    vastgoedBiz: getField(['vastgoedBiz', 'vastgoed_biz', 'vastgoed-biz', 'VastgoedBiz']),
+    gemengdeBiz: getField(['gemengdeBiz', 'gemengde_biz', 'gemengde-biz', 'GemengdeBiz']),
+    cooperatieUa: getField(['cooperatieUa', 'cooperatie_ua', 'cooperatie-ua', 'CooperatieUa']),
+    bv: getField(['bv', 'Bv', 'BV']),
+    ondernemersfonds: getField(['ondernemersfonds', 'Ondernemersfonds'])
   };
 }
 

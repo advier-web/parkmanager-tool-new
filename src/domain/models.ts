@@ -37,6 +37,22 @@ export interface MobilitySolution {
   investering?: string;
   governancemodellenToelichting?: string;
   
+  // Rechtsvorm velden
+  geenRechtsvorm?: string;
+  vereniging?: string;
+  stichting?: string;
+  ondernemersBiz?: string;
+  vastgoedBiz?: string;
+  gemengdeBiz?: string;
+  cooperatieUa?: string;
+  bv?: string;
+  ondernemersfonds?: string;
+  
+  // Governance model referenties
+  governanceModels?: Array<{sys: {id: string}} | string>;
+  governanceModelsMits?: Array<{sys: {id: string}} | string>;
+  governanceModelsNietgeschikt?: Array<{sys: {id: string}} | string>;
+  
   // Rating fields (0-10)
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;
@@ -55,9 +71,6 @@ export interface MobilitySolution {
   milieuverordeningToelichting?: string;
   bedrijfsverhuizingToelichting?: string;
   energiebalansToelichting?: string;
-  
-  // Contentful reference to governance models
-  governanceModels?: Array<{sys: {id: string}} | string>;
 }
 
 // Governance modellen
@@ -82,6 +95,17 @@ export interface GovernanceModel {
   implementatie?: string;
   links?: any; // Can be rich text, string, or array
   voorbeeldContracten?: any[]; // Can be file assets or links
+  
+  // Rechtsvormen velden
+  geenRechtsvorm?: string;
+  vereniging?: string;
+  stichting?: string;
+  ondernemersBiz?: string;
+  vastgoedBiz?: string;
+  gemengdeBiz?: string;
+  cooperatieUa?: string;
+  bv?: string;
+  ondernemersfonds?: string;
 }
 
 // Implementatieplan

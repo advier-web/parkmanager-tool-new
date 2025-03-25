@@ -21,8 +21,10 @@ export default function GovernanceModelsPage() {
   // Access the dialog context
   const { openGovernanceDialog } = useDialog();
   
-  // State for storing recommended governance models based on selected solutions
+  // State for storing governance models based on categories
   const [recommendedModels, setRecommendedModels] = useState<string[]>([]);
+  const [conditionalRecommendedModels, setConditionalRecommendedModels] = useState<string[]>([]);
+  const [unsuitableModels, setUnsuitableModels] = useState<string[]>([]);
   
   // Get selected solution titles for display
   const selectedSolutionTitles = solutions
@@ -30,6 +32,32 @@ export default function GovernanceModelsPage() {
         .filter(solution => selectedSolutions.includes(solution.id))
         .map(solution => solution.title)
     : [];
+    
+  // Get the current selected mobility solution (eerste oplossing gebruiken voor rechtsvorm data)
+  const activeMobilitySolution = solutions && selectedSolutions.length > 0
+    ? solutions.find(solution => solution.id === selectedSolutions[0])
+    : null;
+    
+  // Log de actieve mobiliteitsoplossing
+  console.log('[WIZARD STAP 3] Active mobility solution:', activeMobilitySolution);
+  
+  // Haal rechtsvorm velden op uit de active mobility solution
+  const rechtsvormen = activeMobilitySolution
+    ? {
+        geenRechtsvorm: (activeMobilitySolution as any).geenRechtsvorm,
+        vereniging: (activeMobilitySolution as any).vereniging,
+        stichting: (activeMobilitySolution as any).stichting,
+        ondernemersBiz: (activeMobilitySolution as any).ondernemersBiz,
+        vastgoedBiz: (activeMobilitySolution as any).vastgoedBiz,
+        gemengdeBiz: (activeMobilitySolution as any).gemengdeBiz,
+        cooperatieUa: (activeMobilitySolution as any).cooperatieUa,
+        bv: (activeMobilitySolution as any).bv,
+        ondernemersfonds: (activeMobilitySolution as any).ondernemersfonds
+      }
+    : null;
+    
+  // Log de rechtsvorm velden
+  console.log('[WIZARD STAP 3] Rechtsvormen data:', rechtsvormen);
   
   // Check if a governance model is selected
   const hasSelectedModel = selectedGovernanceModel !== null;
@@ -38,16 +66,19 @@ export default function GovernanceModelsPage() {
   useEffect(() => {
     if (solutions && governanceModels) {
       const recommendedIds: string[] = [];
+      const conditionalIds: string[] = [];
+      const unsuitableIds: string[] = [];
       
       // For each selected solution, find the associated governance models
       selectedSolutions.forEach(solutionId => {
         const solution = solutions.find(s => s.id === solutionId);
         
-        // Check if the solution has governanceModels field (from Contentful)
-        if (solution && (solution as any).governanceModels) {
+        if (!solution) return;
+        
+        // Process standard recommended models
+        if ((solution as any).governanceModels) {
           const modelRefs = (solution as any).governanceModels;
           
-          // Add the model IDs to our recommended list
           if (Array.isArray(modelRefs)) {
             modelRefs.forEach(ref => {
               // Contentful references might be in format { sys: { id: 'xxx' } }
@@ -58,72 +89,100 @@ export default function GovernanceModelsPage() {
             });
           }
         }
+        
+        // Process conditional recommended models (mits)
+        if ((solution as any).governanceModelsMits) {
+          const modelRefs = (solution as any).governanceModelsMits;
+          
+          if (Array.isArray(modelRefs)) {
+            modelRefs.forEach(ref => {
+              const modelId = ref.sys?.id || ref;
+              if (modelId && !conditionalIds.includes(modelId) && !recommendedIds.includes(modelId)) {
+                conditionalIds.push(modelId);
+              }
+            });
+          }
+        }
+        
+        // Process unsuitable models
+        if ((solution as any).governanceModelsNietgeschikt) {
+          const modelRefs = (solution as any).governanceModelsNietgeschikt;
+          
+          if (Array.isArray(modelRefs)) {
+            modelRefs.forEach(ref => {
+              const modelId = ref.sys?.id || ref;
+              if (modelId && !unsuitableIds.includes(modelId) && !recommendedIds.includes(modelId) && !conditionalIds.includes(modelId)) {
+                unsuitableIds.push(modelId);
+              }
+            });
+          }
+        }
       });
       
       setRecommendedModels(recommendedIds);
+      setConditionalRecommendedModels(conditionalIds);
+      setUnsuitableModels(unsuitableIds);
+      
+      // Debug logging
+      console.log('[WIZARD STAP 3] Recommended models:', recommendedIds);
+      console.log('[WIZARD STAP 3] Conditional models:', conditionalIds);
+      console.log('[WIZARD STAP 3] Unsuitable models:', unsuitableIds);
     }
   }, [solutions, governanceModels, selectedSolutions]);
+  
+  // Find the current model from the governance models array
+  const currentModel = governanceModels?.find(model => model.id === currentGovernanceModelId) || null;
+  
+  // Check if the current model is also in the recommended list
+  const currentModelIsRecommended = currentModel ? recommendedModels.includes(currentModel.id) : false;
+  
+  // Get other recommended models (excluding the current model)
+  const getOtherRecommendedModels = () => {
+    if (!governanceModels) return [];
+    return governanceModels.filter(model => 
+      recommendedModels.includes(model.id) && model.id !== currentGovernanceModelId
+    );
+  };
+  
+  // Get conditional recommended models (mits)
+  const getConditionalRecommendedModels = () => {
+    if (!governanceModels) return [];
+    return governanceModels.filter(model => 
+      conditionalRecommendedModels.includes(model.id) && model.id !== currentGovernanceModelId
+    );
+  };
+  
+  // Get unsuitable models
+  const getUnsuitableModels = () => {
+    if (!governanceModels) return [];
+    return governanceModels.filter(model =>
+      unsuitableModels.includes(model.id) && model.id !== currentGovernanceModelId
+    );
+  };
+  
+  // Get all other models that don't fit in any category
+  const getOtherModels = () => {
+    if (!governanceModels) return [];
+    return governanceModels.filter(model => 
+      !recommendedModels.includes(model.id) && 
+      !conditionalRecommendedModels.includes(model.id) && 
+      !unsuitableModels.includes(model.id) &&
+      model.id !== currentGovernanceModelId
+    );
+  };
   
   // Handler for selecting a governance model
   const handleSelectModel = (modelId: string) => {
     setSelectedGovernanceModel(modelId);
   };
   
-  // Handler for showing more information
+  // Handler for showing more info about a governance model
   const handleShowMoreInfo = (model: GovernanceModel) => {
-    // Debug: Log the structure of the model to see how fields are stored
-    console.log('Opening dialog for model:', model);
-    // Vermijd circulaire structuren in logs
-    console.log('Model titel:', model.title);
-    console.log('Model beschrijving:', model.description);
-    
-    // Try to access fields directly
-    const voordelen = (model as any).voordelen;
-    const nadelen = (model as any).nadelen;
-    const benodigdheden = (model as any).benodigdhedenOprichting;
-    const links = (model as any).links;
-    
-    console.log('Direct field access:', {
-      voordelen: voordelen ? typeof voordelen : 'undefined',
-      nadelen: nadelen ? typeof nadelen : 'undefined',
-      benodigdheden: benodigdheden ? typeof benodigdheden : 'undefined',
-      links: links ? typeof links : 'undefined'
-    });
-    
-    // Open the governance dialog
     openGovernanceDialog(model);
   };
   
-  // Get the current governance model from step 0
-  const getCurrentGovernanceModel = () => {
-    if (!governanceModels || !currentGovernanceModelId) return null;
-    return governanceModels.find(model => model.id === currentGovernanceModelId);
-  };
-  
-  // Check if current governance model is recommended
-  const isCurrentModelRecommended = () => {
-    if (!currentGovernanceModelId) return false;
-    return recommendedModels.includes(currentGovernanceModelId);
-  };
-  
-  // Get recommended models except for the current one (if it's recommended)
-  const getOtherRecommendedModels = () => {
-    if (!governanceModels) return [];
-    return governanceModels.filter(model => 
-      recommendedModels.includes(model.id) && 
-      model.id !== currentGovernanceModelId
-    );
-  };
-  
-  // Get non-recommended models
-  const getNonRecommendedModels = () => {
-    if (!governanceModels) return [];
-    return governanceModels.filter(model => !recommendedModels.includes(model.id));
-  };
-  
+  // Determine if we're currently loading
   const isLoading = governanceLoading || solutionsLoading;
-  const currentModel = getCurrentGovernanceModel();
-  const currentModelIsRecommended = isCurrentModelRecommended();
   
   return (
     <div className="space-y-8">
@@ -224,7 +283,7 @@ export default function GovernanceModelsPage() {
               
               <GovernanceCard
                 key={currentModel.id}
-                model={currentModel}
+                model={rechtsvormen ? { ...currentModel, ...rechtsvormen } : currentModel}
                 isSelected={selectedGovernanceModel === currentModel.id}
                 onSelect={handleSelectModel}
                 isRecommended={currentModelIsRecommended}
@@ -245,7 +304,7 @@ export default function GovernanceModelsPage() {
                 {getOtherRecommendedModels().map(model => (
                   <GovernanceCard
                     key={model.id}
-                    model={model}
+                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={true}
@@ -256,22 +315,67 @@ export default function GovernanceModelsPage() {
             </div>
           )}
             
-          {/* Other Non-Recommended Governance Models Section */}
-          {!isLoading && getNonRecommendedModels().filter(model => model.id !== currentGovernanceModelId).length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
-              <div className="bg-yellow-50 p-4 rounded-md mb-6 border border-yellow-200">
-                <p className="text-amber-800">
+          {/* Conditional Recommended Governance Models Section */}
+          {!isLoading && getConditionalRecommendedModels().length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+              <h3 className="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Aanbevolen, mits...</h3>
+              <div className="bg-blue-50 p-4 rounded-md mb-6 border border-blue-200">
+                <p className="text-blue-800">
+                  Deze modellen zijn geschikt voor uw mobiliteitsoplossingen, maar vereisen extra aandacht of aanpassingen.
+                </p>
+              </div>
+              <div className="space-y-6">
+                {getConditionalRecommendedModels().map(model => (
+                  <GovernanceCard
+                    key={model.id}
+                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    isSelected={selectedGovernanceModel === model.id}
+                    onSelect={handleSelectModel}
+                    isRecommended={false}
+                    isConditionalRecommended={true}
+                    onMoreInfo={handleShowMoreInfo}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+            
+          {/* Unsuitable Governance Models Section */}
+          {!isLoading && getUnsuitableModels().length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+              <h3 className="text-xl font-semibold mb-4 text-red-700 border-b pb-2">Ongeschikte governance modellen</h3>
+              <div className="bg-red-50 p-4 rounded-md mb-6 border border-red-200">
+                <p className="text-red-800">
                   Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
                 </p>
               </div>
               <div className="space-y-6">
-                {getNonRecommendedModels()
-                  .filter(model => model.id !== currentGovernanceModelId)
-                  .map(model => (
+                {getUnsuitableModels().map(model => (
                   <GovernanceCard
                     key={model.id}
-                    model={model}
+                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    isSelected={selectedGovernanceModel === model.id}
+                    onSelect={handleSelectModel}
+                    isRecommended={false}
+                    onMoreInfo={handleShowMoreInfo}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Other Models Section - models that don't fit in any category */}
+          {!isLoading && getOtherModels().length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-even">
+              <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Deze modellen hebben geen specifieke aanbeveling voor de door u geselecteerde mobiliteitsoplossingen.
+              </p>
+              <div className="space-y-6">
+                {getOtherModels().map(model => (
+                  <GovernanceCard
+                    key={model.id}
+                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={false}
