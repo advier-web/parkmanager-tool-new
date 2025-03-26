@@ -221,15 +221,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             </div>
           </div>
           
-          {/* Toon scores voor geselecteerde aanleidingen */}
-          {selectedReasons.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 mb-1">Bijdrage aan geselecteerde aanleidingen:</p>
-              {selectedReasons.map(reason => renderScoreIndicator(reason))}
-            </div>
-          )}
-          
-          {/* Toon matching en niet-matching verkeer types */}
+          {/* Toon matching en niet-matching verkeer types - Now first */}
           {solution.typeVervoer && solution.typeVervoer.length > 0 && activeTrafficTypes.length > 0 && (
             <div className="mt-4 pt-3 border-t border-gray-100">
               <p className="text-sm font-medium text-gray-700 mb-1">Ondersteuning voor geselecteerde type vervoer:</p>
@@ -247,6 +239,14 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
                   );
                 })}
               </div>
+            </div>
+          )}
+          
+          {/* Toon scores voor geselecteerde aanleidingen - Now second */}
+          {selectedReasons.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-700 mb-1">Bijdrage aan geselecteerde aanleidingen:</p>
+              {selectedReasons.map(reason => renderScoreIndicator(reason))}
             </div>
           )}
           
