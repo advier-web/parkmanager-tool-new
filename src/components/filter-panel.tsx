@@ -36,7 +36,7 @@ export function FilterPanel({
       
       <div className="mb-4">
         <p className="text-sm text-gray-500 mb-2">
-          Filter de oplossingen op basis van verschillende aanleidingen om te zien welke oplossingen passen.
+          Gebruik onderstaande filters om de getoonde mobiliteitsoplossingen aan te passen op uw situatie
         </p>
       </div>
       
