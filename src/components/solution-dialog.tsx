@@ -257,13 +257,13 @@ export function SolutionDialog() {
                         <p className="text-sm text-gray-600 mb-4">
                           Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
                         </p>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {recommendedModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
-                              <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
+                              <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200 h-full flex flex-col">
                                 <div className="flex justify-between items-start">
-                                  <div>
+                                  <div className="flex-grow">
                                     <h4 className="font-medium">{model.title}</h4>
                                     {rechtsvormText ? (
                                       <div className="text-sm text-gray-600 mt-1">
@@ -273,7 +273,7 @@ export function SolutionDialog() {
                                       model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
                                     )}
                                   </div>
-                                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Aanbevolen
                                   </span>
                                 </div>
@@ -293,14 +293,14 @@ export function SolutionDialog() {
                             Deze modellen zijn geschikt voor uw mobiliteitsoplossingen, maar vereisen extra aandacht of aanpassingen.
                           </p>
                         </div>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {conditionalModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             console.log(`Rechtsvorm text voor ${model.title}:`, rechtsvormText);
                             return (
-                              <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                              <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
                                 <div className="flex justify-between items-start">
-                                  <div>
+                                  <div className="flex-grow">
                                     <h4 className="font-medium">{model.title}</h4>
                                     {rechtsvormText ? (
                                       <div className="text-sm text-gray-600 mt-1">
@@ -310,7 +310,7 @@ export function SolutionDialog() {
                                       model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
                                     )}
                                   </div>
-                                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Aanbevolen, mits...
                                   </span>
                                 </div>
@@ -330,13 +330,13 @@ export function SolutionDialog() {
                             Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
                           </p>
                         </div>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {unsuitableModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
-                              <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
+                              <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
                                 <div className="flex justify-between items-start">
-                                  <div>
+                                  <div className="flex-grow">
                                     <h4 className="font-medium">{model.title}</h4>
                                     {rechtsvormText ? (
                                       <div className="text-sm text-gray-600 mt-1">
@@ -346,7 +346,7 @@ export function SolutionDialog() {
                                       model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
                                     )}
                                   </div>
-                                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Niet geschikt
                                   </span>
                                 </div>
