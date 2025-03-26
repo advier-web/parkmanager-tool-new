@@ -231,7 +231,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
                   return (
                     <div key={type} className="flex items-center">
                       <div className={`w-3 h-3 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-2`}></div>
-                      <span className={`text-xs ${isMatch ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                      <span className="text-xs text-gray-600">
                         {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                       </span>
                     </div>
