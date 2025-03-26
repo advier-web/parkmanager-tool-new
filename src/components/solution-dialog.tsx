@@ -167,6 +167,35 @@ export function SolutionDialog() {
                   return <p className="text-gray-500 italic my-4">Geen governance modellen beschikbaar.</p>;
                 }
                 
+                // Helper functie om de juiste rechtsvorm tekst te bepalen voor een specifiek governance model
+                const getRechtsvormText = (model: any) => {
+                  // Eerst controleren of er een expliciete legalForm in het model staat
+                  if (model.legalForm) {
+                    const legalForm = model.legalForm.toLowerCase();
+                    if (legalForm.includes('vereniging')) return model.vereniging;
+                    if (legalForm.includes('stichting')) return model.stichting;
+                    if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return model.ondernemersBiz;
+                    if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return model.vastgoedBiz;
+                    if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return model.gemengdeBiz;
+                    if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return model.cooperatieUa;
+                    if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return model.bv;
+                    if (legalForm.includes('ondernemersfonds')) return model.ondernemersfonds;
+                  }
+                  
+                  // Als er geen match is op legalForm, dan matchen op titel
+                  const title = model.title.toLowerCase();
+                  if (title.includes('vereniging')) return model.vereniging;
+                  if (title.includes('stichting')) return model.stichting;
+                  if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return model.ondernemersBiz;
+                  if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return model.vastgoedBiz;
+                  if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return model.gemengdeBiz;
+                  if (title.includes('coöperatie') || title.includes('cooperatie')) return model.cooperatieUa;
+                  if (title.includes('bv') || title.includes('besloten vennootschap')) return model.bv;
+                  if (title.includes('ondernemersfonds')) return model.ondernemersfonds;
+                  
+                  return model.geenRechtsvorm;
+                };
+                
                 // Extract model IDs from different categories
                 const extractModelIds = (refs: any[] | undefined) => {
                   if (!Array.isArray(refs) || refs.length === 0) return [];
@@ -211,20 +240,32 @@ export function SolutionDialog() {
                     {recommendedModels.length > 0 && (
                       <div className="mb-6">
                         <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
+                        </p>
                         <div className="space-y-3">
-                          {recommendedModels.map((model) => (
-                            <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-medium">{model.title}</h4>
-                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                          {recommendedModels.map((model) => {
+                            const rechtsvormText = getRechtsvormText(model);
+                            return (
+                              <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-medium">{model.title}</h4>
+                                    {rechtsvormText ? (
+                                      <div className="text-sm text-gray-600 mt-1">
+                                        <p>{rechtsvormText}</p>
+                                      </div>
+                                    ) : (
+                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
+                                    )}
+                                  </div>
+                                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                    Aanbevolen
+                                  </span>
                                 </div>
-                                <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                  Aanbevolen
-                                </span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -233,20 +274,34 @@ export function SolutionDialog() {
                     {conditionalModels.length > 0 && (
                       <div className="mb-6">
                         <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
+                        <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
+                          <p className="text-blue-800">
+                            Deze modellen zijn geschikt voor uw mobiliteitsoplossingen, maar vereisen extra aandacht of aanpassingen.
+                          </p>
+                        </div>
                         <div className="space-y-3">
-                          {conditionalModels.map((model) => (
-                            <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-medium">{model.title}</h4>
-                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                          {conditionalModels.map((model) => {
+                            const rechtsvormText = getRechtsvormText(model);
+                            return (
+                              <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-medium">{model.title}</h4>
+                                    {rechtsvormText ? (
+                                      <div className="text-sm text-gray-600 mt-1">
+                                        <p>{rechtsvormText}</p>
+                                      </div>
+                                    ) : (
+                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
+                                    )}
+                                  </div>
+                                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                    Aanbevolen, mits...
+                                  </span>
                                 </div>
-                                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                  Aanbevolen, mits...
-                                </span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -255,20 +310,34 @@ export function SolutionDialog() {
                     {unsuitableModels.length > 0 && (
                       <div className="mb-6">
                         <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
+                        <div className="bg-red-50 p-4 rounded-md mb-4 border border-red-200">
+                          <p className="text-red-800">
+                            Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
+                          </p>
+                        </div>
                         <div className="space-y-3">
-                          {unsuitableModels.map((model) => (
-                            <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h4 className="font-medium">{model.title}</h4>
-                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                          {unsuitableModels.map((model) => {
+                            const rechtsvormText = getRechtsvormText(model);
+                            return (
+                              <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h4 className="font-medium">{model.title}</h4>
+                                    {rechtsvormText ? (
+                                      <div className="text-sm text-gray-600 mt-1">
+                                        <p>{rechtsvormText}</p>
+                                      </div>
+                                    ) : (
+                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
+                                    )}
+                                  </div>
+                                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                    Niet geschikt
+                                  </span>
                                 </div>
-                                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                  Niet geschikt
-                                </span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
