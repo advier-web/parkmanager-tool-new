@@ -224,7 +224,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
           {/* Toon matching en niet-matching verkeer types - Now first */}
           {solution.typeVervoer && solution.typeVervoer.length > 0 && activeTrafficTypes.length > 0 && (
             <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 mb-1">Ondersteuning voor geselecteerde type vervoer:</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">Geschikt voor geselecteerde type vervoer:</p>
               <div className="space-y-2 mt-2">
                 {activeTrafficTypes.map(type => {
                   const isMatch = solution.typeVervoer?.includes(type);
