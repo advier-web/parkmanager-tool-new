@@ -537,20 +537,6 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
-            {selectedReasons.length > 0 && (
-              <div className="bg-blue-50 p-4 rounded-md mb-6">
-                <h3 className="text-md font-semibold mb-2">Uw geselecteerde redenen:</h3>
-                <ul className="list-disc pl-5">
-                  {selectedReasons.map(reasonId => {
-                    const reason = reasons?.find(r => r.id === reasonId);
-                    return reason ? (
-                      <li key={reasonId} className="text-blue-800">{reason.title}</li>
-                    ) : null;
-                  })}
-                </ul>
-              </div>
-            )}
-            
             {filteredSolutions && filteredSolutions.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-600">Geen mobiliteitsoplossingen gevonden die aan uw criteria voldoen.</p>
