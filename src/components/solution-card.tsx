@@ -233,7 +233,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
                       <div className={`w-3 h-3 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-2`}></div>
                       <span className={`text-xs ${isMatch ? 'text-gray-600' : 'text-gray-400 italic'}`}>
                         {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                        {isMatch ? '' : ' (niet ondersteund)'}
                       </span>
                     </div>
                   );
