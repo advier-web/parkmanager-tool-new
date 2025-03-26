@@ -257,7 +257,7 @@ export function SolutionDialog() {
                         <p className="text-sm text-gray-600 mb-4">
                           Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {recommendedModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
@@ -293,7 +293,7 @@ export function SolutionDialog() {
                             Deze modellen zijn geschikt voor uw mobiliteitsoplossingen, maar vereisen extra aandacht of aanpassingen.
                           </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {conditionalModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             console.log(`Rechtsvorm text voor ${model.title}:`, rechtsvormText);
@@ -330,7 +330,7 @@ export function SolutionDialog() {
                             Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
                           </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {unsuitableModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
