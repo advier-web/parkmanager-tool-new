@@ -363,12 +363,17 @@ export default function MobilitySolutionsPage() {
         ? prev.filter(t => t !== type)
         : [...prev, type];
       
-      // Update the traffic types in the wizard store
-      updateTrafficTypes(newTrafficTypes);
-      
       return newTrafficTypes;
     });
   };
+  
+  // Update the store when activeTrafficTypes change
+  useEffect(() => {
+    // Only update the store if activeTrafficTypes has been initialized (not empty after first render)
+    if (activeTrafficTypes.length > 0 || businessParkInfo.trafficTypes?.length > 0) {
+      updateTrafficTypes(activeTrafficTypes);
+    }
+  }, [activeTrafficTypes, updateTrafficTypes]);
   
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
