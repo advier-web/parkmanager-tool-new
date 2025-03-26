@@ -7,6 +7,7 @@ import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask,
 import ReactMarkdown from 'react-markdown';
 import { useEffect } from 'react';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
+import { Accordion } from '../../../components/accordion';
 
 // Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
 const MarkdownContentLegacy = ({ content }: { content: string }) => {
@@ -328,7 +329,7 @@ export default function ImplementationPlanPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Mobiliteitsoplossingen</h3>
+              <h3 className="text-lg font-semibold mb-2">Mobiliteitsoplossing</h3>
               <p className="text-gray-600 text-sm">
                 Voor elke gekozen mobiliteitsoplossing ziet u specifieke implementatiestappen. Deze zijn 
                 gebaseerd op praktijkervaring en helpen u bij een succesvolle uitrol.
@@ -400,290 +401,291 @@ export default function ImplementationPlanPage() {
           {!isLoading && !error && selectedGovernanceModelData && (
             /* Implementatieplan voor bestuursmodel sectie */
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-              <h3 className="text-xl font-bold mb-4 border-b pb-2">
-                {isSameAsCurrentModel 
-                  ? "Governance model" 
-                  : `Implementatieplan ${selectedGovernanceModelData.title}`}
-              </h3>
-              
-              {isSameAsCurrentModel ? (
-                <div className="mb-6 bg-green-50 p-4 rounded-md border border-green-200">
-                  <h4 className="text-lg font-semibold text-green-800 mb-2">
-                    Implementatie niet nodig
-                  </h4>
-                  <p className="text-green-700">
-                    U heeft als bestuursmodel gekozen voor de rechtsvorm die momenteel al in gebruik is. 
-                    Er zijn daarom geen implementatiestappen nodig voor het governance model. 
-                    U kunt direct overgaan tot de implementatie van de gekozen mobiliteitsoplossingen.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Debug info - remove in production */}
-                  <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
-                    <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
-                    <p>Links:</p>
-                    <pre>
-                      hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
-                      linksType: {selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined'}
-                      isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
-                      length: {selectedGovernanceModelData.links ? 
-                        (Array.isArray(selectedGovernanceModelData.links) ? 
-                          selectedGovernanceModelData.links.length.toString() : 
-                          'not an array') : 
-                        '0'}
-                    </pre>
-                    
-                    <p className="mt-2">Benodigdheden:</p>
-                    <pre>
-                      hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
-                      benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
-                        ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
-                        : 'undefined'}
-                      isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
-                      length: {selectedGovernanceModelData.benodigdhedenOprichting 
-                        ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
-                          ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
-                          : 'not an array') 
-                        : '0'}
-                    </pre>
+              <Accordion 
+                title={isSameAsCurrentModel ? "Implementatieplan governance model" : `Implementatieplan ${selectedGovernanceModelData.title}`}
+                defaultOpen={false}
+                icon={<BiTask className="text-blue-600 text-xl" />}
+              >
+                {isSameAsCurrentModel ? (
+                  <div className="mb-6 bg-green-50 p-4 rounded-md border border-green-200">
+                    <h4 className="text-lg font-semibold text-green-800 mb-2">
+                      Implementatie niet nodig
+                    </h4>
+                    <p className="text-green-700">
+                      U heeft als bestuursmodel gekozen voor de rechtsvorm die momenteel al in gebruik is. 
+                      Er zijn daarom geen implementatiestappen nodig voor het governance model. 
+                      U kunt direct overgaan tot de implementatie van de gekozen mobiliteitsoplossingen.
+                    </p>
                   </div>
-                  
-                  {/* Debug info - remove in production */}
-                  <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
-                    <h5 className="font-bold">Debug Info - Benodigdheden voor Oprichting</h5>
-                    <p>Type: {typeof selectedGovernanceModelData.benodigdhedenOprichting}</p>
-                    {selectedGovernanceModelData.benodigdhedenOprichting && (
-                      <p>Structure: {
-                        typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
-                          ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType || 'unknown'}`
-                          : 'Not a rich text object'
-                      }</p>
-                    )}
+                ) : (
+                  <>
+                    {/* Debug info - remove in production */}
+                    <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
+                      <h5 className="font-bold">Debug Info (always visible for troubleshooting)</h5>
+                      <p>Links:</p>
+                      <pre>
+                        hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
+                        linksType: {selectedGovernanceModelData.links ? typeof selectedGovernanceModelData.links : 'undefined'}
+                        isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
+                        length: {selectedGovernanceModelData.links ? 
+                          (Array.isArray(selectedGovernanceModelData.links) ? 
+                            selectedGovernanceModelData.links.length.toString() : 
+                            'not an array') : 
+                          '0'}
+                      </pre>
+                      
+                      <p className="mt-2">Benodigdheden:</p>
+                      <pre>
+                        hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
+                        benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
+                          : 'undefined'}
+                        isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
+                        length: {selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
+                            ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
+                            : 'not an array') 
+                          : '0'}
+                      </pre>
+                    </div>
                     
-                    <p className="mt-2">Links info:</p>
-                    <pre>
-                      hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
-                      linksType: {typeof selectedGovernanceModelData.links}
-                      isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
-                      length: {selectedGovernanceModelData.links ? 
-                        (Array.isArray(selectedGovernanceModelData.links) ? 
-                          selectedGovernanceModelData.links.length.toString() : 
-                          'not an array') : 
-                        '0'}
-                    </pre>
-                    
-                    <p className="mt-2">Benodigdheden:</p>
-                    <pre>
-                      hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
-                      benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
-                        ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
-                        : 'undefined'}
-                      isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
-                      length: {selectedGovernanceModelData.benodigdhedenOprichting 
-                        ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
-                          ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
-                          : 'not an array') 
-                        : '0'}
-                    </pre>
+                    {/* Debug info - remove in production */}
+                    <div className="mb-4 bg-gray-100 p-4 rounded text-xs" style={{ display: SHOW_DEBUG ? 'block' : 'none' }}>
+                      <h5 className="font-bold">Debug Info - Benodigdheden voor Oprichting</h5>
+                      <p>Type: {typeof selectedGovernanceModelData.benodigdhedenOprichting}</p>
+                      {selectedGovernanceModelData.benodigdhedenOprichting && (
+                        <p>Structure: {
+                          typeof selectedGovernanceModelData.benodigdhedenOprichting === 'object' 
+                            ? `Object with nodeType: ${(selectedGovernanceModelData.benodigdhedenOprichting as any).nodeType || 'unknown'}`
+                            : 'Not a rich text object'
+                        }</p>
+                      )}
+                      
+                      <p className="mt-2">Links info:</p>
+                      <pre>
+                        hasLinks: {selectedGovernanceModelData.links ? 'true' : 'false'}
+                        linksType: {typeof selectedGovernanceModelData.links}
+                        isArray: {Array.isArray(selectedGovernanceModelData.links) ? 'true' : 'false'}
+                        length: {selectedGovernanceModelData.links ? 
+                          (Array.isArray(selectedGovernanceModelData.links) ? 
+                            selectedGovernanceModelData.links.length.toString() : 
+                            'not an array') : 
+                          '0'}
+                      </pre>
+                      
+                      <p className="mt-2">Benodigdheden:</p>
+                      <pre>
+                        hasBenodigdheden: {selectedGovernanceModelData.benodigdhedenOprichting ? 'true' : 'false'}
+                        benodigdhedenType: {selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? typeof selectedGovernanceModelData.benodigdhedenOprichting 
+                          : 'undefined'}
+                        isArray: {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) ? 'true' : 'false'}
+                        length: {selectedGovernanceModelData.benodigdhedenOprichting 
+                          ? (Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) 
+                            ? selectedGovernanceModelData.benodigdhedenOprichting.length.toString()
+                            : 'not an array') 
+                          : '0'}
+                      </pre>
 
-                    {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) && (
-                      <div className="mt-2 border-t pt-2">
-                        <p>Benodigdheden Array Items:</p>
-                        <ul>
-                          {selectedGovernanceModelData.benodigdhedenOprichting.slice(0, 3).map((item, idx) => (
-                            <li key={idx}>Item {idx}: {typeof item} - {
-                              typeof item === 'string' ? 
-                                item.substring(0, 50) + (item.length > 50 ? '...' : '') : 
-                                'Non-string item'
-                            }</li>
-                          ))}
-                          {selectedGovernanceModelData.benodigdhedenOprichting.length > 3 && (
-                            <li>...and {selectedGovernanceModelData.benodigdhedenOprichting.length - 3} more items</li>
-                          )}
-                        </ul>
+                      {Array.isArray(selectedGovernanceModelData.benodigdhedenOprichting) && (
+                        <div className="mt-2 border-t pt-2">
+                          <p>Benodigdheden Array Items:</p>
+                          <ul>
+                            {selectedGovernanceModelData.benodigdhedenOprichting.slice(0, 3).map((item, idx) => (
+                              <li key={idx}>Item {idx}: {typeof item} - {
+                                typeof item === 'string' ? 
+                                  item.substring(0, 50) + (item.length > 50 ? '...' : '') : 
+                                  'Non-string item'
+                              }</li>
+                            ))}
+                            {selectedGovernanceModelData.benodigdhedenOprichting.length > 3 && (
+                              <li>...and {selectedGovernanceModelData.benodigdhedenOprichting.length - 3} more items</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Samenvatting */}
+                    {selectedGovernanceModelData.samenvatting && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiInfoCircle className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Samenvatting</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.samenvatting)}
+                        </div>
                       </div>
                     )}
-                  </div>
-                  
-                  {/* Samenvatting */}
-                  {selectedGovernanceModelData.samenvatting && (
+                    
+                    {/* Aansprakelijkheid */}
+                    {selectedGovernanceModelData.aansprakelijkheid && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiCheckShield className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.aansprakelijkheid)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Benodigdheden Oprichting */}
                     <div className="mb-6">
                       <div className="flex items-center mb-2">
-                        <BiInfoCircle className="text-blue-600 text-xl mr-2" />
-                        <h4 className="text-lg font-semibold">Samenvatting</h4>
+                        <BiListCheck className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
                       </div>
+                      
                       <div className="text-gray-700 pl-7">
-                        {renderRichContent(selectedGovernanceModelData.samenvatting)}
+                        {selectedGovernanceModelData.benodigdhedenOprichting ? 
+                          renderRichContent(selectedGovernanceModelData.benodigdhedenOprichting) :
+                          <p className="text-gray-500 italic">Geen benodigdheden beschikbaar</p>
+                        }
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Aansprakelijkheid */}
-                  {selectedGovernanceModelData.aansprakelijkheid && (
-                    <div className="mb-6">
-                      <div className="flex items-center mb-2">
-                        <BiCheckShield className="text-blue-600 text-xl mr-2" />
-                        <h4 className="text-lg font-semibold">Aansprakelijkheid</h4>
-                      </div>
-                      <div className="text-gray-700 pl-7">
-                        {renderRichContent(selectedGovernanceModelData.aansprakelijkheid)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Benodigdheden Oprichting */}
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiListCheck className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Benodigdheden voor oprichting</h4>
                     </div>
                     
-                    <div className="text-gray-700 pl-7">
-                      {selectedGovernanceModelData.benodigdhedenOprichting ? 
-                        renderRichContent(selectedGovernanceModelData.benodigdhedenOprichting) :
-                        <p className="text-gray-500 italic">Geen benodigdheden beschikbaar</p>
-                      }
-                    </div>
-                  </div>
-                  
-                  {/* Doorlooptijd */}
-                  {(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd) && (
-                    <div className="border-b border-gray-200 pb-6 mb-6">
-                      <h4 className="text-lg font-semibold">Doorlooptijd</h4>
-                      <div className="mt-2">
-                        {renderRichContent(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd)}
+                    {/* Doorlooptijd */}
+                    {(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd) && (
+                      <div className="border-b border-gray-200 pb-6 mb-6">
+                        <h4 className="text-lg font-semibold">Doorlooptijd</h4>
+                        <div className="mt-2">
+                          {renderRichContent(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd)}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Implementatie */}
-                  {selectedGovernanceModelData.implementatie && (
+                    )}
+                    
+                    {/* Implementatie */}
+                    {selectedGovernanceModelData.implementatie && (
+                      <div className="mb-6">
+                        <div className="flex items-center mb-2">
+                          <BiTask className="text-blue-600 text-xl mr-2" />
+                          <h4 className="text-lg font-semibold">Implementatie</h4>
+                        </div>
+                        <div className="text-gray-700 pl-7">
+                          {renderRichContent(selectedGovernanceModelData.implementatie)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Links - Always show this section */}
                     <div className="mb-6">
                       <div className="flex items-center mb-2">
-                        <BiTask className="text-blue-600 text-xl mr-2" />
-                        <h4 className="text-lg font-semibold">Implementatie</h4>
+                        <BiLinkExternal className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Links</h4>
                       </div>
+                      
                       <div className="text-gray-700 pl-7">
-                        {renderRichContent(selectedGovernanceModelData.implementatie)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Links - Always show this section */}
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiLinkExternal className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Links</h4>
-                    </div>
-                    
-                    <div className="text-gray-700 pl-7">
-                      {selectedGovernanceModelData.links ? (
-                        // Speciale styling voor links
-                        Array.isArray(selectedGovernanceModelData.links) ? (
-                          <ul className="list-disc pl-5">
-                            {selectedGovernanceModelData.links.map((link, index) => {
-                              // Check if it's a URL string
-                              if (typeof link === 'string' && link.match(/^https?:\/\//)) {
-                                return (
-                                  <li key={index}>
-                                    <a 
-                                      href={link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer" 
-                                      className="text-blue-600 hover:underline font-medium"
-                                    >
-                                      {link}
-                                    </a>
-                                  </li>
-                                );
-                              } else {
-                                return <li key={index}>{renderRichContent(link)}</li>;
-                              }
-                            })}
-                          </ul>
+                        {selectedGovernanceModelData.links ? (
+                          // Speciale styling voor links
+                          Array.isArray(selectedGovernanceModelData.links) ? (
+                            <ul className="list-disc pl-5">
+                              {selectedGovernanceModelData.links.map((link, index) => {
+                                // Check if it's a URL string
+                                if (typeof link === 'string' && link.match(/^https?:\/\//)) {
+                                  return (
+                                    <li key={index}>
+                                      <a 
+                                        href={link} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="text-blue-600 hover:underline font-medium"
+                                      >
+                                        {link}
+                                      </a>
+                                    </li>
+                                  );
+                                } else {
+                                  return <li key={index}>{renderRichContent(link)}</li>;
+                                }
+                              })}
+                            </ul>
+                          ) : (
+                            renderRichContent(selectedGovernanceModelData.links)
+                          )
                         ) : (
-                          renderRichContent(selectedGovernanceModelData.links)
-                        )
-                      ) : (
-                        <p className="text-gray-500 italic">Geen links beschikbaar</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Voorbeeld Contracten */}
-                  <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                      <BiFile className="text-blue-600 text-xl mr-2" />
-                      <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
+                          <p className="text-gray-500 italic">Geen links beschikbaar</p>
+                        )}
+                      </div>
                     </div>
                     
-                    <div className="text-gray-700 pl-7">
-                      {selectedGovernanceModelData.voorbeeldContracten ? (
-                        // Speciale styling voor documenten
-                        Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? (
-                          <ul className="list-disc pl-5">
-                            {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => {
-                              // Check if it's a file asset
-                              if (contract && contract.fields && contract.fields.file) {
-                                const url = contract.fields.file.url.startsWith('//') 
-                                  ? `https:${contract.fields.file.url}` 
-                                  : contract.fields.file.url;
-                                
-                                const title = contract.fields.title || contract.fields.description || `Contract ${index + 1}`;
-                                
-                                return (
-                                  <li key={index}>
-                                    <a 
-                                      href={url} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer" 
-                                      className="text-blue-600 hover:underline font-medium flex items-center"
-                                    >
-                                      <BiFile className="text-blue-600 mr-1" /> {title}
-                                    </a>
-                                  </li>
-                                );
-                              } else {
-                                return <li key={index}>{renderRichContent(contract)}</li>;
-                              }
-                            })}
-                          </ul>
+                    {/* Voorbeeld Contracten */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-2">
+                        <BiFile className="text-blue-600 text-xl mr-2" />
+                        <h4 className="text-lg font-semibold">Voorbeeld Contracten</h4>
+                      </div>
+                      
+                      <div className="text-gray-700 pl-7">
+                        {selectedGovernanceModelData.voorbeeldContracten ? (
+                          // Speciale styling voor documenten
+                          Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? (
+                            <ul className="list-disc pl-5">
+                              {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => {
+                                // Check if it's a file asset
+                                if (contract && contract.fields && contract.fields.file) {
+                                  const url = contract.fields.file.url.startsWith('//') 
+                                    ? `https:${contract.fields.file.url}` 
+                                    : contract.fields.file.url;
+                                  
+                                  const title = contract.fields.title || contract.fields.description || `Contract ${index + 1}`;
+                                  
+                                  return (
+                                    <li key={index}>
+                                      <a 
+                                        href={url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="text-blue-600 hover:underline font-medium flex items-center"
+                                      >
+                                        <BiFile className="text-blue-600 mr-1" /> {title}
+                                      </a>
+                                    </li>
+                                  );
+                                } else {
+                                  return <li key={index}>{renderRichContent(contract)}</li>;
+                                }
+                              })}
+                            </ul>
+                          ) : (
+                            renderRichContent(selectedGovernanceModelData.voorbeeldContracten)
+                          )
                         ) : (
-                          renderRichContent(selectedGovernanceModelData.voorbeeldContracten)
-                        )
-                      ) : (
-                        <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
-                      )}
+                          <p className="text-gray-500 italic">Geen voorbeeldcontracten beschikbaar</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </Accordion>
             </div>
           )}
           
           {!isLoading && !error && selectedSolutionsData.length > 0 && (
             /* Implementatieplan voor mobiliteitsoplossingen sectie */
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-              <h3 className="text-xl font-bold mb-4 border-b pb-2">Implementatieplan mobiliteitsoplossingen</h3>
-              
               {selectedSolutionsData.map(solution => (
-                <div key={solution.id} className="mb-6 border-l-4 border-blue-200 pl-4">
-                  <h4 className="text-lg font-medium mb-2">{solution.title}</h4>
-                  
-                  <div>
+                <Accordion 
+                  key={solution.id}
+                  title={`Implementatieplan ${solution.title}`}
+                  defaultOpen={false}
+                  icon={<BiTask className="text-blue-600 text-xl" />}
+                >
+                  <div className="text-gray-700">
                     <div className="flex items-center mb-2">
                       <BiTask className="text-blue-600 text-xl mr-2" />
                       <h5 className="font-semibold">Implementatie</h5>
                     </div>
-                    <div className="text-gray-700 pl-7">
+                    <div className="pl-7">
                       {solution.implementatie ? 
                         renderRichContent(solution.implementatie) :
                         <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
                       }
                     </div>
                   </div>
-                </div>
+                </Accordion>
               ))}
             </div>
           )}

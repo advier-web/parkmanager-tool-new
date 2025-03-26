@@ -1,37 +1,37 @@
 import { useState } from 'react';
+import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
+  defaultOpen?: boolean;
+  icon?: React.ReactNode;
 }
 
-export function Accordion({ title, children }: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export const Accordion = ({ title, children, defaultOpen = false, icon }: AccordionProps) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-gray-200 rounded-md mb-4 overflow-hidden">
+    <div className="border-b border-gray-200 last:border-b-0">
       <button
-        className="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors"
+        className="w-full flex items-center justify-between py-2.5 text-left"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
       >
-        <span className="font-medium text-left">{title}</span>
-        <svg 
-          className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24" 
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      
-      {isOpen && (
-        <div className="px-6 py-5 bg-white">
-          {children}
+        <div className="flex items-center">
+          {icon && <span className="mr-2">{icon}</span>}
+          <h3 className="text-xl font-bold">{title}</h3>
         </div>
-      )}
+        <span className="text-2xl">
+          {isOpen ? <BiChevronUp /> : <BiChevronDown />}
+        </span>
+      </button>
+      <div
+        className={`transition-all duration-300 ease-in-out ${
+          isOpen ? 'opacity-100 mb-6' : 'h-0 opacity-0 overflow-hidden'
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
-} 
+}; 
