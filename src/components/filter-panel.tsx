@@ -40,7 +40,7 @@ export function FilterPanel({
         </p>
       </div>
       
-      <div className="mb-6 border-b border-gray-200 pb-4">
+      <div className="mb-6 pb-4">
         <h4 className="font-medium text-sm text-gray-700 mb-2">Type vervoer</h4>
         <div className="space-y-2">
           {Object.values(TrafficType).map((type) => (
@@ -73,7 +73,7 @@ export function FilterPanel({
       <div className="space-y-4">
         {Object.entries(reasonsByCategory).map(([category, categoryReasons]) => (
           <div key={category} className="border-t border-gray-200 pt-3">
-            <h4 className="font-medium text-sm text-gray-700 mb-2 capitalize">{category}</h4>
+            <h4 className="font-medium text-sm text-gray-700 mb-2 capitalize">{category === 'Overig' ? 'Aanleidingen' : category}</h4>
             <ul className="space-y-2">
               {categoryReasons.map(reason => {
                 const isSelected = selectedReasonIds.includes(reason.id);
