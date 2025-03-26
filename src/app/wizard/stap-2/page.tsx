@@ -557,27 +557,6 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
-            {/* Sorting explanation */}
-            {filteredSolutions && filteredSolutions.length > 0 && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium mb-2">Hoe worden oplossingen gesorteerd?</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-blue-100 mr-2"></div>
-                    <span className="text-xs text-gray-600">Match op type vervoer</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-orange-100 mr-2"></div>
-                    <span className="text-xs text-gray-600">Match op aanleidingen</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-100 mr-2"></div>
-                    <span className="text-xs text-gray-600">Match op beide criteria</span>
-                  </div>
-                </div>
-              </div>
-            )}
-            
             {/* Display solutions */}
             <div className="grid grid-cols-1 gap-6 mt-8">
               {!filteredSolutions || isLoadingSolutions ? (
