@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { WizardState, BusinessParkInfo } from '../domain/models';
+import { WizardState, BusinessParkInfo, TrafficType } from '../domain/models';
 
 // Initial state for the wizard
 const initialState: WizardState = {
@@ -24,6 +24,7 @@ interface WizardStore extends WizardState {
   // Stap 0: Bedrijventerrein informatie
   setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void;
   setCurrentGovernanceModel: (modelId: string | null) => void;
+  updateTrafficTypes: (trafficTypes: TrafficType[]) => void;
   
   // Stap 1: Bedrijfsterrein-redenen
   setSelectedReasons: (reasons: string[]) => void;
@@ -57,6 +58,9 @@ export const useWizardStore = create<WizardStore>()(
         businessParkInfo: { ...state.businessParkInfo, ...info }
       })),
       setCurrentGovernanceModel: (modelId) => set({ currentGovernanceModelId: modelId }),
+      updateTrafficTypes: (trafficTypes) => set((state) => ({
+        businessParkInfo: { ...state.businessParkInfo, trafficTypes }
+      })),
       
       // Stap 1: Bedrijfsterrein-redenen
       setSelectedReasons: (reasons) => set({ selectedReasons: reasons }),

@@ -240,7 +240,7 @@ export default function BusinessParkInfoPage() {
                           htmlFor={`traffic-${type}`}
                           className="ml-3 block text-sm text-gray-700 capitalize"
                         >
-                          {type}
+                          {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                         </label>
                       </div>
                     ))}

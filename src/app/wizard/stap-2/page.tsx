@@ -143,7 +143,8 @@ export default function MobilitySolutionsPage() {
     toggleSolution, 
     setSelectedSolutions, 
     resetWizard,
-    businessParkInfo  // Add this to get traffic types
+    businessParkInfo,  // Add this to get traffic types
+    updateTrafficTypes
   } = useWizardStore();
   
   // Fetch mobility solutions and reasons data
@@ -358,9 +359,14 @@ export default function MobilitySolutionsPage() {
   const handleTrafficTypeFilterChange = (type: TrafficType) => {
     setActiveTrafficTypes(prev => {
       // Toggle the filter
-      return prev.includes(type)
+      const newTrafficTypes = prev.includes(type)
         ? prev.filter(t => t !== type)
         : [...prev, type];
+      
+      // Update the traffic types in the wizard store
+      updateTrafficTypes(newTrafficTypes);
+      
+      return newTrafficTypes;
     });
   };
   
