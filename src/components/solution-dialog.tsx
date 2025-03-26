@@ -116,28 +116,80 @@ export function SolutionDialog() {
             {/* Compatible governance models */}
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Geschikte governance modellen</h2>
-              {compatibleGovernanceModels && Array.isArray(compatibleGovernanceModels) && compatibleGovernanceModels.length > 0 ? (
-                <div className="space-y-3">
-                  {compatibleGovernanceModels.map((model) => (
-                    <div key={model.id} className="p-3 border rounded-md bg-blue-50">
-                      <h4 className="font-medium">{model.title}</h4>
-                      {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+              {currentSolution && compatibleGovernanceModels && (
+                <>
+                  {/* Aanbevolen governance modellen */}
+                  {Array.isArray(currentSolution.governanceModels) && currentSolution.governanceModels.length > 0 && (
+                    <div className="space-y-3 mb-4">
+                      {compatibleGovernanceModels
+                        .filter(model => currentSolution.governanceModels?.includes(model.id))
+                        .map((model) => (
+                          <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-medium">{model.title}</h4>
+                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                              </div>
+                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Aanbevolen
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 italic">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
+                  )}
+
+                  {/* Aanbevolen mits governance modellen */}
+                  {Array.isArray(currentSolution.governanceModelsMits) && currentSolution.governanceModelsMits.length > 0 && (
+                    <div className="space-y-3 mb-4">
+                      {compatibleGovernanceModels
+                        .filter(model => currentSolution.governanceModelsMits?.includes(model.id))
+                        .map((model) => (
+                          <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-medium">{model.title}</h4>
+                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                              </div>
+                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Aanbevolen, mits...
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Niet geschikte governance modellen */}
+                  {Array.isArray(currentSolution.governanceModelsNietgeschikt) && currentSolution.governanceModelsNietgeschikt.length > 0 && (
+                    <div className="space-y-3">
+                      {compatibleGovernanceModels
+                        .filter(model => currentSolution.governanceModelsNietgeschikt?.includes(model.id))
+                        .map((model) => (
+                          <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-medium">{model.title}</h4>
+                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                              </div>
+                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Niet geschikt
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {(!Array.isArray(currentSolution.governanceModels) || currentSolution.governanceModels.length === 0) &&
+                   (!Array.isArray(currentSolution.governanceModelsMits) || currentSolution.governanceModelsMits.length === 0) &&
+                   (!Array.isArray(currentSolution.governanceModelsNietgeschikt) || currentSolution.governanceModelsNietgeschikt.length === 0) && (
+                    <p className="text-gray-500 italic">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
+                  )}
+                </>
               )}
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
-            
-            {/* Governance modellen toelichting (nieuw veld) */}
-            {governancemodellenToelichting && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold mb-2">Toelichting governance modellen</h2>
-                <MarkdownContent content={governancemodellenToelichting} />
-              </section>
-            )}
           </div>
           
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
