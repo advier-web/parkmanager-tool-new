@@ -453,35 +453,139 @@ export default function PdfDownloadButtonContentful({
         const getRechtsvormText = (model: any) => {
           if (!mobilityData) return '';
           
-          // Eerst controleren of er een expliciete legalForm in het model staat
-          if (model.legalForm) {
-            const legalForm = model.legalForm.toLowerCase();
-            if (legalForm.includes('vereniging')) return mobilityData.vereniging;
-            if (legalForm.includes('stichting')) return mobilityData.stichting;
-            if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return mobilityData.ondernemersBiz;
-            if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return mobilityData.vastgoedBiz;
-            if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return mobilityData.gemengdeBiz;
-            if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return mobilityData.cooperatieUa;
-            if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return mobilityData.bv;
-            if (legalForm.includes('ondernemersfonds')) return mobilityData.ondernemersfonds;
+          console.log('[PDF] Finding rechtsvorm text for model:', model.title);
+          
+          // First check if we have all the rechtsvorm fields available
+          const hasRechtsvormen = (
+            mobilityData.geenRechtsvorm || 
+            mobilityData.vereniging || 
+            mobilityData.stichting || 
+            mobilityData.ondernemersBiz || 
+            mobilityData.vastgoedBiz || 
+            mobilityData.gemengdeBiz || 
+            mobilityData.cooperatieUa || 
+            mobilityData.bv || 
+            mobilityData.ondernemersfonds
+          );
+          
+          if (!hasRechtsvormen) {
+            console.log('[PDF] Warning: No rechtsvorm texts found in mobilityData');
+            return ''; 
           }
           
-          // Als er geen match is op legalForm, dan matchen op titel
-          const title = model.title.toLowerCase();
-          if (title.includes('vereniging')) return mobilityData.vereniging;
-          if (title.includes('stichting')) return mobilityData.stichting;
-          if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return mobilityData.ondernemersBiz;
-          if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return mobilityData.vastgoedBiz;
-          if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return mobilityData.gemengdeBiz;
-          if (title.includes('coöperatie') || title.includes('cooperatie')) return mobilityData.cooperatieUa;
-          if (title.includes('bv') || title.includes('besloten vennootschap')) return mobilityData.bv;
-          if (title.includes('ondernemersfonds')) return mobilityData.ondernemersfonds;
+          // Log available fields for debugging
+          console.log('[PDF] Available rechtsvorm fields:', {
+            geenRechtsvorm: mobilityData.geenRechtsvorm ? 'yes' : 'no',
+            vereniging: mobilityData.vereniging ? 'yes' : 'no', 
+            stichting: mobilityData.stichting ? 'yes' : 'no',
+            ondernemersBiz: mobilityData.ondernemersBiz ? 'yes' : 'no',
+            vastgoedBiz: mobilityData.vastgoedBiz ? 'yes' : 'no',
+            gemengdeBiz: mobilityData.gemengdeBiz ? 'yes' : 'no',
+            cooperatieUa: mobilityData.cooperatieUa ? 'yes' : 'no',
+            bv: mobilityData.bv ? 'yes' : 'no',
+            ondernemersfonds: mobilityData.ondernemersfonds ? 'yes' : 'no'
+          });
           
-          return mobilityData.geenRechtsvorm;
+          // Exact matcher to ensure we don't get false positives with partial matches
+          const exactMatch = (source: string, patterns: string[]): boolean => {
+            if (!source) return false;
+            const normalizedSource = source.toLowerCase().trim();
+            return patterns.some(pattern => 
+              normalizedSource === pattern.toLowerCase().trim() ||
+              normalizedSource.startsWith(pattern.toLowerCase().trim() + ' ') ||
+              normalizedSource.endsWith(' ' + pattern.toLowerCase().trim())
+            );
+          };
+          
+          // Get legalForm and title
+          const legalForm = model.legalForm ? model.legalForm.toLowerCase().trim() : '';
+          const title = model.title ? model.title.toLowerCase().trim() : '';
+          
+          // Model type detection logic
+          if (exactMatch(legalForm, ['vereniging']) || exactMatch(title, ['vereniging', 'bedrijvenvereniging'])) {
+            console.log('[PDF] Found match for vereniging');
+            return mobilityData.vereniging;
+          }
+          
+          if (exactMatch(legalForm, ['stichting']) || exactMatch(title, ['stichting'])) {
+            console.log('[PDF] Found match for stichting');
+            return mobilityData.stichting;
+          }
+          
+          if (exactMatch(legalForm, ['ondernemers biz', 'ondernemersbiz']) || 
+              exactMatch(title, ['ondernemers biz', 'ondernemersbiz'])) {
+            console.log('[PDF] Found match for ondernemersBiz');
+            return mobilityData.ondernemersBiz;
+          }
+          
+          if (exactMatch(legalForm, ['vastgoed biz', 'vastgoedbiz']) || 
+              exactMatch(title, ['vastgoed biz', 'vastgoedbiz'])) {
+            console.log('[PDF] Found match for vastgoedBiz');
+            return mobilityData.vastgoedBiz;
+          }
+          
+          if (exactMatch(legalForm, ['gemengde biz', 'gemengdebiz']) || 
+              exactMatch(title, ['gemengde biz', 'gemengdebiz'])) {
+            console.log('[PDF] Found match for gemengdeBiz');
+            return mobilityData.gemengdeBiz;
+          }
+          
+          if (exactMatch(legalForm, ['coöperatie', 'cooperatie', 'coöperatie u.a.', 'cooperatie u.a.', 'coöperatie ua', 'cooperatie ua']) || 
+              exactMatch(title, ['coöperatie', 'cooperatie', 'coöperatie u.a.', 'cooperatie u.a.', 'coöperatie ua', 'cooperatie ua'])) {
+            console.log('[PDF] Found match for cooperatieUa');
+            return mobilityData.cooperatieUa;
+          }
+          
+          if (exactMatch(legalForm, ['bv', 'besloten vennootschap']) || 
+              exactMatch(title, ['bv', 'besloten vennootschap'])) {
+            console.log('[PDF] Found match for bv');
+            return mobilityData.bv;
+          }
+          
+          if (exactMatch(legalForm, ['ondernemersfonds']) || exactMatch(title, ['ondernemersfonds'])) {
+            console.log('[PDF] Found match for ondernemersfonds');
+            return mobilityData.ondernemersfonds;
+          }
+          
+          // Fallback to more relaxed pattern matching for title
+          const contains = (str: string, pattern: string): boolean => 
+            str.toLowerCase().includes(pattern.toLowerCase());
+          
+          if (legalForm) {
+            if (contains(legalForm, 'vereniging')) return mobilityData.vereniging;
+            if (contains(legalForm, 'stichting')) return mobilityData.stichting;
+            if (contains(legalForm, 'ondernemers') && contains(legalForm, 'biz')) return mobilityData.ondernemersBiz;
+            if (contains(legalForm, 'vastgoed') && contains(legalForm, 'biz')) return mobilityData.vastgoedBiz;
+            if (contains(legalForm, 'gemengde') && contains(legalForm, 'biz')) return mobilityData.gemengdeBiz;
+            if (contains(legalForm, 'coöperatie') || contains(legalForm, 'cooperatie')) return mobilityData.cooperatieUa;
+            if (contains(legalForm, 'bv') || contains(legalForm, 'besloten vennootschap')) return mobilityData.bv;
+            if (contains(legalForm, 'ondernemersfonds')) return mobilityData.ondernemersfonds;
+          }
+          
+          if (title) {
+            if (contains(title, 'vereniging')) return mobilityData.vereniging;
+            if (contains(title, 'stichting')) return mobilityData.stichting;
+            if (contains(title, 'ondernemers') && contains(title, 'biz')) return mobilityData.ondernemersBiz;
+            if (contains(title, 'vastgoed') && contains(title, 'biz')) return mobilityData.vastgoedBiz;
+            if (contains(title, 'gemengde') && contains(title, 'biz')) return mobilityData.gemengdeBiz;
+            if (contains(title, 'coöperatie') || contains(title, 'cooperatie')) return mobilityData.cooperatieUa;
+            if (contains(title, 'bv') || contains(title, 'besloten vennootschap')) return mobilityData.bv;
+            if (contains(title, 'ondernemersfonds')) return mobilityData.ondernemersfonds;
+          }
+          
+          // If we get here, use geenRechtsvorm as default/fallback
+          console.log('[PDF] No match found, using geenRechtsvorm as default');
+          return mobilityData.geenRechtsvorm || '';
         };
         
         // Aanbevolen governance modellen sectie
         if (mobilityData?.governanceModels && mobilityData.governanceModels.length > 0) {
+          // Check for page break before adding a new section
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
           // Add section title
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(14);
@@ -500,6 +604,12 @@ export default function PdfDownloadButtonContentful({
           for (const model of mobilityData.governanceModels) {
             if (typeof model === 'string') continue;
             
+            // Check for page break before adding a new model
+            if (yPos > 250) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            
             // Get the rechtsvorm text for this model
             const rechtsvormText = getRechtsvormText(model);
             
@@ -514,6 +624,13 @@ export default function PdfDownloadButtonContentful({
               pdf.setFont('helvetica', 'normal');
               pdf.setFontSize(10);
               const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              
+              // Check if we need a page break for long text
+              if (yPos + (lines.length * 5) > 260) {
+                pdf.addPage();
+                yPos = 20;
+              }
+              
               pdf.text(lines, 20, yPos);
               yPos += lines.length * 5 + 5;
             }
@@ -526,6 +643,12 @@ export default function PdfDownloadButtonContentful({
         
         // Aanbevolen governance modellen mits sectie
         if (mobilityData?.governanceModelsMits && mobilityData.governanceModelsMits.length > 0) {
+          // Check for page break before adding a new section
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
           // Add section title
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(14);
@@ -540,9 +663,15 @@ export default function PdfDownloadButtonContentful({
           pdf.text(descriptionLines, 20, yPos);
           yPos += descriptionLines.length * 5 + 5;
           
-          // Add each governance model
+          // Add each governance model (mits section)
           for (const model of mobilityData.governanceModelsMits) {
             if (typeof model === 'string') continue;
+            
+            // Check for page break before adding a new model
+            if (yPos > 250) {
+              pdf.addPage();
+              yPos = 20;
+            }
             
             // Get the rechtsvorm text for this model
             const rechtsvormText = getRechtsvormText(model);
@@ -558,6 +687,13 @@ export default function PdfDownloadButtonContentful({
               pdf.setFont('helvetica', 'normal');
               pdf.setFontSize(10);
               const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              
+              // Check if we need a page break for long text
+              if (yPos + (lines.length * 5) > 260) {
+                pdf.addPage();
+                yPos = 20;
+              }
+              
               pdf.text(lines, 20, yPos);
               yPos += lines.length * 5 + 5;
             }
@@ -570,6 +706,12 @@ export default function PdfDownloadButtonContentful({
         
         // Ongeschikte governance modellen sectie
         if (mobilityData?.governanceModelsNietgeschikt && mobilityData.governanceModelsNietgeschikt.length > 0) {
+          // Check for page break before adding a new section
+          if (yPos > 250) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          
           // Add section title
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(14);
@@ -584,9 +726,15 @@ export default function PdfDownloadButtonContentful({
           pdf.text(descriptionLines, 20, yPos);
           yPos += descriptionLines.length * 5 + 5;
           
-          // Add each governance model
+          // Add each governance model (niet geschikt section)
           for (const model of mobilityData.governanceModelsNietgeschikt) {
             if (typeof model === 'string') continue;
+            
+            // Check for page break before adding a new model
+            if (yPos > 250) {
+              pdf.addPage();
+              yPos = 20;
+            }
             
             // Get the rechtsvorm text for this model
             const rechtsvormText = getRechtsvormText(model);
@@ -602,6 +750,13 @@ export default function PdfDownloadButtonContentful({
               pdf.setFont('helvetica', 'normal');
               pdf.setFontSize(10);
               const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              
+              // Check if we need a page break for long text
+              if (yPos + (lines.length * 5) > 260) {
+                pdf.addPage();
+                yPos = 20;
+              }
+              
               pdf.text(lines, 20, yPos);
               yPos += lines.length * 5 + 5;
             }

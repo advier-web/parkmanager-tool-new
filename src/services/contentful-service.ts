@@ -411,6 +411,41 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
         )
       : [];
 
+    // Log de rechtsvorm velden voor debugging
+    console.log('[CONTENTFUL] Rechtsvorm fields in mobility solution entry:', {
+      geenRechtsvorm: entry.fields.geenRechtsvorm || 'not found',
+      vereniging: entry.fields.vereniging || 'not found',
+      stichting: entry.fields.stichting || 'not found',
+      ondernemersBiz: entry.fields.ondernemersBiz || 'not found',
+      vastgoedBiz: entry.fields.vastgoedBiz || 'not found',
+      gemengdeBiz: entry.fields.gemengdeBiz || 'not found',
+      cooperatieUa: entry.fields.cooperatieUa || 'not found',
+      bv: entry.fields.bv || 'not found',
+      ondernemersfonds: entry.fields.ondernemersfonds || 'not found'
+    });
+
+    // Extract all rechtsvorm fields as strings (with safe fallbacks)
+    const getStringField = (fieldName: string): string => {
+      const field = entry.fields[fieldName];
+      if (!field) return '';
+      
+      if (typeof field === 'string') return field;
+      if (typeof field === 'object' && field !== null) {
+        // Handle rich text fields or complex objects
+        try {
+          // Check if it has a toString method
+          if (typeof field.toString === 'function') {
+            return field.toString();
+          }
+          // Otherwise stringify it
+          return JSON.stringify(field);
+        } catch (e) {
+          return String(field);
+        }
+      }
+      return String(field);
+    };
+
     // Transformeer de entry naar het juiste formaat voor PDF
     return {
       id: entry.sys.id,
@@ -435,6 +470,18 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       governanceModels,
       governanceModelsMits,
       governanceModelsNietgeschikt,
+      
+      // Rechtsvorm velden - zorg dat deze allemaal aanwezig zijn
+      geenRechtsvorm: getStringField('geenRechtsvorm'),
+      vereniging: getStringField('vereniging'),
+      stichting: getStringField('stichting'),
+      ondernemersBiz: getStringField('ondernemersBiz'),
+      vastgoedBiz: getStringField('vastgoedBiz'),
+      gemengdeBiz: getStringField('gemengdeBiz'),
+      cooperatieUa: getStringField('cooperatieUa'),
+      bv: getStringField('bv'),
+      ondernemersfonds: getStringField('ondernemersfonds'),
+      
       // Rating fields
       parkeer_bereikbaarheidsproblemen: Number(entry.fields.parkeer_bereikbaarheidsproblemen || 0),
       gezondheid: Number(entry.fields.gezondheid || 0),

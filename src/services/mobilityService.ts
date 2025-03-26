@@ -6,6 +6,19 @@ import { getGovernanceModelByIdFromContentful } from '@/services/contentful-serv
 export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Promise<MobilitySolution> => {
   const data = await getContentfulMobilitySolution(mobilityServiceId);
   
+  // Debug log rechtsvorm fields that come from Contentful
+  console.log('[PDF SERVICE] Rechtsvorm fields from Contentful:', {
+    geenRechtsvorm: data.geenRechtsvorm ? 'present' : 'missing',
+    vereniging: data.vereniging ? 'present' : 'missing',
+    stichting: data.stichting ? 'present' : 'missing',
+    ondernemersBiz: data.ondernemersBiz ? 'present' : 'missing',
+    vastgoedBiz: data.vastgoedBiz ? 'present' : 'missing',
+    gemengdeBiz: data.gemengdeBiz ? 'present' : 'missing',
+    cooperatieUa: data.cooperatieUa ? 'present' : 'missing',
+    bv: data.bv ? 'present' : 'missing',
+    ondernemersfonds: data.ondernemersfonds ? 'present' : 'missing'
+  });
+  
   // Map de governance models naar het juiste type als ze bestaan
   const mappedGovernanceModels = data.governanceModels?.map(model => {
     if (typeof model === 'string') {
@@ -33,13 +46,81 @@ export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Prom
     return model as unknown as GovernanceModel;
   });
   
+  // Ensure rechtsvorm fields have default values if they're missing
+  const rechtsvormDefaults = {
+    geenRechtsvorm: "Geen specifieke rechtsvorm nodig voor dit model. Geschikt voor informele samenwerkingen tussen partijen.",
+    vereniging: "Een bedrijvenvereniging is een samenwerkingsverband waarin bedrijven op een bedrijventerrein gezamenlijk hun belangen behartigen. De vereniging biedt een formele structuur waarin leden inspraak hebben en collectieve acties kunnen ondernemen.",
+    stichting: "Een stichting is een rechtspersoon met een bestuur maar zonder leden, opgericht om een in de statuten vermeld doel te realiseren. Geschikt voor het beheren van gemeenschappelijke voorzieningen.",
+    ondernemersBiz: "De Ondernemers BIZ is een publiek-private samenwerking waarbij ondernemers én vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame mobiliteitsmaatregelen.",
+    vastgoedBiz: "De Vastgoed BIZ is een publiek-private samenwerking waarbij vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame investeringen.",
+    gemengdeBiz: "De Gemengde BIZ is een publiek-private samenwerking waarbij ondernemers én vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame mobiliteitsmaatregelen.",
+    cooperatieUa: "Met een Coöperatie met uitgesloten aansprakelijkheid (UA) organiseren bedrijven op een bedrijventerrein gezamenlijk mobiliteitsoplossingen. De leden beslissen samen, delen de kosten en zijn niet persoonlijk aansprakelijk voor eventuele tekorten.",
+    bv: "Een besloten vennootschap (BV) is een rechtsvorm voor bedrijvencollectieven die gezamenlijk mobiliteitsoplossingen willen organiseren. Deze structuur biedt eigendomsverhoudingen, beperkte aansprakelijkheid en ruimte voor een flexibele organisatie.",
+    ondernemersfonds: "Een ondernemersfonds is een financiële regeling waarin bedrijven binnen een afgebakend gebied gezamenlijk bijdragen aan de verbetering van hun bedrijfsomgeving. De bijdragen worden geheven via een opslag op de onroerendezaakbelasting (OZB) of rioolheffing."
+  };
+  
+  // Controleer of rechtsvorm teksten leeg of undefined zijn en gebruik standaardwaarden indien nodig
+  const ensureRechtsvormText = (fieldName: keyof typeof rechtsvormDefaults): string => {
+    let value: any;
+    
+    // Explicitly check for each field
+    switch(fieldName) {
+      case 'geenRechtsvorm': 
+        value = data.geenRechtsvorm; 
+        break;
+      case 'vereniging': 
+        value = data.vereniging; 
+        break;
+      case 'stichting': 
+        value = data.stichting; 
+        break;
+      case 'ondernemersBiz': 
+        value = data.ondernemersBiz; 
+        break;
+      case 'vastgoedBiz': 
+        value = data.vastgoedBiz; 
+        break;
+      case 'gemengdeBiz': 
+        value = data.gemengdeBiz; 
+        break;
+      case 'cooperatieUa': 
+        value = data.cooperatieUa; 
+        break;
+      case 'bv': 
+        value = data.bv; 
+        break;
+      case 'ondernemersfonds': 
+        value = data.ondernemersfonds; 
+        break;
+      default:
+        value = undefined;
+    }
+    
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
+      console.log(`[PDF SERVICE] Using default value for ${fieldName}`);
+      return rechtsvormDefaults[fieldName];
+    }
+    return String(value);
+  };
+  
   // Aanvullen met verplichte velden uit onze specifieke PDF interface
   return {
     ...data,
     slug: data.title?.toLowerCase().replace(/[^\w\s-]/g, '-').replace(/\s+/g, '-') || mobilityServiceId,
     governanceModels: mappedGovernanceModels,
     governanceModelsMits: mappedGovernanceModelsMits,
-    governanceModelsNietgeschikt: mappedGovernanceModelsNietgeschikt
+    governanceModelsNietgeschikt: mappedGovernanceModelsNietgeschikt,
+    
+    // Ensure all rechtsvorm fields are present with fallbacks
+    geenRechtsvorm: ensureRechtsvormText('geenRechtsvorm'),
+    vereniging: ensureRechtsvormText('vereniging'),
+    stichting: ensureRechtsvormText('stichting'),
+    ondernemersBiz: ensureRechtsvormText('ondernemersBiz'),
+    vastgoedBiz: ensureRechtsvormText('vastgoedBiz'),
+    gemengdeBiz: ensureRechtsvormText('gemengdeBiz'),
+    cooperatieUa: ensureRechtsvormText('cooperatieUa'),
+    bv: ensureRechtsvormText('bv'),
+    ondernemersfonds: ensureRechtsvormText('ondernemersfonds')
   };
 };
 
