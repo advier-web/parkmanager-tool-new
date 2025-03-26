@@ -48,6 +48,12 @@ export function transformMobilitySolution(
   
   console.log(`[TRANSFORM] Processing mobility solution: ${fields.title}`);
   
+  // Helper function to extract ID from reference
+  const extractId = (ref: { sys: { id: string } } | string): string => {
+    if (typeof ref === 'string') return ref;
+    return ref.sys?.id || '';
+  };
+  
   // Debug logging voor velden
   console.log('[TRANSFORM] Alle mobility solution velden:');
   Object.keys(fields).forEach(key => {
@@ -150,9 +156,9 @@ export function transformMobilitySolution(
     energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
     
     // Governance models references
-    governanceModels: fields.governanceModels || undefined,
-    governanceModelsMits: fields.governanceModelsMits || undefined,
-    governanceModelsNietgeschikt: fields.governanceModelsNietgeschikt || undefined
+    governanceModels: Array.isArray(fields.governanceModels) ? fields.governanceModels.map(extractId) : undefined,
+    governanceModelsMits: Array.isArray(fields.governanceModelsMits) ? fields.governanceModelsMits.map(extractId) : undefined,
+    governanceModelsNietgeschikt: Array.isArray(fields.governanceModelsNietgeschikt) ? fields.governanceModelsNietgeschikt.map(extractId) : undefined
   };
   
   // Log alle velden uit Contentful voor debugging
