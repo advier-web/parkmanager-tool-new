@@ -3,9 +3,28 @@
 import { useDialog } from '../contexts/dialog-context';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
+import { useEffect } from 'react';
 
 export function SolutionDialog() {
   const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, closeDialog } = useDialog();
+
+  // Debug logs for troubleshooting
+  useEffect(() => {
+    if (dialogType === 'solution' && currentSolution) {
+      console.log('Current Solution:', currentSolution);
+      console.log('Governance Models:', currentSolution.governanceModels);
+      console.log('Governance Models Mits:', currentSolution.governanceModelsMits);
+      console.log('Governance Models Niet Geschikt:', currentSolution.governanceModelsNietgeschikt);
+      console.log('Compatible Governance Models:', compatibleGovernanceModels);
+      
+      console.log('GM Type:', Array.isArray(currentSolution.governanceModels));
+      console.log('GM Length:', currentSolution.governanceModels?.length);
+      console.log('GM-Mits Type:', Array.isArray(currentSolution.governanceModelsMits));
+      console.log('GM-Mits Length:', currentSolution.governanceModelsMits?.length);
+      console.log('GM-Niet Type:', Array.isArray(currentSolution.governanceModelsNietgeschikt));
+      console.log('GM-Niet Length:', currentSolution.governanceModelsNietgeschikt?.length);
+    }
+  }, [dialogType, currentSolution, compatibleGovernanceModels]);
 
   if (!isOpen) {
     return null;
@@ -122,7 +141,9 @@ export function SolutionDialog() {
                   {Array.isArray(currentSolution.governanceModels) && currentSolution.governanceModels.length > 0 && (
                     <div className="space-y-3 mb-4">
                       {compatibleGovernanceModels
-                        .filter(model => currentSolution.governanceModels?.includes(model.id))
+                        .filter(model => {
+                          return currentSolution.governanceModels?.some(id => id === model.id);
+                        })
                         .map((model) => (
                           <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
                             <div className="flex justify-between items-start">
@@ -143,7 +164,9 @@ export function SolutionDialog() {
                   {Array.isArray(currentSolution.governanceModelsMits) && currentSolution.governanceModelsMits.length > 0 && (
                     <div className="space-y-3 mb-4">
                       {compatibleGovernanceModels
-                        .filter(model => currentSolution.governanceModelsMits?.includes(model.id))
+                        .filter(model => {
+                          return currentSolution.governanceModelsMits?.some(id => id === model.id);
+                        })
                         .map((model) => (
                           <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
                             <div className="flex justify-between items-start">
@@ -164,7 +187,9 @@ export function SolutionDialog() {
                   {Array.isArray(currentSolution.governanceModelsNietgeschikt) && currentSolution.governanceModelsNietgeschikt.length > 0 && (
                     <div className="space-y-3">
                       {compatibleGovernanceModels
-                        .filter(model => currentSolution.governanceModelsNietgeschikt?.includes(model.id))
+                        .filter(model => {
+                          return currentSolution.governanceModelsNietgeschikt?.some(id => id === model.id);
+                        })
                         .map((model) => (
                           <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
                             <div className="flex justify-between items-start">
