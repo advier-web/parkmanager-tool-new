@@ -4,7 +4,8 @@ import {
   ImplementationPhase, 
   ImplementationPlan, 
   ImplementationTask, 
-  MobilitySolution
+  MobilitySolution,
+  TrafficType
 } from '../domain/models';
 
 /**
@@ -59,6 +60,7 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     costs: 'middel',
     category: 'fiets',
     icon: 'bike',
+    typeVervoer: [TrafficType.COMMUTER],
     parkeer_bereikbaarheidsproblemen: 6,
     gezondheid: 9,
     personeelszorg_en_behoud: 7,
@@ -75,6 +77,7 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     costs: 'hoog',
     category: 'openbaar vervoer',
     icon: 'bus',
+    typeVervoer: [TrafficType.COMMUTER, TrafficType.BUSINESS],
     parkeer_bereikbaarheidsproblemen: 9,
     gezondheid: 5,
     personeelszorg_en_behoud: 6,
@@ -91,6 +94,7 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     costs: 'laag',
     category: 'auto',
     icon: 'car',
+    typeVervoer: [TrafficType.COMMUTER, TrafficType.BUSINESS, TrafficType.VISITOR],
     parkeer_bereikbaarheidsproblemen: 8,
     gezondheid: 4,
     personeelszorg_en_behoud: 7,

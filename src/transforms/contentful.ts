@@ -13,8 +13,61 @@ import {
   ImplementationPlan,
   ImplementationPhase,
   ImplementationTask,
-  MobilitySolution
+  MobilitySolution,
+  TrafficType
 } from '../domain/models';
+
+/**
+ * Helper function to parse the typeVervoer field from Contentful
+ */
+function parseTypeVervoer(typeVervoerField: any): TrafficType[] {
+  console.log('[TRANSFORM] Parsing typeVervoer:', typeVervoerField);
+  
+  if (!typeVervoerField) {
+    return [];
+  }
+  
+  // If it's already an array, process it
+  if (Array.isArray(typeVervoerField)) {
+    return typeVervoerField.map(item => {
+      if (typeof item === 'string') {
+        const normalized = item.toLowerCase().trim();
+        
+        if (normalized.includes('woon') || normalized.includes('commuter')) {
+          return TrafficType.COMMUTER;
+        } else if (normalized.includes('zakelijk') || normalized.includes('business')) {
+          return TrafficType.BUSINESS;
+        } else if (normalized.includes('bezoeker') || normalized.includes('visitor')) {
+          return TrafficType.VISITOR;
+        }
+      }
+      return null;
+    }).filter((type): type is TrafficType => type !== null);
+  }
+  
+  // If it's a string, parse it
+  if (typeof typeVervoerField === 'string') {
+    const types: TrafficType[] = [];
+    const normalized = typeVervoerField.toLowerCase();
+    
+    if (normalized.includes('woon') || normalized.includes('commuter')) {
+      types.push(TrafficType.COMMUTER);
+    }
+    
+    if (normalized.includes('zakelijk') || normalized.includes('business')) {
+      types.push(TrafficType.BUSINESS);
+    }
+    
+    if (normalized.includes('bezoeker') || normalized.includes('visitor')) {
+      types.push(TrafficType.VISITOR);
+    }
+    
+    return types;
+  }
+  
+  // Default empty array
+  return [];
+}
 
 /**
  * Transform a Contentful BusinessParkReason entry to a domain BusinessParkReason
@@ -124,6 +177,9 @@ export function transformMobilitySolution(
     effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
     investering: typeof fields.investering === 'string' ? fields.investering : undefined,
     governancemodellenToelichting: typeof fields.governancemodellenToelichting === 'string' ? fields.governancemodellenToelichting : undefined,
+    
+    // Type vervoer veld
+    typeVervoer: parseTypeVervoer(fields.typeVervoer),
     
     // Rechtsvorm velden
     geenRechtsvorm: getField(['geenRechtsvorm', 'geen_rechtsvorm', 'geen-rechtsvorm', 'GeenRechtsvorm']),

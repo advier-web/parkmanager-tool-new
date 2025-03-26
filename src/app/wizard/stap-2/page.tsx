@@ -7,7 +7,7 @@ import { SolutionCard } from '../../../components/solution-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { FilterPanel } from '../../../components/filter-panel';
 import { groupBy } from '../../../utils/helper';
-import { MobilitySolution, GovernanceModel } from '../../../domain/models';
+import { MobilitySolution, GovernanceModel, TrafficType } from '../../../domain/models';
 import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
 import { shouldUseContentful } from '../../../utils/env';
 import { useDialog } from '../../../contexts/dialog-context';
@@ -133,10 +133,18 @@ export default function MobilitySolutionsPage() {
   
   // State variables
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [activeTrafficTypes, setActiveTrafficTypes] = useState<TrafficType[]>([]);
   const [groupedSolutions, setGroupedSolutions] = useState<Record<string, MobilitySolution[]>>({});
   
   // Get store data
-  const { selectedReasons, selectedSolutions, toggleSolution, setSelectedSolutions, resetWizard } = useWizardStore();
+  const { 
+    selectedReasons, 
+    selectedSolutions, 
+    toggleSolution, 
+    setSelectedSolutions, 
+    resetWizard,
+    businessParkInfo  // Add this to get traffic types
+  } = useWizardStore();
   
   // Fetch mobility solutions and reasons data
   const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
@@ -159,6 +167,13 @@ export default function MobilitySolutionsPage() {
     }
   }, [selectedReasons]);
   
+  // Initialize activeTrafficTypes with businessParkInfo.trafficTypes when component mounts
+  useEffect(() => {
+    if (businessParkInfo && businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0) {
+      setActiveTrafficTypes(businessParkInfo.trafficTypes);
+    }
+  }, [businessParkInfo]);
+  
   // Build the reason identifier mapping
   useEffect(() => {
     if (reasons) {
@@ -174,14 +189,26 @@ export default function MobilitySolutionsPage() {
   
   // Update filtered solutions when mobility solutions or filters change
   useEffect(() => {
-    if (mobilitySolutions && reasons) {
-      // Filter out any activeFilters that don't have a corresponding reason
-      const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
+    if (mobilitySolutions) {
+      // First filter by traffic types if any are active
+      let filteredByTrafficType = mobilitySolutions;
       
-      // Set filtered solutions
-      setFilteredSolutions(mobilitySolutions);
+      if (activeTrafficTypes.length > 0) {
+        filteredByTrafficType = mobilitySolutions.filter(solution => {
+          // If solution has no typeVervoer field or it's empty, include it by default
+          if (!solution.typeVervoer || solution.typeVervoer.length === 0) {
+            return true;
+          }
+          
+          // Check if any of the solution's traffic types match active filters
+          return solution.typeVervoer.some(type => activeTrafficTypes.includes(type));
+        });
+      }
+      
+      // Then apply the other filters
+      setFilteredSolutions(filteredByTrafficType);
     }
-  }, [mobilitySolutions, activeFilters, reasons]);
+  }, [mobilitySolutions, activeFilters, activeTrafficTypes, reasons]);
   
   // Handle showing solution details in dialog
   const handleShowMoreInfo = (solution: MobilitySolution) => {
@@ -317,7 +344,7 @@ export default function MobilitySolutionsPage() {
     }
   }, [filteredSolutions, activeFilters, reasons]);
   
-  // Handle filter changes
+  // Handle filter changes for reason filters
   const handleFilterChange = (reasonId: string) => {
     setActiveFilters(prev => {
       // Toggle het filter
@@ -327,11 +354,23 @@ export default function MobilitySolutionsPage() {
     });
   };
   
+  // Handle filter changes for traffic type filters
+  const handleTrafficTypeFilterChange = (type: TrafficType) => {
+    setActiveTrafficTypes(prev => {
+      // Toggle the filter
+      return prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type];
+    });
+  };
+  
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
   
   // Log selectedSolutions voor debug doeleinden
   console.log("Geselecteerde oplossingen:", selectedSolutions);
+  console.log("Active traffic types:", activeTrafficTypes);
+  console.log("Selected traffic types from step 0:", businessParkInfo.trafficTypes);
   
   const router = useRouter();
   
@@ -348,6 +387,9 @@ export default function MobilitySolutionsPage() {
                 selectedReasonIds={selectedReasons}
                 activeFilterIds={activeFilters}
                 onReasonFilterChange={handleFilterChange}
+                activeTrafficTypes={activeTrafficTypes}
+                selectedTrafficTypes={businessParkInfo.trafficTypes || []}
+                onTrafficTypeFilterChange={handleTrafficTypeFilterChange}
               />
             </div>
           )}
