@@ -142,7 +142,11 @@ export function SolutionDialog() {
                   <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
                   <div className="space-y-3">
                     {compatibleGovernanceModels
-                      ?.filter(model => currentSolution.governanceModels?.includes(model.id))
+                      ?.filter(model => {
+                        return currentSolution.governanceModels?.some(
+                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
+                        );
+                      })
                       .map((model) => (
                         <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
                           <div className="flex justify-between items-start">
@@ -166,7 +170,11 @@ export function SolutionDialog() {
                   <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
                   <div className="space-y-3">
                     {compatibleGovernanceModels
-                      ?.filter(model => currentSolution.governanceModelsMits?.includes(model.id))
+                      ?.filter(model => {
+                        return currentSolution.governanceModelsMits?.some(
+                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
+                        );
+                      })
                       .map((model) => (
                         <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
                           <div className="flex justify-between items-start">
@@ -190,7 +198,11 @@ export function SolutionDialog() {
                   <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
                   <div className="space-y-3">
                     {compatibleGovernanceModels
-                      ?.filter(model => currentSolution.governanceModelsNietgeschikt?.includes(model.id))
+                      ?.filter(model => {
+                        return currentSolution.governanceModelsNietgeschikt?.some(
+                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
+                        );
+                      })
                       .map((model) => (
                         <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
                           <div className="flex justify-between items-start">
