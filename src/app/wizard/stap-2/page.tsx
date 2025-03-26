@@ -191,23 +191,9 @@ export default function MobilitySolutionsPage() {
   // Update filtered solutions when mobility solutions or filters change
   useEffect(() => {
     if (mobilitySolutions) {
-      // First filter by traffic types if any are active
-      let filteredByTrafficType = mobilitySolutions;
-      
-      if (activeTrafficTypes.length > 0) {
-        filteredByTrafficType = mobilitySolutions.filter(solution => {
-          // If solution has no typeVervoer field or it's empty, include it by default
-          if (!solution.typeVervoer || solution.typeVervoer.length === 0) {
-            return true;
-          }
-          
-          // Check if any of the solution's traffic types match active filters
-          return solution.typeVervoer.some(type => activeTrafficTypes.includes(type));
-        });
-      }
-      
-      // Then apply the other filters
-      setFilteredSolutions(filteredByTrafficType);
+      // Instead of filtering out solutions, we'll show all of them
+      // but sort them appropriately in the sortSolutionsByScore function
+      setFilteredSolutions(mobilitySolutions);
     }
   }, [mobilitySolutions, activeFilters, activeTrafficTypes, reasons]);
   
@@ -306,20 +292,112 @@ export default function MobilitySolutionsPage() {
     return score;
   };
   
-  // Sorteer de gefilterde oplossingen op basis van hun scores
+  // Function to calculate how well a solution matches the active traffic types
+  const getTrafficTypeMatchScore = (solution: MobilitySolution): number => {
+    // If no active traffic types are selected, don't affect sorting
+    if (activeTrafficTypes.length === 0) {
+      return 0;
+    }
+    
+    if (!solution.typeVervoer || solution.typeVervoer.length === 0) {
+      return 0; // No traffic types to match
+    }
+    
+    // Count how many of the active traffic types match the solution's traffic types
+    const matchCount = solution.typeVervoer.filter(type => 
+      activeTrafficTypes.includes(type)
+    ).length;
+    
+    // Higher score for solutions that match all selected traffic types
+    if (matchCount === activeTrafficTypes.length) {
+      return 1000 + matchCount; // Massive bonus to ensure these always come first
+    }
+    
+    // Solutions with at least one match still get a high score
+    if (matchCount > 0) {
+      return 500 + matchCount;
+    }
+    
+    return 0;
+  };
+  
+  // Sorteer de gefilterde oplossingen op basis van hun scores en traffic types
   const sortSolutionsByScore = (solutions: MobilitySolution[]): MobilitySolution[] => {
     if (!reasons) return solutions;
     
     const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
     
-    if (validActiveFilters.length === 0) return solutions;
-    
     return [...solutions].sort((a, b) => {
-      const aScore = calculateScoreForSolution(a, validActiveFilters);
-      const bScore = calculateScoreForSolution(b, validActiveFilters);
+      // Calculate reason-based scores
+      const aReasonScore = validActiveFilters.length > 0 ? 
+        calculateScoreForSolution(a, validActiveFilters) : 0;
+      const bReasonScore = validActiveFilters.length > 0 ? 
+        calculateScoreForSolution(b, validActiveFilters) : 0;
       
-      return bScore - aScore; // Hoogste score eerst
+      // Calculate traffic type matches
+      const aTrafficMatches = getTrafficTypeMatchScore(a);
+      const bTrafficMatches = getTrafficTypeMatchScore(b);
+      
+      // First prioritize traffic type matches
+      if (aTrafficMatches !== bTrafficMatches) {
+        return bTrafficMatches - aTrafficMatches; // Higher traffic matches first
+      }
+      
+      // If traffic matches are the same, then compare reason scores
+      if (aReasonScore !== bReasonScore) {
+        return bReasonScore - aReasonScore; // Higher reason score first
+      }
+      
+      // If both scores are equal, maintain original order
+      return 0;
     });
+  };
+  
+  // Generate a tag indicating why a solution is ranked highly
+  const getSolutionRankingTag = (solution: MobilitySolution): { text: string, type: 'traffic' | 'reason' | 'both' | null } => {
+    if ((!solution.typeVervoer || solution.typeVervoer.length === 0) && activeTrafficTypes.length === 0) {
+      return { text: '', type: null };
+    }
+    
+    const trafficMatches = solution.typeVervoer?.filter(type => 
+      activeTrafficTypes.includes(type)
+    ) || [];
+    
+    const reasonScore = reasons && activeFilters.length > 0 ? 
+      calculateScoreForSolution(solution, activeFilters) : 0;
+    
+    // If there are traffic types selected, prioritize those in the tags
+    if (activeTrafficTypes.length > 0) {
+      if (trafficMatches.length > 0) {
+        if (trafficMatches.length === activeTrafficTypes.length) {
+          // Perfect match on all traffic types
+          return { 
+            text: `Perfecte match op ${trafficMatches.length} type${trafficMatches.length > 1 ? 's' : ''} vervoer`, 
+            type: reasonScore > 6 ? 'both' : 'traffic' 
+          };
+        } else {
+          // Partial match on traffic types
+          return { 
+            text: `Match op ${trafficMatches.length} van ${activeTrafficTypes.length} type${activeTrafficTypes.length > 1 ? 's' : ''} vervoer`, 
+            type: reasonScore > 6 ? 'both' : 'traffic' 
+          };
+        }
+      } else if (reasonScore > 6) {
+        // No traffic match but high reason score
+        return { 
+          text: 'Hoge score op aanleidingen',
+          type: 'reason' 
+        };
+      }
+    } else if (reasonScore > 6) {
+      // Only reason filters are active
+      return { 
+        text: 'Hoge score op aanleidingen', 
+        type: 'reason' 
+      };
+    }
+    
+    return { text: '', type: null };
   };
   
   // Sorteer en groepeer de oplossingen
@@ -479,6 +557,27 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
+            {/* Sorting explanation */}
+            {filteredSolutions && filteredSolutions.length > 0 && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm font-medium mb-2">Hoe worden oplossingen gesorteerd?</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-blue-100 mr-2"></div>
+                    <span className="text-xs text-gray-600">Match op type vervoer</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-orange-100 mr-2"></div>
+                    <span className="text-xs text-gray-600">Match op aanleidingen</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-green-100 mr-2"></div>
+                    <span className="text-xs text-gray-600">Match op beide criteria</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Display solutions */}
             <div className="grid grid-cols-1 gap-6 mt-8">
               {!filteredSolutions || isLoadingSolutions ? (
@@ -511,6 +610,8 @@ export default function MobilitySolutionsPage() {
                     onToggleSelect={toggleSolution}
                     onMoreInfo={handleShowMoreInfo}
                     selectedReasons={reasons ? reasons.filter(reason => activeFilters.includes(reason.id)) : []}
+                    rankingTag={getSolutionRankingTag(solution)}
+                    activeTrafficTypes={activeTrafficTypes}
                   />
                 ))
               )}
