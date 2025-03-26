@@ -56,7 +56,7 @@ export function FilterPanel({
                   <span 
                     className={`block text-sm ${activeTrafficTypes.includes(type) ? 'font-medium text-blue-800' : ''}`}
                   >
-                    {type}
+                    {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                   </span>
                   {selectedTrafficTypes.includes(type) && (
                     <span className="text-xs text-blue-600">
@@ -130,7 +130,7 @@ export function FilterPanel({
                 key={`traffic-${type}`}
                 className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
               >
-                {type}
+                {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                 <button
                   onClick={() => onTrafficTypeFilterChange(type)}
                   className="ml-1 text-blue-800 hover:text-blue-600"
