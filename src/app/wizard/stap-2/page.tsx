@@ -589,7 +589,6 @@ export default function MobilitySolutionsPage() {
                     onToggleSelect={toggleSolution}
                     onMoreInfo={handleShowMoreInfo}
                     selectedReasons={reasons ? reasons.filter(reason => activeFilters.includes(reason.id)) : []}
-                    rankingTag={getSolutionRankingTag(solution)}
                     activeTrafficTypes={activeTrafficTypes}
                   />
                 ))

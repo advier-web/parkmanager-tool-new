@@ -8,11 +8,10 @@ interface SolutionCardProps {
   onToggleSelect: (solutionId: string) => void;
   onMoreInfo?: (solution: MobilitySolution) => void;
   selectedReasons?: BusinessParkReason[];
-  rankingTag?: { text: string, type: 'traffic' | 'reason' | 'both' | null };
   activeTrafficTypes?: TrafficType[];
 }
 
-export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo, selectedReasons = [], rankingTag, activeTrafficTypes = [] }: SolutionCardProps) {
+export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo, selectedReasons = [], activeTrafficTypes = [] }: SolutionCardProps) {
   // State om bij te houden welke tooltips zichtbaar zijn
   const [visibleTooltips, setVisibleTooltips] = useState<Record<string, boolean>>({});
   
@@ -170,17 +169,6 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
     >
       <div className="flex items-start">
         <div className="flex-grow">
-          {rankingTag && rankingTag.text && (
-            <div className={`inline-block mb-3 px-3 py-1 rounded-full text-xs font-medium 
-              ${rankingTag.type === 'both' ? 'bg-green-100 text-green-800' : 
-                rankingTag.type === 'traffic' ? 'bg-blue-100 text-blue-800' : 
-                rankingTag.type === 'reason' ? 'bg-orange-100 text-orange-800' :
-                'bg-gray-100 text-gray-800'}`}
-            >
-              {rankingTag.text}
-            </div>
-          )}
-          
           <div className="flex items-center mb-2">
             {solution.icon && (
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
