@@ -262,21 +262,19 @@ export function SolutionDialog() {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
                               <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200 h-full flex flex-col">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-grow">
-                                    <h4 className="font-medium">{model.title}</h4>
-                                    {rechtsvormText ? (
-                                      <div className="text-sm text-gray-600 mt-1">
-                                        <p>{rechtsvormText}</p>
-                                      </div>
-                                    ) : (
-                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
-                                    )}
-                                  </div>
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium">{model.title}</h4>
                                   <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Aanbevolen
                                   </span>
                                 </div>
+                                {rechtsvormText ? (
+                                  <div className="text-sm text-gray-600">
+                                    <p>{rechtsvormText}</p>
+                                  </div>
+                                ) : (
+                                  model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
+                                )}
                               </div>
                             );
                           })}
@@ -299,21 +297,19 @@ export function SolutionDialog() {
                             console.log(`Rechtsvorm text voor ${model.title}:`, rechtsvormText);
                             return (
                               <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-grow">
-                                    <h4 className="font-medium">{model.title}</h4>
-                                    {rechtsvormText ? (
-                                      <div className="text-sm text-gray-600 mt-1">
-                                        <p>{rechtsvormText}</p>
-                                      </div>
-                                    ) : (
-                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
-                                    )}
-                                  </div>
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium">{model.title}</h4>
                                   <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Aanbevolen, mits...
                                   </span>
                                 </div>
+                                {rechtsvormText ? (
+                                  <div className="text-sm text-gray-600">
+                                    <p>{rechtsvormText}</p>
+                                  </div>
+                                ) : (
+                                  model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
+                                )}
                               </div>
                             );
                           })}
@@ -335,21 +331,19 @@ export function SolutionDialog() {
                             const rechtsvormText = getRechtsvormText(model);
                             return (
                               <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-grow">
-                                    <h4 className="font-medium">{model.title}</h4>
-                                    {rechtsvormText ? (
-                                      <div className="text-sm text-gray-600 mt-1">
-                                        <p>{rechtsvormText}</p>
-                                      </div>
-                                    ) : (
-                                      model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>
-                                    )}
-                                  </div>
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium">{model.title}</h4>
                                   <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
                                     Niet geschikt
                                   </span>
                                 </div>
+                                {rechtsvormText ? (
+                                  <div className="text-sm text-gray-600">
+                                    <p>{rechtsvormText}</p>
+                                  </div>
+                                ) : (
+                                  model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
+                                )}
                               </div>
                             );
                           })}
