@@ -363,14 +363,6 @@ export default function MobilitySolutionsPage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Categorieën</h3>
-              <p className="text-gray-600 text-sm">
-                De oplossingen zijn ingedeeld in categorieën zoals vervoer, infrastructuur, 
-                en gedragsverandering. U ziet de categorie bij elke oplossing vermeld.
-              </p>
-            </div>
-
-            <div>
               <h3 className="text-lg font-semibold mb-2">Filteren</h3>
               <p className="text-gray-600 text-sm">
                 Gebruik de filteropties links om de oplossingen te sorteren op 

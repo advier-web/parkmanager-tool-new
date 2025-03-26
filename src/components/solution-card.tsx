@@ -179,6 +179,29 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
           
           <p className="text-gray-600 mb-3">{solution.summary || solution.description}</p>
           
+          {/* Paspoort section */}
+          {solution.paspoort && (
+            <div className="mb-4">
+              <div className="text-sm text-gray-600">
+                {solution.paspoort.split('\n').map((line, index) => {
+                  // Replace __Text__ pattern with bold styling
+                  const parts = line.split(/__(.*?)__/);
+                  
+                  return (
+                    <p key={index} className={index < (solution.paspoort?.split('\n').length || 0) - 1 ? "mb-2" : ""}>
+                      {parts.map((part, partIndex) => {
+                        // Every odd index is content that was between __ __
+                        return partIndex % 2 === 1 ? 
+                          <strong key={partIndex}>{part}</strong> : 
+                          <span key={partIndex}>{part}</span>;
+                      })}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
           <div className="flex flex-col gap-1 mb-2">
             <div>
               <ul className="list-disc pl-5 text-sm text-gray-600">
