@@ -187,28 +187,10 @@ export default function MobilitySolutionsPage() {
   const handleShowMoreInfo = (solution: MobilitySolution) => {
     if (!governanceModels) return;
     
-    // Filter governance models that are compatible with this solution
-    let compatibleModels: GovernanceModel[] = [];
-    
-    if (solution.governanceModels && solution.governanceModels.length > 0) {
-      // Extract governance model IDs from the solution
-      const governanceModelIds = solution.governanceModels.map(model => {
-        if (typeof model === 'string') {
-          return model;
-        } else if (model.sys && model.sys.id) {
-          return model.sys.id;
-        }
-        return '';
-      }).filter(id => id !== '');
-      
-      // Find matching governance models
-      compatibleModels = governanceModels.filter((model: GovernanceModel) => 
-        governanceModelIds.includes(model.id)
-      );
-    }
-    
-    // Open the dialog with solution info and compatible governance models
-    openSolutionDialog(solution, compatibleModels);
+    // Pass ALL governance models to the dialog, not just the ones referenced in governanceModels
+    // The filtering will happen inside the dialog based on all three arrays:
+    // governanceModels, governanceModelsMits, and governanceModelsNietgeschikt
+    openSolutionDialog(solution, governanceModels);
   };
   
   // Functie om bekend incorrecte scores handmatig te corrigeren

@@ -23,6 +23,30 @@ export function SolutionDialog() {
       console.log('GM-Mits Length:', currentSolution.governanceModelsMits?.length);
       console.log('GM-Niet Type:', Array.isArray(currentSolution.governanceModelsNietgeschikt));
       console.log('GM-Niet Length:', currentSolution.governanceModelsNietgeschikt?.length);
+      
+      // Detailed debugging for Governance Models structure
+      if (Array.isArray(currentSolution.governanceModels)) {
+        console.log('DETAILED GM:', currentSolution.governanceModels.map(ref => {
+          return { type: typeof ref, isObject: typeof ref === 'object', value: ref, id: typeof ref === 'string' ? ref : ref?.sys?.id };
+        }));
+      }
+      
+      if (Array.isArray(currentSolution.governanceModelsMits)) {
+        console.log('DETAILED GM-Mits:', currentSolution.governanceModelsMits.map(ref => {
+          return { type: typeof ref, isObject: typeof ref === 'object', value: ref, id: typeof ref === 'string' ? ref : ref?.sys?.id };
+        }));
+      }
+      
+      if (Array.isArray(currentSolution.governanceModelsNietgeschikt)) {
+        console.log('DETAILED GM-Niet:', currentSolution.governanceModelsNietgeschikt.map(ref => {
+          return { type: typeof ref, isObject: typeof ref === 'object', value: ref, id: typeof ref === 'string' ? ref : ref?.sys?.id };
+        }));
+      }
+      
+      // Debug all available compatible governance models
+      if (Array.isArray(compatibleGovernanceModels)) {
+        console.log('ALL COMPATIBLE MODELS:', compatibleGovernanceModels.map(model => ({ id: model.id, title: model.title })));
+      }
     }
   }, [dialogType, currentSolution, compatibleGovernanceModels]);
 
@@ -136,96 +160,121 @@ export function SolutionDialog() {
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Geschikte governance modellen</h2>
               
-              {/* Aanbevolen governance modellen */}
-              {Array.isArray(currentSolution.governanceModels) && currentSolution.governanceModels.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
-                  <div className="space-y-3">
-                    {compatibleGovernanceModels
-                      ?.filter(model => {
-                        return currentSolution.governanceModels?.some(
-                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
-                        );
-                      })
-                      .map((model) => (
-                        <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium">{model.title}</h4>
-                              {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+              {/* Render models helper function */}
+              {(() => {
+                // Check if we have the necessary data
+                if (!compatibleGovernanceModels || !Array.isArray(compatibleGovernanceModels) || compatibleGovernanceModels.length === 0) {
+                  return <p className="text-gray-500 italic my-4">Geen governance modellen beschikbaar.</p>;
+                }
+                
+                // Extract model IDs from different categories
+                const extractModelIds = (refs: any[] | undefined) => {
+                  if (!Array.isArray(refs) || refs.length === 0) return [];
+                  return refs.map(ref => {
+                    if (typeof ref === 'string') return ref;
+                    if (ref && typeof ref === 'object' && ref.sys && ref.sys.id) return ref.sys.id;
+                    return null;
+                  }).filter(Boolean);
+                };
+                
+                const recommendedIds = extractModelIds(currentSolution.governanceModels) || [];
+                const conditionalIds = extractModelIds(currentSolution.governanceModelsMits) || [];
+                const unsuitableIds = extractModelIds(currentSolution.governanceModelsNietgeschikt) || [];
+                
+                console.log('Extracted IDs:', { 
+                  recommendedIds, 
+                  conditionalIds, 
+                  unsuitableIds,
+                  compatibleCount: compatibleGovernanceModels.length
+                });
+                
+                // Get models for each category
+                const recommendedModels = compatibleGovernanceModels.filter(model => recommendedIds.includes(model.id));
+                const conditionalModels = compatibleGovernanceModels.filter(model => conditionalIds.includes(model.id));
+                const unsuitableModels = compatibleGovernanceModels.filter(model => unsuitableIds.includes(model.id));
+                
+                console.log('Filtered Models:', { 
+                  recommended: recommendedModels.length, 
+                  conditional: conditionalModels.length, 
+                  unsuitable: unsuitableModels.length 
+                });
+                
+                const hasAnyModels = recommendedModels.length > 0 || conditionalModels.length > 0 || unsuitableModels.length > 0;
+                
+                if (!hasAnyModels) {
+                  return <p className="text-gray-500 italic my-4">Geen specifieke governance modellen gevonden voor deze oplossing.</p>;
+                }
+                
+                return (
+                  <>
+                    {/* Aanbevolen governance modellen */}
+                    {recommendedModels.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
+                        <div className="space-y-3">
+                          {recommendedModels.map((model) => (
+                            <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">{model.title}</h4>
+                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                                </div>
+                                <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  Aanbevolen
+                                </span>
+                              </div>
                             </div>
-                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                              Aanbevolen
-                            </span>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Aanbevolen mits governance modellen */}
-              {Array.isArray(currentSolution.governanceModelsMits) && currentSolution.governanceModelsMits.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
-                  <div className="space-y-3">
-                    {compatibleGovernanceModels
-                      ?.filter(model => {
-                        return currentSolution.governanceModelsMits?.some(
-                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
-                        );
-                      })
-                      .map((model) => (
-                        <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium">{model.title}</h4>
-                              {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                      </div>
+                    )}
+                    
+                    {/* Aanbevolen mits governance modellen */}
+                    {conditionalModels.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
+                        <div className="space-y-3">
+                          {conditionalModels.map((model) => (
+                            <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">{model.title}</h4>
+                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                                </div>
+                                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  Aanbevolen, mits...
+                                </span>
+                              </div>
                             </div>
-                            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                              Aanbevolen, mits...
-                            </span>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Niet geschikte governance modellen */}
-              {Array.isArray(currentSolution.governanceModelsNietgeschikt) && currentSolution.governanceModelsNietgeschikt.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
-                  <div className="space-y-3">
-                    {compatibleGovernanceModels
-                      ?.filter(model => {
-                        return currentSolution.governanceModelsNietgeschikt?.some(
-                          ref => typeof ref === 'string' ? ref === model.id : ref?.sys?.id === model.id
-                        );
-                      })
-                      .map((model) => (
-                        <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium">{model.title}</h4>
-                              {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                      </div>
+                    )}
+                    
+                    {/* Niet geschikte governance modellen */}
+                    {unsuitableModels.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
+                        <div className="space-y-3">
+                          {unsuitableModels.map((model) => (
+                            <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">{model.title}</h4>
+                                  {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
+                                </div>
+                                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  Niet geschikt
+                                </span>
+                              </div>
                             </div>
-                            <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                              Niet geschikt
-                            </span>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Toon bericht als er geen modellen zijn */}
-              {(!Array.isArray(currentSolution.governanceModels) || currentSolution.governanceModels.length === 0) &&
-               (!Array.isArray(currentSolution.governanceModelsMits) || currentSolution.governanceModelsMits.length === 0) &&
-               (!Array.isArray(currentSolution.governanceModelsNietgeschikt) || currentSolution.governanceModelsNietgeschikt.length === 0) && (
-                <p className="text-gray-500 italic my-4">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
-              )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
