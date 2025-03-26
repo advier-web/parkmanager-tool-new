@@ -182,7 +182,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
           
           {/* Paspoort section */}
           {solution.paspoort && (
-            <div className="mb-4">
+            <div className="mt-4 pt-3 border-t border-gray-100 mb-4">
               <div className="text-sm text-gray-600">
                 {solution.paspoort.split('\n').map((line, index) => {
                   // Replace __Text__ pattern with bold styling
