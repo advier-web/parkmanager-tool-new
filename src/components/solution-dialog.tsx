@@ -135,84 +135,30 @@ export function SolutionDialog() {
             {/* Compatible governance models */}
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Geschikte governance modellen</h2>
-              {currentSolution && compatibleGovernanceModels && (
-                <>
-                  {/* Aanbevolen governance modellen */}
-                  {Array.isArray(currentSolution.governanceModels) && currentSolution.governanceModels.length > 0 && (
-                    <div className="space-y-3 mb-4">
-                      {compatibleGovernanceModels
-                        .filter(model => {
-                          return currentSolution.governanceModels?.some(id => id === model.id);
-                        })
-                        .map((model) => (
-                          <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium">{model.title}</h4>
-                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
-                              </div>
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Aanbevolen
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-
-                  {/* Aanbevolen mits governance modellen */}
-                  {Array.isArray(currentSolution.governanceModelsMits) && currentSolution.governanceModelsMits.length > 0 && (
-                    <div className="space-y-3 mb-4">
-                      {compatibleGovernanceModels
-                        .filter(model => {
-                          return currentSolution.governanceModelsMits?.some(id => id === model.id);
-                        })
-                        .map((model) => (
-                          <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium">{model.title}</h4>
-                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
-                              </div>
-                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Aanbevolen, mits...
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-
-                  {/* Niet geschikte governance modellen */}
-                  {Array.isArray(currentSolution.governanceModelsNietgeschikt) && currentSolution.governanceModelsNietgeschikt.length > 0 && (
-                    <div className="space-y-3">
-                      {compatibleGovernanceModels
-                        .filter(model => {
-                          return currentSolution.governanceModelsNietgeschikt?.some(id => id === model.id);
-                        })
-                        .map((model) => (
-                          <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium">{model.title}</h4>
-                                {model.summary && <p className="text-sm text-gray-600 mt-1">{model.summary}</p>}
-                              </div>
-                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Niet geschikt
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-
-                  {(!Array.isArray(currentSolution.governanceModels) || currentSolution.governanceModels.length === 0) &&
-                   (!Array.isArray(currentSolution.governanceModelsMits) || currentSolution.governanceModelsMits.length === 0) &&
-                   (!Array.isArray(currentSolution.governanceModelsNietgeschikt) || currentSolution.governanceModelsNietgeschikt.length === 0) && (
-                    <p className="text-gray-500 italic">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
-                  )}
-                </>
-              )}
+              
+              {/* Debug data display */}
+              <div className="bg-gray-100 p-4 rounded mb-4">
+                <h3 className="font-bold mb-2">Debug Info:</h3>
+                <p>Compatibility models count: {compatibleGovernanceModels?.length || 0}</p>
+                <p>Governance Models: {JSON.stringify(currentSolution.governanceModels)}</p>
+                <p>Governance Models Mits: {JSON.stringify(currentSolution.governanceModelsMits)}</p>
+                <p>Governance Models Niet Geschikt: {JSON.stringify(currentSolution.governanceModelsNietgeschikt)}</p>
+              </div>
+              
+              {/* Recommended Models */}
+              <div className="mb-4">
+                <h3 className="font-semibold border-b pb-2 mb-2">Aanbevolen modellen:</h3>
+                {compatibleGovernanceModels?.map(model => (
+                  <div key={model.id} className="p-2 border-b">
+                    <p>ID: {model.id}</p>
+                    <p>Title: {model.title}</p>
+                    {currentSolution.governanceModels?.includes(model.id) && (
+                      <span className="text-green-600 font-bold">✓ Recommended</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
           </div>
