@@ -169,31 +169,45 @@ export function SolutionDialog() {
                 
                 // Helper functie om de juiste rechtsvorm tekst te bepalen voor een specifiek governance model
                 const getRechtsvormText = (model: any) => {
+                  if (!currentSolution) return '';
+                  
+                  console.log('Rechtsvorm velden in currentSolution:', {
+                    vereniging: currentSolution.vereniging,
+                    stichting: currentSolution.stichting,
+                    ondernemersBiz: currentSolution.ondernemersBiz,
+                    vastgoedBiz: currentSolution.vastgoedBiz,
+                    gemengdeBiz: currentSolution.gemengdeBiz,
+                    cooperatieUa: currentSolution.cooperatieUa,
+                    bv: currentSolution.bv,
+                    ondernemersfonds: currentSolution.ondernemersfonds,
+                    geenRechtsvorm: currentSolution.geenRechtsvorm
+                  });
+                  
                   // Eerst controleren of er een expliciete legalForm in het model staat
                   if (model.legalForm) {
                     const legalForm = model.legalForm.toLowerCase();
-                    if (legalForm.includes('vereniging')) return model.vereniging;
-                    if (legalForm.includes('stichting')) return model.stichting;
-                    if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return model.ondernemersBiz;
-                    if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return model.vastgoedBiz;
-                    if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return model.gemengdeBiz;
-                    if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return model.cooperatieUa;
-                    if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return model.bv;
-                    if (legalForm.includes('ondernemersfonds')) return model.ondernemersfonds;
+                    if (legalForm.includes('vereniging')) return currentSolution.vereniging;
+                    if (legalForm.includes('stichting')) return currentSolution.stichting;
+                    if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return currentSolution.ondernemersBiz;
+                    if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return currentSolution.vastgoedBiz;
+                    if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return currentSolution.gemengdeBiz;
+                    if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return currentSolution.cooperatieUa;
+                    if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return currentSolution.bv;
+                    if (legalForm.includes('ondernemersfonds')) return currentSolution.ondernemersfonds;
                   }
                   
                   // Als er geen match is op legalForm, dan matchen op titel
                   const title = model.title.toLowerCase();
-                  if (title.includes('vereniging')) return model.vereniging;
-                  if (title.includes('stichting')) return model.stichting;
-                  if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return model.ondernemersBiz;
-                  if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return model.vastgoedBiz;
-                  if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return model.gemengdeBiz;
-                  if (title.includes('coöperatie') || title.includes('cooperatie')) return model.cooperatieUa;
-                  if (title.includes('bv') || title.includes('besloten vennootschap')) return model.bv;
-                  if (title.includes('ondernemersfonds')) return model.ondernemersfonds;
+                  if (title.includes('vereniging')) return currentSolution.vereniging;
+                  if (title.includes('stichting')) return currentSolution.stichting;
+                  if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return currentSolution.ondernemersBiz;
+                  if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return currentSolution.vastgoedBiz;
+                  if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return currentSolution.gemengdeBiz;
+                  if (title.includes('coöperatie') || title.includes('cooperatie')) return currentSolution.cooperatieUa;
+                  if (title.includes('bv') || title.includes('besloten vennootschap')) return currentSolution.bv;
+                  if (title.includes('ondernemersfonds')) return currentSolution.ondernemersfonds;
                   
-                  return model.geenRechtsvorm;
+                  return currentSolution.geenRechtsvorm;
                 };
                 
                 // Extract model IDs from different categories
@@ -282,6 +296,7 @@ export function SolutionDialog() {
                         <div className="space-y-3">
                           {conditionalModels.map((model) => {
                             const rechtsvormText = getRechtsvormText(model);
+                            console.log(`Rechtsvorm text voor ${model.title}:`, rechtsvormText);
                             return (
                               <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200">
                                 <div className="flex justify-between items-start">
