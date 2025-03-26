@@ -438,8 +438,7 @@ export default function PdfDownloadButtonContentful({
           { title: 'Collectief vs. Individueel', content: mobilityData?.collectiefVsIndiviueel },
           { title: 'Effecten', content: mobilityData?.effecten },
           { title: 'Investering', content: mobilityData?.investering },
-          { title: 'Implementatie', content: mobilityData?.implementatie },
-          { title: 'Toelichting Governance Modellen', content: mobilityData?.governancemodellenToelichting }
+          { title: 'Implementatie', content: mobilityData?.implementatie }
         ];
         
         // Process each section
@@ -447,6 +446,167 @@ export default function PdfDownloadButtonContentful({
           if (section.content) {
             yPos = addSection(pdf, section.title, section.content, yPos);
             yPos += 8; // Verminderde witruimte tussen secties
+          }
+        }
+        
+        // Helper functie om de juiste rechtsvorm tekst te bepalen voor een governance model
+        const getRechtsvormText = (model: any) => {
+          if (!mobilityData) return '';
+          
+          // Eerst controleren of er een expliciete legalForm in het model staat
+          if (model.legalForm) {
+            const legalForm = model.legalForm.toLowerCase();
+            if (legalForm.includes('vereniging')) return mobilityData.vereniging;
+            if (legalForm.includes('stichting')) return mobilityData.stichting;
+            if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return mobilityData.ondernemersBiz;
+            if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return mobilityData.vastgoedBiz;
+            if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return mobilityData.gemengdeBiz;
+            if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return mobilityData.cooperatieUa;
+            if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return mobilityData.bv;
+            if (legalForm.includes('ondernemersfonds')) return mobilityData.ondernemersfonds;
+          }
+          
+          // Als er geen match is op legalForm, dan matchen op titel
+          const title = model.title.toLowerCase();
+          if (title.includes('vereniging')) return mobilityData.vereniging;
+          if (title.includes('stichting')) return mobilityData.stichting;
+          if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return mobilityData.ondernemersBiz;
+          if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return mobilityData.vastgoedBiz;
+          if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return mobilityData.gemengdeBiz;
+          if (title.includes('coöperatie') || title.includes('cooperatie')) return mobilityData.cooperatieUa;
+          if (title.includes('bv') || title.includes('besloten vennootschap')) return mobilityData.bv;
+          if (title.includes('ondernemersfonds')) return mobilityData.ondernemersfonds;
+          
+          return mobilityData.geenRechtsvorm;
+        };
+        
+        // Aanbevolen governance modellen sectie
+        if (mobilityData?.governanceModels && mobilityData.governanceModels.length > 0) {
+          // Add section title
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(14);
+          pdf.text('Aanbevolen governance modellen', 20, yPos);
+          yPos += 8;
+          
+          // Add description text
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          const description = "Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.";
+          const descriptionLines = pdf.splitTextToSize(description, 170);
+          pdf.text(descriptionLines, 20, yPos);
+          yPos += descriptionLines.length * 5 + 5;
+          
+          // Add each governance model
+          for (const model of mobilityData.governanceModels) {
+            if (typeof model === 'string') continue;
+            
+            // Get the rechtsvorm text for this model
+            const rechtsvormText = getRechtsvormText(model);
+            
+            // Model title
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(12);
+            pdf.text(model.title, 20, yPos);
+            yPos += 6;
+            
+            // Model rechtsvorm text
+            if (rechtsvormText) {
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(10);
+              const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              pdf.text(lines, 20, yPos);
+              yPos += lines.length * 5 + 5;
+            }
+            
+            yPos += 5;
+          }
+          
+          yPos += 5;
+        }
+        
+        // Aanbevolen governance modellen mits sectie
+        if (mobilityData?.governanceModelsMits && mobilityData.governanceModelsMits.length > 0) {
+          // Add section title
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(14);
+          pdf.text('Aanbevolen, mits...', 20, yPos);
+          yPos += 8;
+          
+          // Add description text
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          const description = "Deze modellen zijn geschikt voor uw mobiliteitsoplossingen, maar vereisen extra aandacht of aanpassingen.";
+          const descriptionLines = pdf.splitTextToSize(description, 170);
+          pdf.text(descriptionLines, 20, yPos);
+          yPos += descriptionLines.length * 5 + 5;
+          
+          // Add each governance model
+          for (const model of mobilityData.governanceModelsMits) {
+            if (typeof model === 'string') continue;
+            
+            // Get the rechtsvorm text for this model
+            const rechtsvormText = getRechtsvormText(model);
+            
+            // Model title
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(12);
+            pdf.text(model.title, 20, yPos);
+            yPos += 6;
+            
+            // Model rechtsvorm text
+            if (rechtsvormText) {
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(10);
+              const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              pdf.text(lines, 20, yPos);
+              yPos += lines.length * 5 + 5;
+            }
+            
+            yPos += 5;
+          }
+          
+          yPos += 5;
+        }
+        
+        // Ongeschikte governance modellen sectie
+        if (mobilityData?.governanceModelsNietgeschikt && mobilityData.governanceModelsNietgeschikt.length > 0) {
+          // Add section title
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(14);
+          pdf.text('Ongeschikte governance modellen', 20, yPos);
+          yPos += 8;
+          
+          // Add description text
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          const description = "Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.";
+          const descriptionLines = pdf.splitTextToSize(description, 170);
+          pdf.text(descriptionLines, 20, yPos);
+          yPos += descriptionLines.length * 5 + 5;
+          
+          // Add each governance model
+          for (const model of mobilityData.governanceModelsNietgeschikt) {
+            if (typeof model === 'string') continue;
+            
+            // Get the rechtsvorm text for this model
+            const rechtsvormText = getRechtsvormText(model);
+            
+            // Model title
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(12);
+            pdf.text(model.title, 20, yPos);
+            yPos += 6;
+            
+            // Model rechtsvorm text
+            if (rechtsvormText) {
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(10);
+              const lines = pdf.splitTextToSize(rechtsvormText, 170);
+              pdf.text(lines, 20, yPos);
+              yPos += lines.length * 5 + 5;
+            }
+            
+            yPos += 5;
           }
         }
       } else if (contentType === 'governanceModel' && governanceData) {

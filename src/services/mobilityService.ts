@@ -15,11 +15,31 @@ export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Prom
     return model as unknown as GovernanceModel;
   });
   
+  // Map de governanceModelsMits naar het juiste type als ze bestaan
+  const mappedGovernanceModelsMits = data.governanceModelsMits?.map(model => {
+    if (typeof model === 'string') {
+      return model;
+    }
+    // Zorg dat de object structuur overeenkomt met GovernanceModel in mobilityTypes
+    return model as unknown as GovernanceModel;
+  });
+  
+  // Map de governanceModelsNietgeschikt naar het juiste type als ze bestaan
+  const mappedGovernanceModelsNietgeschikt = data.governanceModelsNietgeschikt?.map(model => {
+    if (typeof model === 'string') {
+      return model;
+    }
+    // Zorg dat de object structuur overeenkomt met GovernanceModel in mobilityTypes
+    return model as unknown as GovernanceModel;
+  });
+  
   // Aanvullen met verplichte velden uit onze specifieke PDF interface
   return {
     ...data,
     slug: data.title?.toLowerCase().replace(/[^\w\s-]/g, '-').replace(/\s+/g, '-') || mobilityServiceId,
-    governanceModels: mappedGovernanceModels
+    governanceModels: mappedGovernanceModels,
+    governanceModelsMits: mappedGovernanceModelsMits,
+    governanceModelsNietgeschikt: mappedGovernanceModelsNietgeschikt
   };
 };
 
@@ -73,7 +93,33 @@ export const getMobilitySolutionForPdfMock = async (): Promise<MobilitySolution>
         description: "Een gebruikersgestuurd model waarbij eindgebruikers mede-eigenaar zijn van de mobiliteitsoplossing.\n\n**Kenmerken:**\n* Directe invloed van gebruikers op besluitvorming\n* Eerlijke verdeling van kosten en baten\n* Sterke focus op gemeenschapsbelangen"
       }
     ],
-    governancemodellenToelichting: "De keuze voor een governance model hangt af van verschillende factoren zoals:\n\n* Beschikbare financiële middelen\n* Lokale politieke context\n* Bestaande samenwerkingsverbanden\n* Gebruikersbereidheid om te participeren\n\nVoor kleinere gemeenten is het coöperatieve model vaak geschikter, terwijl grotere steden meestal meer baat hebben bij het publiek-private samenwerkingsmodel vanwege de complexiteit en schaal."
+    governanceModelsMits: [
+      {
+        title: "Vereniging",
+        description: "Een formele vereniging van bedrijven die gezamenlijk mobiliteitsdiensten aanbieden."
+      },
+      {
+        title: "Stichting",
+        description: "Een non-profit stichting die mobiliteitsoplossingen faciliteert en beheert."
+      }
+    ],
+    governanceModelsNietgeschikt: [
+      {
+        title: "Ondernemersfonds",
+        description: "Een financieringsmodel waarbij bijdragen via belastingen worden geïnd."
+      }
+    ],
+    
+    // Rechtsvorm velden
+    geenRechtsvorm: "Geen formele rechtsvorm vereist voor dit model. Geschikt voor informele samenwerkingen tussen partijen.",
+    vereniging: "Een bedrijvenvereniging is een samenwerkingsverband waarin bedrijven op een bedrijventerrein gezamenlijk hun belangen behartigen. De vereniging biedt een formele structuur waarin leden inspraak hebben en collectieve acties kunnen ondernemen.",
+    stichting: "Een stichting is een rechtspersoon met een bestuur maar zonder leden, opgericht om een in de statuten vermeld doel te realiseren. Geschikt voor het beheren van gemeenschappelijke voorzieningen.",
+    ondernemersBiz: "De Ondernemers BIZ is een publiek-private samenwerking waarbij ondernemers én vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame mobiliteitsmaatregelen.",
+    vastgoedBiz: "De Vastgoed BIZ is een publiek-private samenwerking waarbij vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame investeringen.",
+    gemengdeBiz: "De Gemengde BIZ is een publiek-private samenwerking waarbij ondernemers én vastgoedeigenaren verplicht financieel bijdragen aan gezamenlijke voorzieningen. Deze rechtsvorm biedt een stabiele en wettelijk basis voor duurzame mobiliteitsmaatregelen.",
+    cooperatieUa: "Met een Coöperatie met uitgesloten aansprakelijkheid (UA) organiseren bedrijven op een bedrijventerrein gezamenlijk mobiliteitsoplossingen. De leden beslissen samen, delen de kosten en zijn niet persoonlijk aansprakelijk voor eventuele tekorten.",
+    bv: "Een besloten vennootschap (BV) is een rechtsvorm voor bedrijvencollectieven die gezamenlijk mobiliteitsoplossingen willen organiseren. Deze structuur biedt eigendomsverhoudingen, beperkte aansprakelijkheid en ruimte voor een flexibele organisatie.",
+    ondernemersfonds: "Een ondernemersfonds is een financiële regeling waarin bedrijven binnen een afgebakend gebied gezamenlijk bijdragen aan de verbetering van hun bedrijfsomgeving. De bijdragen worden geheven via een opslag op de onroerendezaakbelasting (OZB) of rioolheffing."
   };
 };
 

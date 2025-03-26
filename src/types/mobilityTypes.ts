@@ -31,6 +31,19 @@ export interface MobilitySolution {
   investering?: string;
   implementatie?: string;
   governanceModels?: (GovernanceModel | string)[];
-  governancemodellenToelichting?: string;
+  governanceModelsMits?: (GovernanceModel | string)[];
+  governanceModelsNietgeschikt?: (GovernanceModel | string)[];
+  
+  // Rechtsvorm velden
+  geenRechtsvorm?: string;
+  vereniging?: string;
+  stichting?: string;
+  ondernemersBiz?: string;
+  vastgoedBiz?: string;
+  gemengdeBiz?: string;
+  cooperatieUa?: string;
+  bv?: string;
+  ondernemersfonds?: string;
+  
   sys?: { id: string };
 } 

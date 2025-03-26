@@ -378,6 +378,38 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
             })
         )
       : [];
+      
+    // Haal de governanceModelsMits op
+    const governanceModelsMits = entry.fields.governanceModelsMits 
+      ? await Promise.all(
+          (entry.fields.governanceModelsMits as any[])
+            .filter(item => item.sys?.id)
+            .map(async (item) => {
+              const model = await client.getEntry(item.sys.id);
+              return {
+                sys: { id: model.sys.id },
+                title: String(model.fields.title || ''),
+                description: String(model.fields.description || '')
+              };
+            })
+        )
+      : [];
+      
+    // Haal de governanceModelsNietgeschikt op
+    const governanceModelsNietgeschikt = entry.fields.governanceModelsNietgeschikt 
+      ? await Promise.all(
+          (entry.fields.governanceModelsNietgeschikt as any[])
+            .filter(item => item.sys?.id)
+            .map(async (item) => {
+              const model = await client.getEntry(item.sys.id);
+              return {
+                sys: { id: model.sys.id },
+                title: String(model.fields.title || ''),
+                description: String(model.fields.description || '')
+              };
+            })
+        )
+      : [];
 
     // Transformeer de entry naar het juiste formaat voor PDF
     return {
@@ -401,8 +433,8 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       effecten: String(entry.fields.effecten || ''),
       investering: String(entry.fields.investering || ''),
       governanceModels,
-      governancemodellenToelichting: String(entry.fields.governancemodellenToelichting || ''),
-      
+      governanceModelsMits,
+      governanceModelsNietgeschikt,
       // Rating fields
       parkeer_bereikbaarheidsproblemen: Number(entry.fields.parkeer_bereikbaarheidsproblemen || 0),
       gezondheid: Number(entry.fields.gezondheid || 0),
