@@ -21,7 +21,6 @@ export interface IBusinessParkReasonFields {
   title: string;
   description: string;
   summary?: string;
-  samenvatting?: string;
   icon?: string;
   category?: string;
   identifier?: string;

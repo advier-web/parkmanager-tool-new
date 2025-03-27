@@ -82,8 +82,7 @@ export function transformBusinessParkReason(
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : '',
     description: typeof fields.description === 'string' ? fields.description : '',
-    summary: typeof fields.summary === 'string' ? fields.summary : 
-             typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
+    summary: typeof fields.summary === 'string' ? fields.summary : undefined,
     icon: typeof fields.icon === 'string' ? fields.icon : undefined,
     category: typeof fields.category === 'string' ? fields.category : undefined,
     identifier: typeof fields.identifier === 'string' ? fields.identifier : undefined

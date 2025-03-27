@@ -46,4 +46,12 @@ export interface MobilitySolution {
   ondernemersfonds?: string;
   
   sys?: { id: string };
+}
+
+export interface MobilityType {
+  id: string;
+  title: string;
+  description: string;
+  samenvattingLang?: string;
+  benefits: string[];
 } 
