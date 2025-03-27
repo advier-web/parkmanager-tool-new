@@ -160,22 +160,15 @@ export default function BusinessParkInfoPage() {
                 
                 {currentGovernanceModelId && currentGovernanceModelId !== 'geen' && governanceModels && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                    <h4 className="text-sm font-semibold mb-2">
+                    <h4 className="text-sm font-semibold">
                       {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
                     </h4>
-                    <p className="text-sm text-gray-600">
-                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.samenvatting}
-                    </p>
                   </div>
                 )}
                 
                 {currentGovernanceModelId === 'geen' && (
                   <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                    <h4 className="text-sm font-semibold mb-2">Geen bestuursvorm</h4>
-                    <p className="text-sm text-gray-600">
-                      Er is momenteel geen formele bestuursvorm of organisatiestructuur voor collectieve activiteiten op het bedrijventerrein. 
-                      Voor het implementeren van collectieve mobiliteitsoplossingen zal waarschijnlijk een nieuwe samenwerkingsstructuur nodig zijn.
-                    </p>
+                    <h4 className="text-sm font-semibold">Geen bestuursvorm</h4>
                   </div>
                 )}
               </div>
