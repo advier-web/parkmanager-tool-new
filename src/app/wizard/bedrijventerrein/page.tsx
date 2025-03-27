@@ -157,20 +157,6 @@ export default function BusinessParkInfoPage() {
                     )}
                   </>
                 )}
-                
-                {currentGovernanceModelId && currentGovernanceModelId !== 'geen' && governanceModels && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                    <h4 className="text-sm font-semibold">
-                      {governanceModels.find(model => model.id === currentGovernanceModelId)?.title}
-                    </h4>
-                  </div>
-                )}
-                
-                {currentGovernanceModelId === 'geen' && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-md">
-                    <h4 className="text-sm font-semibold">Geen bestuursvorm</h4>
-                  </div>
-                )}
               </div>
               
               <div>
