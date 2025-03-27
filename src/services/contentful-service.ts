@@ -447,26 +447,26 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
     };
 
     // Transformeer de entry naar het juiste formaat voor PDF
-    return {
+    const solution: MobilitySolution = {
       id: entry.sys.id,
-      title: String(entry.fields.title || ''),
-      description: String(entry.fields.description || ''),
-      summary: String(entry.fields.summary || ''),
+      title: getStringField('title'),
+      description: getStringField('description'),
+      samenvattingLang: getStringField('samenvattingLang'),
       benefits: Array.isArray(entry.fields.benefits) ? entry.fields.benefits.map(String) : [],
       challenges: Array.isArray(entry.fields.challenges) ? entry.fields.challenges.map(String) : [],
-      implementationTime: String(entry.fields.implementationTime || 'onbekend'),
-      costs: String(entry.fields.costs || 'onbekend'),
-      category: String(entry.fields.category || 'overig'),
-      icon: entry.fields.icon ? String(entry.fields.icon) : undefined,
+      implementationTime: getStringField('implementationTime'),
+      costs: getStringField('costs'),
+      category: getStringField('category'),
+      icon: getStringField('icon'),
       
       // Implementation plan field
-      implementatie: String(entry.fields.implementatie || ''),
+      implementatie: getStringField('implementatie'),
       
       // Nieuwe velden van Contentful
-      paspoort: String(entry.fields.paspoort || ''),
-      collectiefVsIndiviueel: String(entry.fields.collectiefVsIndiviueel || ''),
-      effecten: String(entry.fields.effecten || ''),
-      investering: String(entry.fields.investering || ''),
+      paspoort: getStringField('paspoort'),
+      collectiefVsIndiviueel: getStringField('collectiefVsIndiviueel'),
+      effecten: getStringField('effecten'),
+      investering: getStringField('investering'),
       governanceModels,
       governanceModelsMits,
       governanceModelsNietgeschikt,
@@ -489,6 +489,8 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       imago: Number(entry.fields.imago || 0),
       milieuverordening: Number(entry.fields.milieuverordening || 0),
     };
+
+    return solution;
   } catch (error) {
     console.error('Error fetching mobility solution for PDF:', error);
     throw error;

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clear-cache": "rm -rf .next && rm -rf node_modules/.cache",
+    "fresh": "npm run clear-cache && npm run dev"
   },
   "dependencies": {
     "@contentful/rich-text-html-renderer": "^17.0.0",

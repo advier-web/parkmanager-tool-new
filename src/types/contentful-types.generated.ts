@@ -40,8 +40,7 @@ export interface IMobilitySolutionFields {
   costs: string;
   category: string;
   icon?: string;
-  summary?: string;
-  samenvatting?: string;
+  samenvattingLang?: string;
   implementatie?: string;
   paspoort?: string;
   collectiefVsIndiviueel?: string;
