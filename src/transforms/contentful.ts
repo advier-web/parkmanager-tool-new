@@ -159,8 +159,7 @@ export function transformMobilitySolution(
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : '',
     description: typeof fields.description === 'string' ? fields.description : '',
-    summary: typeof fields.summary === 'string' ? fields.summary : 
-             typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
+    samenvattingLang: typeof fields.samenvattingLang === 'string' ? fields.samenvattingLang : undefined,
     benefits: Array.isArray(fields.benefits) ? fields.benefits : [],
     challenges: Array.isArray(fields.challenges) ? fields.challenges : [],
     implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : '',

@@ -143,8 +143,8 @@ export default function SummaryPage() {
                   .map((solution, index) => (
                     <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
                       <h4 className="font-medium text-lg mb-2">{solution.title}</h4>
-                      {solution.summary && (
-                        <p className="mb-3 text-gray-700">{solution.summary}</p>
+                      {solution.samenvattingLang && (
+                        <p className="mb-3 text-gray-700">{solution.samenvattingLang}</p>
                       )}
                       <div className="mt-3">
                         <PdfDownloadButtonContentful

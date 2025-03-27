@@ -178,7 +178,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
-          <p className="text-gray-600 mb-3">{solution.summary || solution.description}</p>
+          <p className="text-gray-600 mb-3">{solution.samenvattingLang || solution.description}</p>
           
           {/* Paspoort section */}
           {solution.paspoort && (

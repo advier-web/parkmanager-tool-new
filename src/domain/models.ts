@@ -19,7 +19,7 @@ export interface MobilitySolution {
   id: string;
   title: string;
   description: string;
-  summary?: string;
+  samenvattingLang?: string;
   benefits: string[];
   challenges: string[];
   implementationTime: string; // e.g., "kort", "middellang", "lang"
