@@ -71,7 +71,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.disadvantages && model.disadvantages.length > 0 && (
+          {model.disadvantages && Array.isArray(model.disadvantages) && model.disadvantages.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
               <ItemWithMarkdown content={model.disadvantages.map(disadv => `- ${disadv}`).join('\n')} />
