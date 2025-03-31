@@ -8,6 +8,7 @@ import { MobilityServiceAccordion } from '../components/mobility-service-accordi
 import { GovernanceModelsSection } from '../components/governance-models-section';
 import { BusinessParkReasonsSection } from '../components/business-park-reasons-section';
 import Link from 'next/link';
+import { MobilityServiceButton } from '../components/mobility-service-button';
 
 interface SectionRef {
   id: string;
@@ -269,9 +270,9 @@ export default function Home() {
           )}
           
           {mobilityServices && mobilityServices.length > 0 && (
-            <div className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
               {mobilityServices.map(service => (
-                <MobilityServiceAccordion key={service.id} solution={service} />
+                <MobilityServiceButton key={service.id} solution={service} />
               ))}
             </div>
           )}
