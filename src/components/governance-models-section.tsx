@@ -1,5 +1,5 @@
 import { GovernanceModel } from '../domain/models';
-import { GovernanceModelAccordion } from './governance-model-accordion';
+import { GovernanceModelButton } from './governance-model-button';
 
 interface GovernanceModelsSectionProps {
   governanceModels: GovernanceModel[];
@@ -8,7 +8,7 @@ interface GovernanceModelsSectionProps {
 }
 
 /**
- * Section to display all governance models in accordions
+ * Section to display all governance models in buttons
  */
 export function GovernanceModelsSection({ 
   governanceModels,
@@ -24,9 +24,9 @@ export function GovernanceModelsSection({
       {title && <h2 className="text-2xl font-bold mb-4">{title}</h2>}
       {description && <div className="mb-6">{description}</div>}
       
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {governanceModels.map(model => (
-          <GovernanceModelAccordion 
+          <GovernanceModelButton 
             key={model.id} 
             model={model} 
           />
