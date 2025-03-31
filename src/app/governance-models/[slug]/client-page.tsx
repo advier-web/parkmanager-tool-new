@@ -40,27 +40,10 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          <div className="border-b pb-6 mb-6">
-            <h2 className="font-semibold text-xl mb-3">PDF Informatie</h2>
-            <p className="text-gray-700 mb-4">
-              Download meer informatie over dit bestuursmodel via onderstaande PDF. In deze PDF staat meer informatie over de benodigdheden voor oprichting en stappen die genomen moeten worden voor het implementeren van dit bestuursmodel.
-            </p>
-            <PdfDownloadButtonContentful
-              mobilityServiceId={model.id}
-              fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
-              contentType="governanceModel"
-            />
-          </div>
-
-          {model.benodigdhedenOprichting && (
+          {model.aansprakelijkheid && (
             <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Benodigdheden voor oprichting</h2>
-              <ItemWithMarkdown content={typeof model.benodigdhedenOprichting === 'string' 
-                ? model.benodigdhedenOprichting 
-                : Array.isArray(model.benodigdhedenOprichting) 
-                  ? model.benodigdhedenOprichting.join('\n- ') 
-                  : ''} 
-              />
+              <h2 className="font-semibold text-xl mb-3">Aansprakelijkheid</h2>
+              <ItemWithMarkdown content={model.aansprakelijkheid} />
             </div>
           )}
 
@@ -78,13 +61,38 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.implementatie && (
-            <div className="pb-6">
-              <h2 className="font-semibold text-xl mb-3">Implementatie</h2>
-              <ItemWithMarkdown content={model.implementatie} />
+          {model.benodigdhedenOprichting && (
+            <div className="border-b pb-6 mb-6">
+              <h2 className="font-semibold text-xl mb-3">Benodigdheden voor oprichting</h2>
+              <ItemWithMarkdown content={typeof model.benodigdhedenOprichting === 'string' 
+                ? model.benodigdhedenOprichting 
+                : Array.isArray(model.benodigdhedenOprichting) 
+                  ? model.benodigdhedenOprichting.join('\n- ') 
+                  : ''} 
+              />
             </div>
           )}
-          
+
+          {model.links && Array.isArray(model.links) && model.links.length > 0 && (
+            <div className="border-b pb-6 mb-6">
+              <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
+              <ul className="list-disc pl-5 space-y-1">
+                {model.links.map((link, index) => (
+                  <li key={index}>
+                    <a 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-teal-600 hover:underline"
+                    >
+                      {link.title || link.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {model.doorlooptijdLang || model.doorlooptijd ? (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Doorlooptijd</h2>
@@ -92,12 +100,17 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           ) : null}
           
-          {model.applicableScenarios && Array.isArray(model.applicableScenarios) && model.applicableScenarios.length > 0 && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Geschikte scenario's</h2>
-              <ItemWithMarkdown content={model.applicableScenarios.map(scenario => `- ${scenario}`).join('\n')} />
-            </div>
-          )}
+          <div className="pb-6">
+            <h2 className="font-semibold text-xl mb-3">PDF Informatie</h2>
+            <p className="text-gray-700 mb-4">
+              Download meer informatie over dit bestuursmodel via onderstaande PDF. In deze PDF staat meer informatie over de benodigdheden voor oprichting en stappen die genomen moeten worden voor het implementeren van dit bestuursmodel.
+            </p>
+            <PdfDownloadButtonContentful
+              mobilityServiceId={model.id}
+              fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
+              contentType="governanceModel"
+            />
+          </div>
         </div>
       </div>
     </div>
