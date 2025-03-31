@@ -6,7 +6,6 @@ import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
 import { useGovernanceModels } from '@/hooks/use-domain-models';
-import { PaspoortAccordion } from '@/components/contentful-accordion';
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
@@ -99,7 +98,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           {solution.paspoort && (
             <div className="bg-teal-600 text-white rounded-lg p-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Paspoort</h2>
-              <PaspoortAccordion paspoort={solution.paspoort} />
+              <ItemWithMarkdown content={solution.paspoort} />
             </div>
           )}
           
