@@ -133,27 +133,52 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {(Array.isArray(links) && links.length > 0 || typeof links === 'string' && links) && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
+              
+              {/* Voor introductie tekst voorafgaand aan de links */}
+              {Array.isArray(links) && links.some(link => typeof link === 'string' && !link.match(/^https?:\/\//))}
+              
               {Array.isArray(links) && links.length > 0 && (
-                <ul className="list-none space-y-2">
-                  {links.map((link, index) => {
-                    if (typeof link === 'object' && link !== null && 'url' in link) {
-                      return (
-                        <li key={index} className="flex items-center">
-                          <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
-                          <a 
-                            href={link.url as string} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-teal-600 hover:underline"
-                          >
-                            {(link.title as string) || formatUrl(link.url as string)}
-                          </a>
-                        </li>
-                      );
-                    }
-                    else if (typeof link === 'string') {
-                      const isUrl = link.match(/https?:\/\/[^\s]+/);
-                      if (isUrl) {
+                <div className="space-y-4">
+                  {/* Eerst renderen we de niet-URL teksten zonder icoontjes */}
+                  {links.some(link => typeof link === 'string' && !link.match(/^https?:\/\//)) && (
+                    <div className="mb-2">
+                      {links.map((link, index) => {
+                        if (typeof link === 'string' && !link.match(/^https?:\/\//)) {
+                          return (
+                            <div key={index} className="mb-2">
+                              <ItemWithMarkdown content={link} />
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Dan renderen we de URL links met icoontjes */}
+                  <ul className="list-none space-y-3">
+                    {links.map((link, index) => {
+                      // Voor objecten met url/title properties
+                      if (typeof link === 'object' && link !== null && 'url' in link) {
+                        const url = link.url as string;
+                        const title = link.title as string || extractUrlTitle(url);
+                        
+                        return (
+                          <li key={index} className="flex items-center">
+                            <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-teal-600 hover:underline"
+                            >
+                              {title}
+                            </a>
+                          </li>
+                        );
+                      }
+                      // Voor directe URLs als strings
+                      else if (typeof link === 'string' && link.match(/^https?:\/\//)) {
                         return (
                           <li key={index} className="flex items-center">
                             <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
@@ -163,30 +188,22 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                               rel="noopener noreferrer" 
                               className="text-teal-600 hover:underline"
                             >
-                              {formatUrl(link)}
+                              {extractUrlTitle(link)}
                             </a>
                           </li>
                         );
                       }
-                      return (
-                        <li key={index} className="flex items-start">
-                          <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0 mt-1" />
-                          <div className="flex-1">
-                            <ItemWithMarkdown content={link} />
-                          </div>
-                        </li>
-                      );
-                    }
-                    return null;
-                  })}
-                </ul>
+                      // Negeer niet-URL strings want die hebben we hierboven al gerenderd
+                      return null;
+                    })}
+                  </ul>
+                </div>
               )}
+              
+              {/* Als links een enkele string is */}
               {typeof links === 'string' && links && (
-                <div className="flex items-start">
-                  <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0 mt-1" />
-                  <div className="flex-1">
-                    <ItemWithMarkdown content={links} />
-                  </div>
+                <div>
+                  <ItemWithMarkdown content={links} />
                 </div>
               )}
             </div>
@@ -217,23 +234,41 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
   );
 }
 
-// Helper functie om URL's mooier weer te geven
-function formatUrl(url: string): string {
+// Helper functie om URL titles te extraheren of te genereren uit URL
+function extractUrlTitle(url: string): string {
+  // Bekende URLs herkennen
+  if (url.includes('ondernemersplein.overheid.nl/bedrijven-investeringszone-biz-oprichten')) {
+    return 'Ondernemersplein - BIZ (Bedrijven Investeringszone) oprichten';
+  }
+  
+  if (url.includes('ondernemersplein.kvk.nl/de-vereniging')) {
+    return 'Ondernemersplein - De vereniging';
+  }
+  
   try {
-    // Probeer de URL te parsen
+    // Generieke URL parser voor overige URLs
     const parsed = new URL(url);
-    // Verwijder protocol en trailing slash
-    let formatted = parsed.hostname;
+    const hostname = parsed.hostname.replace('www.', '');
     
-    if (parsed.pathname && parsed.pathname !== '/') {
-      // Voeg pathname toe maar verkort deze indien heel lang
-      const path = parsed.pathname;
-      formatted += path.length > 20 ? path.substring(0, 20) + '...' : path;
+    // Bepaal een mooie titel op basis van pathname
+    const path = parsed.pathname.replace(/\/$/, ''); // Verwijder trailing slash
+    if (path && path !== '/') {
+      const pathSegments = path.split('/').filter(Boolean);
+      if (pathSegments.length > 0) {
+        const lastSegment = pathSegments[pathSegments.length - 1]
+          .replace(/-/g, ' ')
+          .replace(/\.(html|php|aspx)$/, '')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+          
+        return `${hostname} - ${lastSegment}`;
+      }
     }
     
-    return formatted;
+    return hostname;
   } catch (e) {
-    // Als het parsen mislukt, toon gewoon de originele URL
+    // Fallback als URL parsen mislukt
     return url;
   }
 } 
