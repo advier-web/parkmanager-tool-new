@@ -96,7 +96,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           <h1 className="text-3xl font-bold mb-6">{solution.title}</h1>
           
           {solution.paspoort && (
-            <div className="border-b pb-6 mb-6">
+            <div className="bg-teal-600 text-white rounded-lg p-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Paspoort</h2>
               <ItemWithMarkdown content={solution.paspoort} />
             </div>
