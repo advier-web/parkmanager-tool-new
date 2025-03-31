@@ -15,16 +15,13 @@ export default function GovernanceModelButton({ model }: GovernanceModelButtonPr
   // Generate the slug for linking to the model's detail page
   const slug = model.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
-  // Determine the background color based on the model's title
-  const bgColorClass = getModelColor(model.title);
-  
   // Determine the background image based on the model's title
   const bgImage = getModelImage(model.title);
 
   return (
     <Link 
       href={`/governance-models/${slug}`}
-      className={`relative block rounded-lg ${bgColorClass} p-6 h-48 overflow-hidden transition-transform hover:scale-105 shadow-md hover:shadow-lg`}
+      className="relative block rounded-lg bg-teal-600 p-6 h-auto min-h-48 overflow-hidden transition-transform hover:scale-105 shadow-md hover:shadow-lg"
     >
       {bgImage && (
         <div className="absolute inset-0 opacity-20">
@@ -39,41 +36,11 @@ export default function GovernanceModelButton({ model }: GovernanceModelButtonPr
       <div className="relative z-10">
         <h3 className="text-white font-bold text-xl mb-2">{model.title}</h3>
         {model.summary && (
-          <p className="text-white/90 text-sm line-clamp-3">{model.summary}</p>
+          <p className="text-white/90 text-sm">{model.summary}</p>
         )}
       </div>
     </Link>
   );
-}
-
-/**
- * Determine the background color class based on the governance model title
- */
-function getModelColor(title: string): string {
-  const titleLower = title.toLowerCase();
-  
-  if (titleLower.includes('biz') || titleLower.includes('bedrijveninvesteringszone')) {
-    return 'bg-purple-600';
-  }
-  
-  if (titleLower.includes('vereniging') || titleLower.includes('vve')) {
-    return 'bg-teal-600';
-  }
-  
-  if (titleLower.includes('coöperatie') || titleLower.includes('cooperatie')) {
-    return 'bg-yellow-600';
-  }
-  
-  if (titleLower.includes('stichting')) {
-    return 'bg-red-600';
-  }
-  
-  if (titleLower.includes('convenant')) {
-    return 'bg-blue-600';
-  }
-  
-  // Default color for other types
-  return 'bg-indigo-600';
 }
 
 /**
