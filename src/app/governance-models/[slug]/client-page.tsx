@@ -25,13 +25,32 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
   console.log('Rendering governance model:', model);
 
-  // Definieer types voor de ontbrekende properties
-  type ModelWithExtraProps = GovernanceModel & {
-    voordelen?: any[];
-    nadelen?: any[];
-  };
+  // Benader de velden voor verschillende databronnen
+  const contentfulFields = (model as any).fields || {};
   
-  const extendedModel = model as ModelWithExtraProps;
+  // Haal voordelen/nadelen data op - probeer eerst normale velden en dan contentful specifieke velden
+  const voordelen = model.advantages || 
+                    (model as any).voordelen || 
+                    (contentfulFields.voordelen) || 
+                    [];
+                    
+  const nadelen = model.disadvantages || 
+                 (model as any).nadelen || 
+                 (contentfulFields.nadelen) || 
+                 [];
+  
+  // Haal doorlooptijd data op
+  const doorlooptijd = model.doorlooptijdLang || 
+                      model.doorlooptijd || 
+                      (model as any).doorlooptijdLang || 
+                      (contentfulFields.doorlooptijdLang) || 
+                      '';
+  
+  // Haal links data op
+  const links = model.links || 
+               (model as any).links || 
+               (contentfulFields.links) || 
+               [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -57,31 +76,43 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.advantages && Array.isArray(model.advantages) && model.advantages.length > 0 && (
+          {/* Voordelen - verschillende formats ondersteunen */}
+          {Array.isArray(voordelen) && voordelen.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
-              <ItemWithMarkdown content={model.advantages.map(adv => `- ${adv}`).join('\n')} />
+              <ul className="list-disc pl-5">
+                {voordelen.map((voordeel, index) => (
+                  <li key={index}>
+                    <ItemWithMarkdown content={voordeel} />
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-
-          {(!extendedModel.advantages || extendedModel.advantages.length === 0) && extendedModel.voordelen && Array.isArray(extendedModel.voordelen) && extendedModel.voordelen.length > 0 && (
+          {typeof voordelen === 'string' && voordelen && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
-              <ItemWithMarkdown content={extendedModel.voordelen.map((adv: any) => `- ${adv}`).join('\n')} />
+              <ItemWithMarkdown content={voordelen} />
             </div>
           )}
 
-          {model.disadvantages && Array.isArray(model.disadvantages) && model.disadvantages.length > 0 && (
+          {/* Nadelen - verschillende formats ondersteunen */}
+          {Array.isArray(nadelen) && nadelen.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
-              <ItemWithMarkdown content={model.disadvantages.map(disadv => `- ${disadv}`).join('\n')} />
+              <ul className="list-disc pl-5">
+                {nadelen.map((nadeel, index) => (
+                  <li key={index}>
+                    <ItemWithMarkdown content={nadeel} />
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-
-          {(!extendedModel.disadvantages || extendedModel.disadvantages.length === 0) && extendedModel.nadelen && Array.isArray(extendedModel.nadelen) && extendedModel.nadelen.length > 0 && (
+          {typeof nadelen === 'string' && nadelen && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
-              <ItemWithMarkdown content={extendedModel.nadelen.map((disadv: any) => `- ${disadv}`).join('\n')} />
+              <ItemWithMarkdown content={nadelen} />
             </div>
           )}
 
@@ -97,12 +128,13 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.links && (
+          {/* Links - verschillende formats ondersteunen */}
+          {(Array.isArray(links) && links.length > 0 || typeof links === 'string' && links) && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
-              {Array.isArray(model.links) && (
+              {Array.isArray(links) && links.length > 0 && (
                 <ul className="list-disc pl-5 space-y-1">
-                  {model.links.map((link, index) => {
+                  {links.map((link, index) => {
                     if (typeof link === 'object' && link !== null && 'url' in link) {
                       return (
                         <li key={index}>
@@ -118,16 +150,24 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                       );
                     }
                     else if (typeof link === 'string') {
+                      const isUrl = link.match(/https?:\/\/[^\s]+/);
+                      if (isUrl) {
+                        return (
+                          <li key={index}>
+                            <a 
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-teal-600 hover:underline"
+                            >
+                              {link}
+                            </a>
+                          </li>
+                        );
+                      }
                       return (
                         <li key={index}>
-                          <a 
-                            href={link} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="text-teal-600 hover:underline"
-                          >
-                            {link}
-                          </a>
+                          <ItemWithMarkdown content={link} />
                         </li>
                       );
                     }
@@ -135,16 +175,17 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                   })}
                 </ul>
               )}
-              {typeof model.links === 'string' && (
-                <ItemWithMarkdown content={model.links} />
+              {typeof links === 'string' && links && (
+                <ItemWithMarkdown content={links} />
               )}
             </div>
           )}
 
-          {(model.doorlooptijdLang || model.doorlooptijd) && (
+          {/* Doorlooptijd - ondersteuning voor verschillende formaten */}
+          {doorlooptijd && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Doorlooptijd</h2>
-              <ItemWithMarkdown content={model.doorlooptijdLang || model.doorlooptijd || ''} />
+              <ItemWithMarkdown content={doorlooptijd} />
             </div>
           )}
           
