@@ -1,7 +1,41 @@
 import { getGovernanceModelsFromContentful } from '@/services/contentful-service';
 import GovernanceModelClientPage from './client-page';
+import { Metadata } from 'next';
 
-export default async function GovernanceModelPage({ params }: { params: { slug: string } }) {
+// Definieer het juiste type voor de page props volgens Next.js verwachting
+interface GovernanceModelPageProps {
+  params: {
+    slug: string;
+  };
+  searchParams?: Record<string, string | string[] | undefined>;
+}
+
+export const generateMetadata = async ({ params }: GovernanceModelPageProps): Promise<Metadata> => {
+  try {
+    const models = await getGovernanceModelsFromContentful();
+    const model = models.find((m) => {
+      const titleSlug = m.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return titleSlug === params.slug;
+    });
+
+    if (!model) {
+      return {
+        title: 'Bestuursmodel niet gevonden',
+      };
+    }
+
+    return {
+      title: `${model.title} | Parkmanager Tool`,
+      description: model.description ? model.description.substring(0, 160) : undefined,
+    };
+  } catch (error) {
+    return {
+      title: 'Bestuursmodel',
+    };
+  }
+};
+
+export default async function GovernanceModelPage({ params }: GovernanceModelPageProps) {
   try {
     // Alle governance modellen ophalen direct uit Contentful
     const models = await getGovernanceModelsFromContentful();
