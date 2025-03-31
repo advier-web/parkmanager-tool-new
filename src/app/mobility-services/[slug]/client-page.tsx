@@ -109,6 +109,13 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             </div>
           )}
 
+          {solution.uitvoeringsmogelijkheden && (
+            <div className="border-b pb-6 mb-6">
+              <h2 className="font-semibold text-xl mb-3">Uitvoeringsmogelijkheden</h2>
+              <ItemWithMarkdown content={solution.uitvoeringsmogelijkheden} />
+            </div>
+          )}
+
           {solution.collectiefVsIndiviueel && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Collectief vs. Individueel</h2>

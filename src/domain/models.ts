@@ -37,6 +37,7 @@ export interface MobilitySolution {
   investering?: string;
   governancemodellenToelichting?: string;
   typeVervoer?: TrafficType[];
+  uitvoeringsmogelijkheden?: string;
   
   // Rechtsvorm velden
   geenRechtsvorm?: string;
