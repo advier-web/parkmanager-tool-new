@@ -4,6 +4,7 @@ import { GovernanceModel } from '@/domain/models';
 import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
+import { LinkIcon } from '@heroicons/react/24/outline';
 
 interface GovernanceModelClientPageProps {
   model: GovernanceModel | null;
@@ -133,18 +134,19 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
               {Array.isArray(links) && links.length > 0 && (
-                <ul className="list-disc pl-5 space-y-1">
+                <ul className="list-none space-y-2">
                   {links.map((link, index) => {
                     if (typeof link === 'object' && link !== null && 'url' in link) {
                       return (
-                        <li key={index}>
+                        <li key={index} className="flex items-center">
+                          <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
                           <a 
                             href={link.url as string} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="text-teal-600 hover:underline"
                           >
-                            {(link.title as string) || link.url}
+                            {(link.title as string) || formatUrl(link.url as string)}
                           </a>
                         </li>
                       );
@@ -153,21 +155,25 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                       const isUrl = link.match(/https?:\/\/[^\s]+/);
                       if (isUrl) {
                         return (
-                          <li key={index}>
+                          <li key={index} className="flex items-center">
+                            <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
                             <a 
                               href={link} 
                               target="_blank" 
                               rel="noopener noreferrer" 
                               className="text-teal-600 hover:underline"
                             >
-                              {link}
+                              {formatUrl(link)}
                             </a>
                           </li>
                         );
                       }
                       return (
-                        <li key={index}>
-                          <ItemWithMarkdown content={link} />
+                        <li key={index} className="flex items-start">
+                          <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0 mt-1" />
+                          <div className="flex-1">
+                            <ItemWithMarkdown content={link} />
+                          </div>
                         </li>
                       );
                     }
@@ -176,7 +182,12 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                 </ul>
               )}
               {typeof links === 'string' && links && (
-                <ItemWithMarkdown content={links} />
+                <div className="flex items-start">
+                  <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0 mt-1" />
+                  <div className="flex-1">
+                    <ItemWithMarkdown content={links} />
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -204,4 +215,25 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
       </div>
     </div>
   );
+}
+
+// Helper functie om URL's mooier weer te geven
+function formatUrl(url: string): string {
+  try {
+    // Probeer de URL te parsen
+    const parsed = new URL(url);
+    // Verwijder protocol en trailing slash
+    let formatted = parsed.hostname;
+    
+    if (parsed.pathname && parsed.pathname !== '/') {
+      // Voeg pathname toe maar verkort deze indien heel lang
+      const path = parsed.pathname;
+      formatted += path.length > 20 ? path.substring(0, 20) + '...' : path;
+    }
+    
+    return formatted;
+  } catch (e) {
+    // Als het parsen mislukt, toon gewoon de originele URL
+    return url;
+  }
 } 
