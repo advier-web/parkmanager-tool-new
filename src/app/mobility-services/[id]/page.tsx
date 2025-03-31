@@ -6,17 +6,19 @@ import { useMobilitySolutions } from '@/hooks/use-domain-models';
 import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
+import { use } from 'react';
 
 export default function MobilityServicePage({ params }: { params: { id: string } }) {
+  const id = use(Promise.resolve(params.id));
   const { data: mobilityServices, isLoading, error } = useMobilitySolutions();
   const [solution, setSolution] = useState<MobilitySolution | null>(null);
 
   useEffect(() => {
     if (mobilityServices) {
-      const found = mobilityServices.find(s => s.id === params.id);
+      const found = mobilityServices.find(s => s.id === id);
       setSolution(found || null);
     }
-  }, [mobilityServices, params.id]);
+  }, [mobilityServices, id]);
 
   if (isLoading) {
     return (
