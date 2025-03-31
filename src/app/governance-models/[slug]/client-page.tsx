@@ -23,6 +23,16 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
     );
   }
 
+  console.log('Rendering governance model:', model);
+
+  // Definieer types voor de ontbrekende properties
+  type ModelWithExtraProps = GovernanceModel & {
+    voordelen?: any[];
+    nadelen?: any[];
+  };
+  
+  const extendedModel = model as ModelWithExtraProps;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -47,17 +57,31 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.advantages && Array.isArray(model.advantages) && model.advantages.length > 0 && (
+          {model.advantages && model.advantages.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
               <ItemWithMarkdown content={model.advantages.map(adv => `- ${adv}`).join('\n')} />
             </div>
           )}
 
-          {model.disadvantages && Array.isArray(model.disadvantages) && model.disadvantages.length > 0 && (
+          {(!extendedModel.advantages || extendedModel.advantages.length === 0) && extendedModel.voordelen && Array.isArray(extendedModel.voordelen) && extendedModel.voordelen.length > 0 && (
+            <div className="border-b pb-6 mb-6">
+              <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
+              <ItemWithMarkdown content={extendedModel.voordelen.map((adv: any) => `- ${adv}`).join('\n')} />
+            </div>
+          )}
+
+          {model.disadvantages && model.disadvantages.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
               <ItemWithMarkdown content={model.disadvantages.map(disadv => `- ${disadv}`).join('\n')} />
+            </div>
+          )}
+
+          {(!extendedModel.disadvantages || extendedModel.disadvantages.length === 0) && extendedModel.nadelen && Array.isArray(extendedModel.nadelen) && extendedModel.nadelen.length > 0 && (
+            <div className="border-b pb-6 mb-6">
+              <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
+              <ItemWithMarkdown content={extendedModel.nadelen.map((disadv: any) => `- ${disadv}`).join('\n')} />
             </div>
           )}
 
@@ -73,32 +97,56 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.links && Array.isArray(model.links) && model.links.length > 0 && (
+          {model.links && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
-              <ul className="list-disc pl-5 space-y-1">
-                {model.links.map((link, index) => (
-                  <li key={index}>
-                    <a 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-teal-600 hover:underline"
-                    >
-                      {link.title || link.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {Array.isArray(model.links) && (
+                <ul className="list-disc pl-5 space-y-1">
+                  {model.links.map((link, index) => {
+                    if (typeof link === 'object' && link !== null && 'url' in link) {
+                      return (
+                        <li key={index}>
+                          <a 
+                            href={link.url as string} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-teal-600 hover:underline"
+                          >
+                            {(link.title as string) || link.url}
+                          </a>
+                        </li>
+                      );
+                    }
+                    else if (typeof link === 'string') {
+                      return (
+                        <li key={index}>
+                          <a 
+                            href={link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-teal-600 hover:underline"
+                          >
+                            {link}
+                          </a>
+                        </li>
+                      );
+                    }
+                    return null;
+                  })}
+                </ul>
+              )}
+              {typeof model.links === 'string' && (
+                <ItemWithMarkdown content={model.links} />
+              )}
             </div>
           )}
 
-          {model.doorlooptijdLang || model.doorlooptijd ? (
+          {(model.doorlooptijdLang || model.doorlooptijd) && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Doorlooptijd</h2>
               <ItemWithMarkdown content={model.doorlooptijdLang || model.doorlooptijd || ''} />
             </div>
-          ) : null}
+          )}
           
           <div className="pb-6">
             <h2 className="font-semibold text-xl mb-3">PDF Informatie</h2>
