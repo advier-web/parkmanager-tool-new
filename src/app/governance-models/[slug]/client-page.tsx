@@ -134,16 +134,13 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Relevante links</h2>
               
-              {/* Voor introductie tekst voorafgaand aan de links */}
-              {Array.isArray(links) && links.some(link => typeof link === 'string' && !link.match(/^https?:\/\//))}
-              
               {Array.isArray(links) && links.length > 0 && (
                 <div className="space-y-4">
-                  {/* Eerst renderen we de niet-URL teksten zonder icoontjes */}
-                  {links.some(link => typeof link === 'string' && !link.match(/^https?:\/\//)) && (
+                  {/* Render plain tekst content */}
+                  {links.some(link => typeof link === 'string' && !link.match(/https?:\/\//) && !link.match(/\[.+\]\(.+\)/)) && (
                     <div className="mb-2">
                       {links.map((link, index) => {
-                        if (typeof link === 'string' && !link.match(/^https?:\/\//)) {
+                        if (typeof link === 'string' && !link.match(/https?:\/\//) && !link.match(/\[.+\]\(.+\)/)) {
                           return (
                             <div key={index} className="mb-2">
                               <ItemWithMarkdown content={link} />
@@ -155,9 +152,33 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                     </div>
                   )}
                   
-                  {/* Dan renderen we de URL links met icoontjes */}
+                  {/* Render alle URL links met icoontjes */}
                   <ul className="list-none space-y-3">
                     {links.map((link, index) => {
+                      // Check voor markdown links in formaat [titel](url)
+                      if (typeof link === 'string' && link.match(/\[.+\]\(.+\)/)) {
+                        // Extract titel en url uit de markdown link
+                        const matches = link.match(/\[(.+)\]\((.+)\)/);
+                        if (matches && matches.length === 3) {
+                          const title = matches[1];
+                          const url = matches[2];
+                          
+                          return (
+                            <li key={index} className="flex items-center">
+                              <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
+                              <a 
+                                href={url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-teal-600 hover:underline"
+                              >
+                                {title}
+                              </a>
+                            </li>
+                          );
+                        }
+                      }
+                      
                       // Voor objecten met url/title properties
                       if (typeof link === 'object' && link !== null && 'url' in link) {
                         const url = link.url as string;
@@ -193,17 +214,42 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                           </li>
                         );
                       }
-                      // Negeer niet-URL strings want die hebben we hierboven al gerenderd
+                      
                       return null;
                     })}
                   </ul>
                 </div>
               )}
               
-              {/* Als links een enkele string is */}
+              {/* Als links een enkele string is, check of het een markdown link is */}
               {typeof links === 'string' && links && (
                 <div>
-                  <ItemWithMarkdown content={links} />
+                  {links.match(/\[.+\]\(.+\)/) ? (
+                    (() => {
+                      const matches = links.match(/\[(.+)\]\((.+)\)/);
+                      if (matches && matches.length === 3) {
+                        const title = matches[1];
+                        const url = matches[2];
+                        
+                        return (
+                          <div className="flex items-center">
+                            <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
+                            <a 
+                              href={url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-teal-600 hover:underline"
+                            >
+                              {title}
+                            </a>
+                          </div>
+                        );
+                      }
+                      return <ItemWithMarkdown content={links} />;
+                    })()
+                  ) : (
+                    <ItemWithMarkdown content={links} />
+                  )}
                 </div>
               )}
             </div>
