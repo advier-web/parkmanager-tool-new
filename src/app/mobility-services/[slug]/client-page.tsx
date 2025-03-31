@@ -23,28 +23,20 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
     );
   }
 
-  // Functie om governance modellen weer te geven als die beschikbaar zijn
-  const renderGovernanceModels = (modelRefs: Array<{sys: {id: string}} | string> | undefined, title: string) => {
-    if (!modelRefs || modelRefs.length === 0) return null;
-    
-    return (
-      <div className="mb-4">
-        <h3 className="font-medium text-lg mb-2">{title}</h3>
-        <p className="text-gray-600 text-sm mb-2">
-          {title === "Geschikte governance modellen" && "Deze governance modellen zijn het meest geschikt voor deze mobiliteitsoplossing."}
-          {title === "Voorwaardelijk geschikte governance modellen" && "Deze governance modellen zijn onder bepaalde voorwaarden geschikt."}
-          {title === "Niet geschikte governance modellen" && "Deze governance modellen zijn minder geschikt voor deze mobiliteitsoplossing."}
-        </p>
-        <ul className="list-disc pl-5">
-          {modelRefs.map((ref, idx) => {
-            // Type check om te zien of het een object of string is
-            const modelId = typeof ref === 'object' && ref.sys?.id ? ref.sys.id : ref;
-            return <li key={idx} className="text-gray-700">Governance model ID: {String(modelId)}</li>;
-          })}
-        </ul>
-      </div>
-    );
+  // Functie om governance model informatie te extraheren
+  const extractModelIds = (refs: Array<{sys: {id: string}} | string> | undefined) => {
+    if (!Array.isArray(refs) || refs.length === 0) return [];
+    return refs.map(ref => {
+      if (typeof ref === 'string') return ref;
+      if (ref && typeof ref === 'object' && ref.sys && ref.sys.id) return ref.sys.id;
+      return null;
+    }).filter(Boolean);
   };
+
+  // Bereid de governance model ID lijsten voor
+  const recommendedIds = extractModelIds(solution.governanceModels) || [];
+  const conditionalIds = extractModelIds(solution.governanceModelsMits) || [];
+  const unsuitableIds = extractModelIds(solution.governanceModelsNietgeschikt) || [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -77,16 +69,96 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             </div>
           )}
           
-          {/* Governance modellen sectie */}
+          {/* Governance modellen sectie - aangepast om te lijken op de popup */}
           <div className="border-b pb-6 mb-6">
-            <h2 className="font-semibold text-xl mb-3">Governance Modellen</h2>
-            
-            {renderGovernanceModels(solution.governanceModels, "Geschikte governance modellen")}
-            {renderGovernanceModels(solution.governanceModelsMits, "Voorwaardelijk geschikte governance modellen")}
-            {renderGovernanceModels(solution.governanceModelsNietgeschikt, "Niet geschikte governance modellen")}
-            
-            {!solution.governanceModels && !solution.governanceModelsMits && !solution.governanceModelsNietgeschikt && (
-              <p className="text-gray-600">Geen governance model informatie beschikbaar.</p>
+            <h2 className="font-semibold text-xl mb-3">Geschikte governance modellen</h2>
+
+            {/* Aanbevolen governance modellen */}
+            {recommendedIds.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Deze modellen worden aanbevolen voor deze mobiliteitsoplossing.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recommendedIds.map((modelId, index) => (
+                    <div key={index} className="p-3 border rounded-md bg-green-50 border-green-200 h-full flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">Governance Model</h4>
+                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
+                          Aanbevolen
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-2">
+                        <strong>ID:</strong> {String(modelId)}
+                      </div>
+                      {solution.vereniging && (
+                        <div className="text-sm text-gray-600 mt-2">
+                          <p>{solution.vereniging}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Aanbevolen mits governance modellen */}
+            {conditionalIds.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
+                <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
+                  <p className="text-blue-800">
+                    Deze modellen zijn geschikt voor deze mobiliteitsoplossing, maar vereisen extra aandacht of aanpassingen.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {conditionalIds.map((modelId, index) => (
+                    <div key={index} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">Governance Model</h4>
+                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
+                          Aanbevolen, mits...
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-2">
+                        <strong>ID:</strong> {String(modelId)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Niet geschikte governance modellen */}
+            {unsuitableIds.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
+                <div className="bg-red-50 p-4 rounded-md mb-4 border border-red-200">
+                  <p className="text-red-800">
+                    Deze modellen zijn minder geschikt voor deze mobiliteitsoplossing.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {unsuitableIds.map((modelId, index) => (
+                    <div key={index} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium">Governance Model</h4>
+                        <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
+                          Niet geschikt
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-2">
+                        <strong>ID:</strong> {String(modelId)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!recommendedIds.length && !conditionalIds.length && !unsuitableIds.length && (
+              <p className="text-gray-500 italic my-4">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
             )}
           </div>
 
