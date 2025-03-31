@@ -1,7 +1,9 @@
 import MobilityServiceClientPage from './client-page';
 import { getMobilitySolutionsFromContentful } from '@/services/contentful-service';
 
-export default async function MobilityServicePage({ params }: { params: { slug: string } }) {
+export default async function MobilityServicePage(props: any) {
+  const { params } = props;
+  
   try {
     // Alle mobiliteitsoplossingen ophalen direct uit Contentful
     const solutions = await getMobilitySolutionsFromContentful();

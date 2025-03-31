@@ -2,15 +2,8 @@ import { getGovernanceModelsFromContentful } from '@/services/contentful-service
 import GovernanceModelClientPage from './client-page';
 import { Metadata } from 'next';
 
-// Definieer het juiste type voor de page props volgens Next.js verwachting
-interface GovernanceModelPageProps {
-  params: {
-    slug: string;
-  };
-  searchParams?: Record<string, string | string[] | undefined>;
-}
-
-export const generateMetadata = async ({ params }: GovernanceModelPageProps): Promise<Metadata> => {
+export async function generateMetadata(props: any): Promise<Metadata> {
+  const { params } = props;
   try {
     const models = await getGovernanceModelsFromContentful();
     const model = models.find((m) => {
@@ -33,9 +26,10 @@ export const generateMetadata = async ({ params }: GovernanceModelPageProps): Pr
       title: 'Bestuursmodel',
     };
   }
-};
+}
 
-export default async function GovernanceModelPage({ params }: GovernanceModelPageProps) {
+export default async function GovernanceModelPage(props: any) {
+  const { params } = props;
   try {
     // Alle governance modellen ophalen direct uit Contentful
     const models = await getGovernanceModelsFromContentful();
