@@ -1,13 +1,14 @@
 import MobilityServiceClientPage from './client-page';
-import { getMobilitySolutions } from '@/services/mock-service';
+import { getMobilitySolutionsFromContentful } from '@/services/contentful-service';
 
 export default async function MobilityServicePage({ params }: { params: { slug: string } }) {
   try {
-    // Alle mobiliteitsoplossingen ophalen via de service functie
-    const solutions = await getMobilitySolutions();
+    // Alle mobiliteitsoplossingen ophalen direct uit Contentful
+    const solutions = await getMobilitySolutionsFromContentful();
     
     console.log('Requested slug:', params.slug);
-    console.log('Available solutions:', solutions.map(s => ({
+    console.log('Available solutions from Contentful:', solutions.map(s => ({
+      id: s.id,
       title: s.title,
       generatedSlug: s.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     })));
@@ -24,14 +25,14 @@ export default async function MobilityServicePage({ params }: { params: { slug: 
     }) || null;
     
     if (solution) {
-      console.log('Found solution:', solution.title);
+      console.log('Found solution in Contentful:', solution.id, solution.title);
     } else {
-      console.log('No solution found for slug:', params.slug);
+      console.log('No solution found in Contentful for slug:', params.slug);
     }
     
     return <MobilityServiceClientPage solution={solution} />;
   } catch (error) {
-    console.error('Error fetching solution for slug:', params.slug, error);
+    console.error('Error fetching solution from Contentful for slug:', params.slug, error);
     return <MobilityServiceClientPage solution={null} />;
   }
 } 
