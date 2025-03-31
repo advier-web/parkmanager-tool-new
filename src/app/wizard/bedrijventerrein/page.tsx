@@ -62,6 +62,18 @@ export default function BusinessParkInfoPage() {
     }
   };
   
+  // Handle radio button changes for location characteristics
+  const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBusinessParkInfo({ [name]: value });
+  };
+  
+  // Handle select changes for location characteristics
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setBusinessParkInfo({ [name]: value });
+  };
+  
   // Check if form is valid for navigation
   // Alle velden zijn nu optioneel
   const isFormValid = true;
@@ -96,6 +108,15 @@ export default function BusinessParkInfoPage() {
               </p>
             </div>
 
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Locatiekenmerken</h3>
+              <p className="text-gray-600 text-sm">
+                De bereikbaarheid van uw bedrijventerrein met verschillende vervoermiddelen 
+                en de afstand tussen woonplaats en werk zijn belangrijke factoren bij het 
+                kiezen van geschikte mobiliteitsoplossingen.
+              </p>
+            </div>
+
             <div className="border-t pt-4 mt-6">
               <div className="flex items-center text-sm text-blue-600">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,6 +138,7 @@ export default function BusinessParkInfoPage() {
             </p>
             
             <div className="space-y-6">
+              {/* Huidig bestuursmodel - volledige breedte behouden */}
               <div>
                 <label htmlFor="currentGovernanceModelId" className="block text-sm font-medium text-gray-700 mb-1">
                   Huidig bestuursmodel
@@ -159,46 +181,10 @@ export default function BusinessParkInfoPage() {
                 )}
               </div>
               
-              <div>
-                <label htmlFor="numberOfCompanies" className="block text-sm font-medium text-gray-700 mb-1">
-                  Aantal bedrijven op het terrein
-                </label>
-                <input
-                  type="number"
-                  id="numberOfCompanies"
-                  name="numberOfCompanies"
-                  min="1"
-                  value={businessParkInfo.numberOfCompanies || ''}
-                  onChange={handleNumberChange}
-                  className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
-                    formErrors.numberOfCompanies ? 'border-red-300' : 'border-gray-300'
-                  } focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {formErrors.numberOfCompanies && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.numberOfCompanies}</p>
-                )}
-              </div>
+              {/* Divider boven Type vervoer sectie */}
+              <div className="border-t border-gray-200 my-6"></div>
               
-              <div>
-                <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-700 mb-1">
-                  Totaal aantal werknemers
-                </label>
-                <input
-                  type="number"
-                  id="numberOfEmployees"
-                  name="numberOfEmployees"
-                  min="1"
-                  value={businessParkInfo.numberOfEmployees || ''}
-                  onChange={handleNumberChange}
-                  className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
-                    formErrors.numberOfEmployees ? 'border-red-300' : 'border-gray-300'
-                  } focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {formErrors.numberOfEmployees && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.numberOfEmployees}</p>
-                )}
-              </div>
-              
+              {/* Type verkeer sectie - volledige breedte behouden */}
               <div>
                 <fieldset>
                   <legend className="block text-sm font-medium text-gray-700 mb-2">
@@ -227,6 +213,159 @@ export default function BusinessParkInfoPage() {
                   {formErrors.trafficTypes && (
                     <p className="mt-1 text-sm text-red-600">{formErrors.trafficTypes}</p>
                   )}
+                </fieldset>
+              </div>
+              
+              {/* Divider onder Type vervoer sectie */}
+              <div className="border-t border-gray-200 my-6"></div>
+
+              {/* Locatiekenmerken sectie */}
+              <div>
+                <fieldset>
+                  <legend className="block text-sm font-medium text-gray-700 mb-4">
+                    Locatiekenmerken
+                  </legend>
+                  
+                  {/* Twee kolommen grid voor alle locatiekenmerken velden */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    {/* Aantal bedrijven */}
+                    <div>
+                      <label htmlFor="numberOfCompanies" className="block text-sm font-medium text-gray-700 mb-1">
+                        Aantal bedrijven op het terrein
+                      </label>
+                      <input
+                        type="number"
+                        id="numberOfCompanies"
+                        name="numberOfCompanies"
+                        min="1"
+                        value={businessParkInfo.numberOfCompanies || ''}
+                        onChange={handleNumberChange}
+                        className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
+                          formErrors.numberOfCompanies ? 'border-red-300' : 'border-gray-300'
+                        } focus:ring-blue-500 focus:border-blue-500`}
+                      />
+                      {formErrors.numberOfCompanies && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.numberOfCompanies}</p>
+                      )}
+                    </div>
+                    
+                    {/* Aantal werknemers */}
+                    <div>
+                      <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-700 mb-1">
+                        Totaal aantal werknemers
+                      </label>
+                      <input
+                        type="number"
+                        id="numberOfEmployees"
+                        name="numberOfEmployees"
+                        min="1"
+                        value={businessParkInfo.numberOfEmployees || ''}
+                        onChange={handleNumberChange}
+                        className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
+                          formErrors.numberOfEmployees ? 'border-red-300' : 'border-gray-300'
+                        } focus:ring-blue-500 focus:border-blue-500`}
+                      />
+                      {formErrors.numberOfEmployees && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.numberOfEmployees}</p>
+                      )}
+                    </div>
+                    
+                    {/* Bereikbaarheid met auto */}
+                    <div>
+                      <label htmlFor="carAccessibility" className="block text-sm text-gray-700 mb-1">
+                        Hoe is de bereikbaarheid met de auto?
+                      </label>
+                      <select
+                        id="carAccessibility"
+                        name="carAccessibility"
+                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        value={businessParkInfo.carAccessibility || ''}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Selecteer bereikbaarheid</option>
+                        <option value="slecht">Slecht</option>
+                        <option value="matig">Matig</option>
+                        <option value="goed">Goed</option>
+                      </select>
+                    </div>
+                    
+                    {/* Bereikbaarheid met trein */}
+                    <div>
+                      <label htmlFor="trainAccessibility" className="block text-sm text-gray-700 mb-1">
+                        Hoe is de bereikbaarheid met de trein?
+                      </label>
+                      <select
+                        id="trainAccessibility"
+                        name="trainAccessibility"
+                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        value={businessParkInfo.trainAccessibility || ''}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Selecteer bereikbaarheid</option>
+                        <option value="slecht">Slecht</option>
+                        <option value="matig">Matig</option>
+                        <option value="goed">Goed</option>
+                      </select>
+                    </div>
+                    
+                    {/* Bereikbaarheid met bus */}
+                    <div>
+                      <label htmlFor="busAccessibility" className="block text-sm text-gray-700 mb-1">
+                        Hoe is de bereikbaarheid met de bus?
+                      </label>
+                      <select
+                        id="busAccessibility"
+                        name="busAccessibility"
+                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        value={businessParkInfo.busAccessibility || ''}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Selecteer bereikbaarheid</option>
+                        <option value="slecht">Slecht</option>
+                        <option value="matig">Matig</option>
+                        <option value="goed">Goed</option>
+                      </select>
+                    </div>
+                    
+                    {/* Voldoende parkeerplaatsen */}
+                    <div>
+                      <label htmlFor="sufficientParking" className="block text-sm text-gray-700 mb-1">
+                        Zijn er voldoende parkeerplaatsen?
+                      </label>
+                      <select
+                        id="sufficientParking"
+                        name="sufficientParking"
+                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        value={businessParkInfo.sufficientParking || ''}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Selecteer antwoord</option>
+                        <option value="ja">Ja</option>
+                        <option value="nee">Nee</option>
+                      </select>
+                    </div>
+                    
+                    {/* Gemiddelde afstand woonplaats */}
+                    <div className="md:col-span-2">
+                      <label htmlFor="averageDistance" className="block text-sm text-gray-700 mb-1">
+                        Wat is de gemiddelde afstand van de woonplaats van werknemers t.o.v. bedrijventerrein?
+                      </label>
+                      <select
+                        id="averageDistance"
+                        name="averageDistance"
+                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        value={businessParkInfo.averageDistance || ''}
+                        onChange={handleSelectChange}
+                      >
+                        <option value="">Selecteer afstand</option>
+                        <option value="0-5">0-5 km</option>
+                        <option value="5-10">5-10 km</option>
+                        <option value="10-15">10-15 km</option>
+                        <option value="15-25">15-25 km</option>
+                        <option value="25+">Meer dan 25 km</option>
+                      </select>
+                    </div>
+                  </div>
                 </fieldset>
               </div>
             </div>
