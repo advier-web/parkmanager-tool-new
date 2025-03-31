@@ -36,8 +36,11 @@ export default function GovernanceModelButton({ model }: GovernanceModelButtonPr
       <div className="relative z-10">
         <h3 className="text-white font-bold text-xl mb-2">{model.title}</h3>
         {model.summary && (
-          <p className="text-white/90 text-sm">{model.summary}</p>
+          <p className="text-white/90 text-sm mb-4">{model.summary}</p>
         )}
+        <p className="text-white font-medium text-sm mt-auto flex items-center">
+          Lees meer <span className="ml-1">→</span>
+        </p>
       </div>
     </Link>
   );
