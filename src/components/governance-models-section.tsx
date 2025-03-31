@@ -1,5 +1,5 @@
 import { GovernanceModel } from '../domain/models';
-import { GovernanceModelButton } from './governance-model-button';
+import GovernanceModelButton from './governance-model-button';
 
 interface GovernanceModelsSectionProps {
   governanceModels: GovernanceModel[];

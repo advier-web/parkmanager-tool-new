@@ -13,7 +13,7 @@ interface GovernanceModelButtonProps {
  */
 export default function GovernanceModelButton({ model }: GovernanceModelButtonProps) {
   // Generate the slug for linking to the model's detail page
-  const slug = model.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const slug = model.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
   // Determine the background color based on the model's title
   const bgColorClass = getModelColor(model.title);
