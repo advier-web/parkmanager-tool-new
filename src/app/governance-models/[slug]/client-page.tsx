@@ -263,10 +263,10 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
           
-          {/* PDF download sectie - met verbeterde styling */}
-          <div className="bg-blue-50 rounded-lg p-6 shadow-sm border border-blue-100">
-            <h2 className="font-semibold text-xl mb-3 text-blue-700">PDF Informatie</h2>
-            <p className="text-gray-700 mb-4">
+          {/* PDF download sectie - met verbeterde styling in de groene kleur van de homepage */}
+          <div className="bg-teal-600 rounded-lg p-6 shadow-md">
+            <h2 className="font-semibold text-xl mb-3 text-white">PDF Informatie</h2>
+            <p className="text-white mb-4">
               Download meer informatie over dit bestuursmodel via onderstaande PDF. In deze PDF staat meer informatie over de benodigdheden voor oprichting en stappen die genomen moeten worden voor het implementeren van dit bestuursmodel.
             </p>
             <div className="mt-4">
@@ -274,7 +274,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                 mobilityServiceId={model.id}
                 fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
                 contentType="governanceModel"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center"
+                className="bg-white text-teal-600 hover:bg-gray-100 px-4 py-2 rounded-md inline-flex items-center font-medium shadow-sm"
               />
             </div>
           </div>
