@@ -100,6 +100,23 @@ export const mockMobilitySolutions: MobilitySolution[] = [
     personeelszorg_en_behoud: 7,
     imago: 6,
     milieuverordening: 7
+  },
+  {
+    id: 'solution-4',
+    title: 'Pendeldienst',
+    description: 'Soms ontbreekt er goed openbaar vervoer tussen het NS-station en het bedrijventerrein. Dan kan een pendeldienst de ontbrekende schakel vormen. Zo\'n shuttle brengt medewerkers van en naar het station op vaste tijden.',
+    benefits: ['Verbeterde bereikbaarheid', 'Minder autogebruik', 'Betere verbinding met OV'],
+    challenges: ['Kosten voor organisatie en beheer', 'Vereist voldoende volume', 'Afstemming dienstregeling'],
+    implementationTime: 'middellang',
+    costs: 'hoog',
+    category: 'openbaar vervoer',
+    icon: 'shuttle-van',
+    typeVervoer: [TrafficType.COMMUTER],
+    parkeer_bereikbaarheidsproblemen: 9,
+    gezondheid: 5,
+    personeelszorg_en_behoud: 8,
+    imago: 7,
+    milieuverordening: 7
   }
 ];
 

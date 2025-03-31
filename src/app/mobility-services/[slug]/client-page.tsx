@@ -1,36 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { MobilitySolution } from '@/domain/models';
-import { useMobilitySolutions } from '@/hooks/use-domain-models';
 import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
-import { use } from 'react';
 
-export default function MobilityServicePage({ params }: { params: { id: string } }) {
-  const id = use(Promise.resolve(params.id));
-  const { data: mobilityServices, isLoading, error } = useMobilitySolutions();
-  const [solution, setSolution] = useState<MobilitySolution | null>(null);
+interface MobilityServiceClientPageProps {
+  solution: MobilitySolution | null;
+}
 
-  useEffect(() => {
-    if (mobilityServices) {
-      const found = mobilityServices.find(s => s.id === id);
-      setSolution(found || null);
-    }
-  }, [mobilityServices, id]);
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p>Oplossing wordt geladen...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !solution) {
+export default function MobilityServiceClientPage({ solution }: MobilityServiceClientPageProps) {
+  if (!solution) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center text-red-600">

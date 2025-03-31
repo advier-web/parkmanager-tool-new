@@ -107,6 +107,56 @@ export default function SummaryPage() {
                   <p>{currentGovernanceModelTitle}</p>
                 </div>
               )}
+              
+              {/* Locatiekenmerken weergave */}
+              <div className="mt-6">
+                <h4 className="text-lg font-medium mb-2">Locatiekenmerken</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {businessParkInfo.carAccessibility && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Bereikbaarheid met auto:</p>
+                      <p className="capitalize">{businessParkInfo.carAccessibility}</p>
+                    </div>
+                  )}
+                  
+                  {businessParkInfo.trainAccessibility && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Bereikbaarheid met trein:</p>
+                      <p className="capitalize">{businessParkInfo.trainAccessibility}</p>
+                    </div>
+                  )}
+                  
+                  {businessParkInfo.busAccessibility && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Bereikbaarheid met bus:</p>
+                      <p className="capitalize">{businessParkInfo.busAccessibility}</p>
+                    </div>
+                  )}
+                  
+                  {businessParkInfo.sufficientParking && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Voldoende parkeerplaatsen:</p>
+                      <p className="capitalize">{businessParkInfo.sufficientParking}</p>
+                    </div>
+                  )}
+                  
+                  {businessParkInfo.averageDistance && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Gemiddelde woon-werk afstand:</p>
+                      <p>{businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`}</p>
+                    </div>
+                  )}
+                </div>
+                
+                {!businessParkInfo.carAccessibility && 
+                 !businessParkInfo.trainAccessibility && 
+                 !businessParkInfo.busAccessibility && 
+                 !businessParkInfo.sufficientParking && 
+                 !businessParkInfo.averageDistance && (
+                  <p className="text-gray-500">Geen locatiekenmerken opgegeven.</p>
+                )}
+              </div>
             </section>
           </div>
           
