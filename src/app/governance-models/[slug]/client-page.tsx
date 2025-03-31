@@ -4,13 +4,18 @@ import { GovernanceModel } from '@/domain/models';
 import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
-import { LinkIcon } from '@heroicons/react/24/outline';
+import { LinkIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 
 interface GovernanceModelClientPageProps {
   model: GovernanceModel | null;
 }
 
 export default function GovernanceModelClientPage({ model }: GovernanceModelClientPageProps) {
+  // State voor accordions
+  const [isVoordelenOpen, setIsVoordelenOpen] = useState(false);
+  const [isNadelenOpen, setIsNadelenOpen] = useState(false);
+
   if (!model) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -77,43 +82,71 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {/* Voordelen - verschillende formats ondersteunen */}
-          {Array.isArray(voordelen) && voordelen.length > 0 && (
+          {/* Voordelen - als accordion */}
+          {(Array.isArray(voordelen) && voordelen.length > 0 || typeof voordelen === 'string' && voordelen) && (
             <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
-              <ul className="list-disc pl-5">
-                {voordelen.map((voordeel, index) => (
-                  <li key={index}>
-                    <ItemWithMarkdown content={voordeel} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {typeof voordelen === 'string' && voordelen && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
-              <ItemWithMarkdown content={voordelen} />
+              <button 
+                onClick={() => setIsVoordelenOpen(!isVoordelenOpen)}
+                className="w-full flex justify-between items-center text-left"
+              >
+                <h2 className="font-semibold text-xl">Voordelen</h2>
+                {isVoordelenOpen ? (
+                  <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
+              
+              {isVoordelenOpen && (
+                <div className="mt-3">
+                  {Array.isArray(voordelen) && voordelen.length > 0 && (
+                    <ul className="list-disc pl-5">
+                      {voordelen.map((voordeel, index) => (
+                        <li key={index}>
+                          <ItemWithMarkdown content={voordeel} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {typeof voordelen === 'string' && voordelen && (
+                    <ItemWithMarkdown content={voordelen} />
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Nadelen - verschillende formats ondersteunen */}
-          {Array.isArray(nadelen) && nadelen.length > 0 && (
+          {/* Nadelen - als accordion */}
+          {(Array.isArray(nadelen) && nadelen.length > 0 || typeof nadelen === 'string' && nadelen) && (
             <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
-              <ul className="list-disc pl-5">
-                {nadelen.map((nadeel, index) => (
-                  <li key={index}>
-                    <ItemWithMarkdown content={nadeel} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {typeof nadelen === 'string' && nadelen && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Nadelen</h2>
-              <ItemWithMarkdown content={nadelen} />
+              <button 
+                onClick={() => setIsNadelenOpen(!isNadelenOpen)} 
+                className="w-full flex justify-between items-center text-left"
+              >
+                <h2 className="font-semibold text-xl">Nadelen</h2>
+                {isNadelenOpen ? (
+                  <ChevronUpIcon className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
+              
+              {isNadelenOpen && (
+                <div className="mt-3">
+                  {Array.isArray(nadelen) && nadelen.length > 0 && (
+                    <ul className="list-disc pl-5">
+                      {nadelen.map((nadeel, index) => (
+                        <li key={index}>
+                          <ItemWithMarkdown content={nadeel} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {typeof nadelen === 'string' && nadelen && (
+                    <ItemWithMarkdown content={nadelen} />
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -264,7 +297,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           )}
           
           {/* PDF download sectie - met verbeterde styling in de groene kleur van de homepage */}
-          <div className="bg-teal-600 rounded-lg p-6 shadow-md">
+          <div className="bg-teal-600 rounded-xl p-6 shadow-md">
             <h2 className="font-semibold text-xl mb-3 text-white">PDF Informatie</h2>
             <p className="text-white mb-4">
               Download meer informatie over dit bestuursmodel via onderstaande PDF. In deze PDF staat meer informatie over de benodigdheden voor oprichting en stappen die genomen moeten worden voor het implementeren van dit bestuursmodel.
@@ -274,7 +307,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                 mobilityServiceId={model.id}
                 fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
                 contentType="governanceModel"
-                className="bg-white text-teal-600 hover:bg-gray-100 px-4 py-2 rounded-md inline-flex items-center font-medium shadow-sm"
+                className="bg-white text-teal-700 hover:bg-gray-100 px-5 py-3 rounded-lg inline-flex items-center font-medium shadow-sm"
               />
             </div>
           </div>
