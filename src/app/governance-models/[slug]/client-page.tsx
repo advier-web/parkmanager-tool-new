@@ -57,7 +57,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             </div>
           )}
 
-          {model.advantages && model.advantages.length > 0 && (
+          {model.advantages && Array.isArray(model.advantages) && model.advantages.length > 0 && (
             <div className="border-b pb-6 mb-6">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
               <ItemWithMarkdown content={model.advantages.map(adv => `- ${adv}`).join('\n')} />
