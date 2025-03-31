@@ -165,6 +165,13 @@ export interface BusinessParkInfo {
   numberOfCompanies: number;
   numberOfEmployees: number;
   trafficTypes: TrafficType[];
+  
+  // Locatiekenmerken
+  carAccessibility?: 'slecht' | 'matig' | 'goed';
+  trainAccessibility?: 'slecht' | 'matig' | 'goed';
+  busAccessibility?: 'slecht' | 'matig' | 'goed';
+  sufficientParking?: 'ja' | 'nee';
+  averageDistance?: string;
 }
 
 // Verkeertype opties
