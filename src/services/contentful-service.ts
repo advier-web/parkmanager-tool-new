@@ -455,7 +455,6 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       benefits: Array.isArray(entry.fields.benefits) ? entry.fields.benefits.map(String) : [],
       challenges: Array.isArray(entry.fields.challenges) ? entry.fields.challenges.map(String) : [],
       implementationTime: getStringField('implementationTime'),
-      costs: getStringField('costs'),
       category: getStringField('category'),
       icon: getStringField('icon'),
       
@@ -466,7 +465,7 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       paspoort: getStringField('paspoort'),
       collectiefVsIndiviueel: getStringField('collectiefVsIndiviueel'),
       effecten: getStringField('effecten'),
-      investering: getStringField('investering'),
+      costs: getStringField('costs'),
       governanceModels,
       governanceModelsMits,
       governanceModelsNietgeschikt,

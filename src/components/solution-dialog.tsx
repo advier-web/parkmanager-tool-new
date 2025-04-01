@@ -96,8 +96,7 @@ export function SolutionDialog() {
     const paspoort = currentSolution.paspoort || '';
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel || '';
     const effecten = currentSolution.effecten || '';
-    const investering = currentSolution.investering || '';
-    const governancemodellenToelichting = currentSolution.governancemodellenToelichting || '';
+    const investering = currentSolution.costs || '';
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
@@ -125,7 +124,7 @@ export function SolutionDialog() {
             {/* Solution description */}
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
-              <MarkdownContent content={currentSolution.description} />
+              <MarkdownContent content={currentSolution.description || ''} />
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
