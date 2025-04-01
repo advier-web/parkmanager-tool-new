@@ -46,7 +46,7 @@ export default function SummaryPage() {
   const currentGovernanceModelTitle = governanceModels && currentGovernanceModelId
     ? governanceModels.find(model => model.id === currentGovernanceModelId)?.title || ''
     : '';
-  
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -201,7 +201,7 @@ export default function SummaryPage() {
                           mobilityServiceId={solution.id}
                           fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
                           contentType="mobilityService"
-                          className="text-sm"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -233,7 +233,7 @@ export default function SummaryPage() {
                         mobilityServiceId={model.id}
                         fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
                         contentType="governanceModel"
-                        className="text-sm"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>

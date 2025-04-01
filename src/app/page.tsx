@@ -77,7 +77,6 @@ export default function Home() {
   // Define sections for navigation
   const sections: SectionRef[] = [
     { id: 'wat-is-collectief-vervoer', title: 'Wat is collectief vervoer?' },
-    { id: 'aanleidingen', title: 'Aanleidingen voor collectieve vervoersoplossingen' },
     { id: 'overzicht', title: 'Overzicht collectieve vervoersoplossingen' },
     { id: 'bestuursvormen', title: 'Bestuurlijke rechtsvormen' },
     { id: 'subsidie', title: 'COVER subsidie' },
@@ -230,6 +229,8 @@ export default function Home() {
           <MarkdownContent content={data.watIsCollectiefVervoer} />
         </section>
         
+        {/* Removed Aanleidingen Section */}
+        {/* 
         <section id="aanleidingen" className="mb-16 pb-8 border-b border-gray-200">
           <h2 className="text-2xl font-bold mb-6">Aanleidingen voor collectieve vervoersoplossingen</h2>
           <MarkdownContent content={data.aanleidingenVoorCollectieveVervoersoplossingen} />
@@ -252,6 +253,7 @@ export default function Home() {
             </div>
           )}
         </section>
+        */}
         
         <section id="overzicht" className="mb-16 pb-8 border-b border-gray-200">
           <h2 className="text-2xl font-bold mb-6">Overzicht collectieve vervoersoplossingen</h2>

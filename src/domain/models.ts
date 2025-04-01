@@ -3,6 +3,8 @@
  * These models represent the core business entities in our application
  */
 
+import { Asset } from 'contentful';
+
 // Bedrijfsterreinen-redenen
 export interface BusinessParkReason {
   id: string;
@@ -18,12 +20,13 @@ export interface BusinessParkReason {
 export interface MobilitySolution {
   id: string;
   title: string;
-  description: string;
+  subtitle?: string;
+  description?: string;
   samenvattingLang?: string;
-  benefits: string[];
-  challenges: string[];
-  implementationTime: string; // e.g., "kort", "middellang", "lang"
-  costs: string; // e.g., "laag", "middel", "hoog"
+  benefits?: string[];
+  challenges?: string[];
+  implementationTime?: string; // e.g., "kort", "middellang", "lang"
+  costs?: string; // e.g., "laag", "middel", "hoog"
   category: string;
   icon?: string;
   
@@ -33,11 +36,10 @@ export interface MobilitySolution {
   // Nieuwe velden van Contentful
   paspoort?: string;
   collectiefVsIndiviueel?: string;
-  effecten?: string;
-  investering?: string;
-  governancemodellenToelichting?: string;
-  typeVervoer?: TrafficType[];
   uitvoeringsmogelijkheden?: string;
+  governanceModels?: Array<{sys: {id: string}} | string>;
+  governanceModelsMits?: Array<{sys: {id: string}} | string>;
+  governanceModelsNietgeschikt?: Array<{sys: {id: string}} | string>;
   
   // Rechtsvorm velden
   geenRechtsvorm?: string;
@@ -50,18 +52,6 @@ export interface MobilitySolution {
   bv?: string;
   ondernemersfonds?: string;
   
-  // Governance model referenties
-  governanceModels?: Array<{sys: {id: string}} | string>;
-  governanceModelsMits?: Array<{sys: {id: string}} | string>;
-  governanceModelsNietgeschikt?: Array<{sys: {id: string}} | string>;
-  
-  // Rating fields (0-10)
-  parkeer_bereikbaarheidsproblemen?: number;
-  gezondheid?: number;
-  personeelszorg_en_behoud?: number;
-  imago?: number;
-  milieuverordening?: number;
-  
   // Toelichting velden van Contentful
   parkeerBereikbaarheidsproblemenToelichting?: string;
   waardeVastgoedToelichting?: string;
@@ -73,6 +63,32 @@ export interface MobilitySolution {
   milieuverordeningToelichting?: string;
   bedrijfsverhuizingToelichting?: string;
   energiebalansToelichting?: string;
+  
+  // Extra velden
+  pdfLink?: string;
+  
+  // Teruggezette velden:
+  effecten?: string;
+  gemeenteBijdrage?: string;
+  provincieBijdrage?: string;
+  reizigerBijdrage?: string;
+  vastgoedBijdrage?: string;
+  bedrijvenVervoervraag?: string;
+
+  // Score velden (teruggezet)
+  parkeer_bereikbaarheidsproblemen?: number;
+  gezondheid?: number;
+  personeelszorg_en_behoud?: number;
+  imago?: number;
+  milieuverordening?: number;
+  waarde_vastgoed?: number;
+  vervoerkosten?: number;
+  gastvrijheid?: number;
+  bedrijfsverhuizing?: number;
+  energiebalans?: number;
+
+  // Type vervoer (teruggezet)
+  typeVervoer?: TrafficType[];
 }
 
 // Governance modellen
@@ -108,6 +124,9 @@ export interface GovernanceModel {
   cooperatieUa?: string;
   bv?: string;
   ondernemersfonds?: string;
+  
+  // Extra velden
+  rechtsvormBeschrijving?: string;
 }
 
 // Implementatieplan

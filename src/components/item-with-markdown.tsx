@@ -17,13 +17,13 @@ export function ItemWithMarkdown({ content, className = '' }: ItemWithMarkdownPr
   
   // Properly handle all header levels with specific classes
   updatedContent = updatedContent
-    .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold my-3">$1</h3>')
-    .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold my-4">$1</h2>')
-    .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-semibold mb-4 mt-6">$1</h1>')
+    .replace(/^### (.*?)$/gm, '<h3 class="text-lg font-semibold mt-8 mb-3">$1</h3>')
+    .replace(/^## (.*?)$/gm, '<h2 class="text-xl font-semibold mt-12 mb-4">$1</h2>')
+    .replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-semibold mt-16 mb-6">$1</h1>')
     // Alternate hash notation
-    .replace(/^#{3} (.*?)$/gm, '<h3 class="text-lg font-semibold my-3">$1</h3>')
-    .replace(/^#{2} (.*?)$/gm, '<h2 class="text-xl font-semibold my-4">$1</h2>')
-    .replace(/^#{1} (.*?)$/gm, '<h1 class="text-2xl font-semibold mb-4 mt-6">$1</h1>');
+    .replace(/^#{3} (.*?)$/gm, '<h3 class="text-lg font-semibold mt-8 mb-3">$1</h3>')
+    .replace(/^#{2} (.*?)$/gm, '<h2 class="text-xl font-semibold mt-12 mb-4">$1</h2>')
+    .replace(/^#{1} (.*?)$/gm, '<h1 class="text-2xl font-semibold mt-16 mb-6">$1</h1>');
   
   // Process the content line by line to handle lists properly
   const lines = updatedContent.split('\n');

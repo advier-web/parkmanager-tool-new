@@ -6,6 +6,10 @@ import { ItemWithMarkdown } from '@/components/item-with-markdown';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
 import { useGovernanceModels } from '@/hooks/use-domain-models';
+import { SiteHeader } from '@/components/site-header';
+import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { SimpleAccordion } from '@/components/simple-accordion';
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
@@ -43,14 +47,17 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
 
   if (!solution) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-red-600">
-          <p>Deze mobiliteitsoplossing kon niet worden gevonden.</p>
-          <Link href="/" className="text-blue-600 hover:underline mt-4 inline-block">
-            Terug naar home
-          </Link>
+      <>
+        <SiteHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-red-600">
+            <p>Deze mobiliteitsoplossing kon niet worden gevonden.</p>
+            <Link href="/" className="text-blue-600 hover:underline mt-4 inline-block">
+              Terug naar home
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -86,45 +93,49 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/" className="text-blue-600 hover:underline mb-6 inline-block">
-          ← Terug naar overzicht
-        </Link>
-        
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold mb-6">{solution.title}</h1>
+    <>
+      <SiteHeader />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto">
+          <Link href="/" className="text-blue-600 hover:underline mb-4 inline-block">
+            ← Terug naar overzicht
+          </Link>
           
+          <div className="mb-8">
+            <h1 className="mb-4 text-3xl font-bold">{solution.title}</h1>
+            {solution.subtitle && (
+              <p className="text-xl text-gray-600">{solution.subtitle}</p>
+            )}
+          </div>
+
           {solution.paspoort && (
-            <div className="bg-teal-600 text-white rounded-lg p-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Paspoort</h2>
-              <ItemWithMarkdown content={solution.paspoort} />
+            <div className="mb-8 rounded-lg bg-teal-600 p-6 text-white">
+              <h2 className="text-xl font-semibold mb-3">Pitch</h2>
+              <MarkdownWithAccordions content={solution.paspoort} />
             </div>
           )}
-          
+
           {solution.description && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Beschrijving</h2>
-              <ItemWithMarkdown content={solution.description} />
+            <div className="mb-12 rounded-lg bg-white p-6">
+              <MarkdownWithAccordions content={solution.description} />
             </div>
           )}
 
           {solution.uitvoeringsmogelijkheden && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Uitvoeringsmogelijkheden</h2>
-              <ItemWithMarkdown content={solution.uitvoeringsmogelijkheden} />
+            <div className="mb-8 rounded-lg bg-white p-6">
+              <h2 className="text-xl font-semibold mb-3">Uitvoeringsmogelijkheden</h2>
+              <MarkdownWithAccordions content={solution.uitvoeringsmogelijkheden} />
             </div>
           )}
 
           {solution.collectiefVsIndiviueel && (
-            <div className="border-b pb-6 mb-6">
-              <h2 className="font-semibold text-xl mb-3">Collectief vs. Individueel</h2>
+            <div className="bg-white rounded-lg p-6 mb-8">
+              <h2 className="font-semibold text-xl mb-3">Collectief versus Individueel</h2>
               <ItemWithMarkdown content={solution.collectiefVsIndiviueel} />
             </div>
           )}
           
-          {/* Governance modellen sectie - aangepast om te lijken op de popup */}
-          <div className="border-b pb-6 mb-6">
+          <div className="bg-white rounded-lg p-6 mb-8">
             <h2 className="font-semibold text-xl mb-3">Geschikte governance modellen</h2>
 
             {isLoading && (
@@ -138,7 +149,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
               <>
                 {/* Aanbevolen governance modellen */}
                 {recommendedModels.length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-6 border-b pb-6">
                     <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
                     <p className="text-sm text-gray-600 mb-4">
                       Deze modellen worden aanbevolen voor deze mobiliteitsoplossing.
@@ -170,70 +181,72 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
 
                 {/* Aanbevolen mits governance modellen */}
                 {conditionalModels.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-blue-700 border-b pb-2 mb-2">Aanbevolen, mits...</h3>
-                    <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
-                      <p className="text-blue-800">
-                        Deze modellen zijn geschikt voor deze mobiliteitsoplossing, maar vereisen extra aandacht of aanpassingen.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {conditionalModels.map((model) => {
-                        const rechtsvormText = getRechtsvormText(model);
-                        return (
-                          <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-medium">{model.title}</h4>
-                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
-                                Aanbevolen, mits...
-                              </span>
-                            </div>
-                            {rechtsvormText ? (
-                              <div className="text-sm text-gray-600">
-                                <p>{rechtsvormText}</p>
+                  <SimpleAccordion title="Aanbevolen, mits...">
+                    <div className="pt-2">
+                      <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                          Deze modellen zijn geschikt voor deze mobiliteitsoplossing, maar vereisen extra aandacht of aanpassingen.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {conditionalModels.map((model) => {
+                          const rechtsvormText = getRechtsvormText(model);
+                          return (
+                            <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium">{model.title}</h4>
+                                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
+                                  Aanbevolen, mits...
+                                </span>
                               </div>
-                            ) : (
-                              model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
-                            )}
-                          </div>
-                        );
-                      })}
+                              {rechtsvormText ? (
+                                <div className="text-sm text-gray-600">
+                                  <p>{rechtsvormText}</p>
+                                </div>
+                              ) : (
+                                model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  </SimpleAccordion>
                 )}
 
                 {/* Niet geschikte governance modellen */}
                 {unsuitableModels.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-red-700 border-b pb-2 mb-2">Ongeschikte governance modellen</h3>
-                    <div className="bg-red-50 p-4 rounded-md mb-4 border border-red-200">
-                      <p className="text-red-800">
-                        Deze modellen zijn minder geschikt voor deze mobiliteitsoplossing.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {unsuitableModels.map((model) => {
-                        const rechtsvormText = getRechtsvormText(model);
-                        return (
-                          <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-medium">{model.title}</h4>
-                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
-                                Niet geschikt
-                              </span>
-                            </div>
-                            {rechtsvormText ? (
-                              <div className="text-sm text-gray-600">
-                                <p>{rechtsvormText}</p>
+                  <SimpleAccordion title="Ongeschikte governance modellen">
+                    <div className="pt-2">
+                      <div className="bg-red-50 p-4 rounded-md mb-4 border border-red-200">
+                        <p className="text-sm text-red-800">
+                          Deze modellen zijn minder geschikt voor deze mobiliteitsoplossing.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {unsuitableModels.map((model) => {
+                          const rechtsvormText = getRechtsvormText(model);
+                          return (
+                            <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium">{model.title}</h4>
+                                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
+                                  Niet geschikt
+                                </span>
                               </div>
-                            ) : (
-                              model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
-                            )}
-                          </div>
-                        );
-                      })}
+                              {rechtsvormText ? (
+                                <div className="text-sm text-gray-600">
+                                  <p>{rechtsvormText}</p>
+                                </div>
+                              ) : (
+                                model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  </SimpleAccordion>
                 )}
 
                 {!recommendedModels.length && !conditionalModels.length && !unsuitableModels.length && (
@@ -243,9 +256,8 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             )}
           </div>
 
-          {/* PDF Download sectie met groene achtergrond */}
-          <div className="bg-teal-600 text-white rounded-lg p-6 mb-6">
-            <h2 className="font-semibold text-xl mb-3">PDF Informatie</h2>
+          <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-3">PDF Informatie</h2>
             <p className="mb-4">
               Download meer informatie over deze mobilitietsoplossing. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, wat de effecten er van zijn, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
             </p>
@@ -257,34 +269,34 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           </div>
 
           {solution.benefits && solution.benefits.length > 0 && (
-            <div className="border-b pb-6 mb-6">
+            <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
               <ItemWithMarkdown content={solution.benefits.map(benefit => `- ${benefit}`).join('\n')} />
             </div>
           )}
 
           {solution.challenges && solution.challenges.length > 0 && (
-            <div className="border-b pb-6 mb-6">
+            <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Uitdagingen</h2>
               <ItemWithMarkdown content={solution.challenges.map(challenge => `- ${challenge}`).join('\n')} />
             </div>
           )}
 
           {solution.implementationTime && (
-            <div className="border-b pb-6 mb-6">
+            <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Implementatietijd</h2>
               <ItemWithMarkdown content={solution.implementationTime} />
             </div>
           )}
 
           {solution.costs && (
-            <div className="pb-6">
+            <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Kosten</h2>
               <ItemWithMarkdown content={solution.costs} />
             </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 } 

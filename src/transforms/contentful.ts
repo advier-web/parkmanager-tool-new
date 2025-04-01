@@ -16,6 +16,9 @@ import {
   MobilitySolution,
   TrafficType
 } from '../domain/models';
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import { BLOCKS, INLINES, MARKS } from '@contentful/rich-text-types';
+import { Asset, EntrySkeletonType, ChainModifiers, UnresolvedLink, ResourceLink, AssetFile } from 'contentful';
 
 /**
  * Helper function to parse the typeVervoer field from Contentful
@@ -93,112 +96,40 @@ export function transformBusinessParkReason(
 /**
  * Transform a Contentful MobilitySolution entry to a domain MobilitySolution
  */
-export function transformMobilitySolution(
-  entry: Entry<IMobilitySolution>
-): MobilitySolution {
-  // Veiliger benadering met type assertions
-  const fields = entry.fields as any;
-  
-  console.log(`[TRANSFORM] Processing mobility solution: ${fields.title}`);
-  
-  // Helper function to extract ID from reference
-  const extractId = (ref: { sys: { id: string } } | string): string => {
-    if (typeof ref === 'string') return ref;
-    return ref.sys?.id || '';
-  };
-  
-  // Debug logging voor velden
-  console.log('[TRANSFORM] Alle mobility solution velden:');
-  Object.keys(fields).forEach(key => {
-    // Extra debug info voor rechtsvorm velden en varianten
-    if (key.toLowerCase().includes('rechtsvorm') || 
-        key.toLowerCase().includes('vereniging') ||
-        key.toLowerCase().includes('stichting') ||
-        key.toLowerCase().includes('biz') ||
-        key.toLowerCase().includes('cooperatie') ||
-        key.toLowerCase().includes('bv') ||
-        key.toLowerCase().includes('fonds')) {
-      console.log(`  - ${key}: ${typeof fields[key]} = "${fields[key]}"`);
-    } else if (typeof fields[key] !== 'object') {
-      console.log(`  - ${key}: ${typeof fields[key]}`);
-    } else {
-      console.log(`  - ${key}: object/array`);
-    }
-  });
-  
-  // Helper functie om velden te vinden in verschillende formaten
-  const getField = (baseNames: string[]) => {
-    for (const baseName of baseNames) {
-      // Check camelCase (geenRechtsvorm)
-      if (fields[baseName]) return fields[baseName];
-      
-      // Check snake_case (geen_rechtsvorm)
-      const snakeCase = baseName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (fields[snakeCase]) return fields[snakeCase];
-      
-      // Check kebab-case (geen-rechtsvorm)
-      const kebabCase = baseName.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-      if (fields[kebabCase]) return fields[kebabCase];
-      
-      // Check andere variaties
-      const variations = [
-        baseName.toLowerCase(), 
-        baseName.toUpperCase(),
-        baseName.charAt(0).toUpperCase() + baseName.slice(1)
-      ];
-      
-      for (const variation of variations) {
-        if (fields[variation]) return fields[variation];
-      }
-    }
-    return undefined;
-  };
-  
-  // Base solution object met standaard velden
+export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
+  const fields = entry.fields;
+
+  // Log de velden voor debuggen - log alleen keys om circular structure error te voorkomen
+  console.log(`Transforming MobilitySolution entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
+
   const solution: MobilitySolution = {
     id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : '',
-    description: typeof fields.description === 'string' ? fields.description : '',
+    title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
+    subtitle: typeof fields.subtitle === 'string' ? fields.subtitle : undefined,
+    description: typeof fields.description === 'string' ? fields.description : undefined,
     samenvattingLang: typeof fields.samenvattingLang === 'string' ? fields.samenvattingLang : undefined,
-    benefits: Array.isArray(fields.benefits) ? fields.benefits : [],
-    challenges: Array.isArray(fields.challenges) ? fields.challenges : [],
-    implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : '',
-    costs: typeof fields.costs === 'string' ? fields.costs : '',
-    category: typeof fields.category === 'string' ? fields.category : '',
+    benefits: Array.isArray(fields.benefits) ? fields.benefits.filter((b): b is string => typeof b === 'string') : [],
+    challenges: Array.isArray(fields.challenges) ? fields.challenges.filter((c): c is string => typeof c === 'string') : [],
+    implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : undefined,
+    costs: typeof fields.costs === 'string' ? fields.costs : undefined,
+    category: typeof fields.category === 'string' ? fields.category : 'Onbekend',
     icon: typeof fields.icon === 'string' ? fields.icon : undefined,
-    
-    // Implementation plan field
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    
-    // Nieuwe velden van Contentful
     paspoort: typeof fields.paspoort === 'string' ? fields.paspoort : undefined,
     collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
-    effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
-    investering: typeof fields.investering === 'string' ? fields.investering : undefined,
-    governancemodellenToelichting: typeof fields.governancemodellenToelichting === 'string' ? fields.governancemodellenToelichting : undefined,
-    
-    // Type vervoer veld
-    typeVervoer: parseTypeVervoer(fields.typeVervoer),
-    
-    // Rechtsvorm velden
-    geenRechtsvorm: getField(['geenRechtsvorm', 'geen_rechtsvorm', 'geen-rechtsvorm', 'GeenRechtsvorm']),
-    vereniging: getField(['vereniging', 'Vereniging']),
-    stichting: getField(['stichting', 'Stichting']),
-    ondernemersBiz: getField(['ondernemersBiz', 'ondernemers_biz', 'ondernemers-biz', 'OndernemersBiz']),
-    vastgoedBiz: getField(['vastgoedBiz', 'vastgoed_biz', 'vastgoed-biz', 'VastgoedBiz']),
-    gemengdeBiz: getField(['gemengdeBiz', 'gemengde_biz', 'gemengde-biz', 'GemengdeBiz']),
-    cooperatieUa: getField(['cooperatieUa', 'cooperatie_ua', 'cooperatie-ua', 'CooperatieUa']),
-    bv: getField(['bv', 'Bv', 'BV']),
-    ondernemersfonds: getField(['ondernemersfonds', 'Ondernemersfonds']),
-    
-    // Rating fields (default 0)
-    parkeer_bereikbaarheidsproblemen: 0,
-    gezondheid: 0,
-    personeelszorg_en_behoud: 0,
-    imago: 0,
-    milieuverordening: 0,
-    
-    // Toelichting velden van Contentful
+    uitvoeringsmogelijkheden: typeof fields.uitvoeringsmogelijkheden === 'string' ? fields.uitvoeringsmogelijkheden : undefined,
+    governanceModels: getRefIdArray(fields.governanceModels),
+    governanceModelsMits: getRefIdArray(fields.governanceModelsMits),
+    governanceModelsNietgeschikt: getRefIdArray(fields.governanceModelsNietgeschikt),
+    vereniging: typeof fields.vereniging === 'string' ? fields.vereniging : undefined,
+    stichting: typeof fields.stichting === 'string' ? fields.stichting : undefined,
+    ondernemersBiz: typeof fields.ondernemersBiz === 'string' ? fields.ondernemersBiz : undefined,
+    vastgoedBiz: typeof fields.vastgoedBiz === 'string' ? fields.vastgoedBiz : undefined,
+    gemengdeBiz: typeof fields.gemengdeBiz === 'string' ? fields.gemengdeBiz : undefined,
+    cooperatieUa: typeof fields.cooperatieUa === 'string' ? fields.cooperatieUa : undefined,
+    bv: typeof fields.bv === 'string' ? fields.bv : undefined,
+    ondernemersfonds: typeof fields.ondernemersfonds === 'string' ? fields.ondernemersfonds : undefined,
+    geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
     parkeerBereikbaarheidsproblemenToelichting: typeof fields.parkeerBereikbaarheidsproblemenToelichting === 'string' ? fields.parkeerBereikbaarheidsproblemenToelichting : undefined,
     waardeVastgoedToelichting: typeof fields.waardeVastgoedToelichting === 'string' ? fields.waardeVastgoedToelichting : undefined,
     personeelszorgEnBehoudToelichting: typeof fields.personeelszorgEnBehoudToelichting === 'string' ? fields.personeelszorgEnBehoudToelichting : undefined,
@@ -209,206 +140,67 @@ export function transformMobilitySolution(
     milieuverordeningToelichting: typeof fields.milieuverordeningToelichting === 'string' ? fields.milieuverordeningToelichting : undefined,
     bedrijfsverhuizingToelichting: typeof fields.bedrijfsverhuizingToelichting === 'string' ? fields.bedrijfsverhuizingToelichting : undefined,
     energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
-    
-    // Governance models references
-    governanceModels: Array.isArray(fields.governanceModels) ? fields.governanceModels.map(extractId) : undefined,
-    governanceModelsMits: Array.isArray(fields.governanceModelsMits) ? fields.governanceModelsMits.map(extractId) : undefined,
-    governanceModelsNietgeschikt: Array.isArray(fields.governanceModelsNietgeschikt) ? fields.governanceModelsNietgeschikt.map(extractId) : undefined
+    pdfLink: getSafeAssetUrl(fields.pdfLink),
+    effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
+    gemeenteBijdrage: typeof fields.gemeenteBijdrage === 'string' ? fields.gemeenteBijdrage : undefined,
+    provincieBijdrage: typeof fields.provincieBijdrage === 'string' ? fields.provincieBijdrage : undefined,
+    reizigerBijdrage: typeof fields.reizigerBijdrage === 'string' ? fields.reizigerBijdrage : undefined,
+    vastgoedBijdrage: typeof fields.vastgoedBijdrage === 'string' ? fields.vastgoedBijdrage : undefined,
+    bedrijvenVervoervraag: typeof fields.bedrijvenVervoervraag === 'string' ? fields.bedrijvenVervoervraag : undefined,
+    // Scores mappen met helper functie
+    parkeer_bereikbaarheidsproblemen: findScoreFieldValue(fields, ['parkeer_bereikbaarheidsproblemen']),
+    gezondheid: findScoreFieldValue(fields, ['gezondheid']),
+    personeelszorg_en_behoud: findScoreFieldValue(fields, ['personeelszorg_en_behoud']),
+    imago: findScoreFieldValue(fields, ['imago']),
+    milieuverordening: findScoreFieldValue(fields, ['milieuverordening']),
+    waarde_vastgoed: findScoreFieldValue(fields, ['waarde_vastgoed', 'waardeVastgoed']), // Add known alternative name
+    vervoerkosten: findScoreFieldValue(fields, ['vervoerkosten']),
+    gastvrijheid: findScoreFieldValue(fields, ['gastvrijheid']),
+    bedrijfsverhuizing: findScoreFieldValue(fields, ['bedrijfsverhuizing']),
+    energiebalans: findScoreFieldValue(fields, ['energiebalans']),
+    // Type vervoer mappen
+    typeVervoer: parseTypeVervoer(fields.typeVervoer),
   };
-  
-  // Log alle velden uit Contentful voor debugging
-  console.log('[TRANSFORM] Contentful fields for solution:');
-  Object.entries(fields).forEach(([key, value]) => {
-    if (typeof value === 'number' || typeof value === 'string') {
-      console.log(`  ${key}: ${value} (type: ${typeof value})`);
-    }
-  });
-  
-  // NORMALISATIE VAN VELDNAMEN - Eerst bekend maken welke varianten gezocht moeten worden
-  const fieldMappings = {
-    // Parkeerprobleem varianten
-    parkeer_bereikbaarheidsproblemen: [
-      'parkeer_bereikbaarheidsproblemen',
-      'Parkeer- en bereikbaarheidsprobleem',
-      'Parkeer- en bereikbaarheidsproblemen',
-      'parkeer_en_bereikbaarheidsproblemen',
-      'Parkeer en bereikbaarheidsprobleem',
-      'parkeerprobleem',
-      'bereikbaarheidsprobleem'
-    ],
-    // Gezondheid varianten
-    gezondheid: [
-      'gezondheid',
-      'Gezondheid',
-      'health'
-    ],
-    // Personeelszorg varianten
-    personeelszorg_en_behoud: [
-      'personeelszorg_en_behoud',
-      'Personeelszorg en -behoud',
-      'personeel'
-    ],
-    // Imago varianten
-    imago: [
-      'imago',
-      'Imago'
-    ],
-    // Milieuverordening varianten
-    milieuverordening: [
-      'milieuverordening',
-      'Milieuverordening'
-    ]
-  };
-  
-  // Voor elk veld in de solution, zoek alle mogelijke varianten in de contentful data
-  Object.entries(fieldMappings).forEach(([normalizedField, variants]) => {
-    // Zoek door alle varianten
-    for (const variant of variants) {
-      if (typeof fields[variant] === 'number') {
-        // Als een variant gevonden is, gebruik die waarde voor het genormaliseerde veld
-        console.log(`[TRANSFORM] Found ${variant} = ${fields[variant]}, mapping to ${normalizedField}`);
-        (solution as any)[normalizedField] = fields[variant];
-        
-        // Zorg ervoor dat alle varianten dezelfde waarde krijgen voor consistentie
-        variants.forEach(otherVariant => {
-          (solution as any)[otherVariant] = fields[variant];
-        });
-        
-        // Stop zoeken naar varianten zodra we een waarde hebben gevonden
-        break;
-      }
-    }
-  });
-  
-  // Controleer op numerieke velden die nog niet afgehandeld zijn
-  Object.entries(fields).forEach(([key, value]) => {
-    if (typeof value === 'number') {
-      // Controleer of dit veld al is afgehandeld door de fieldMappings
-      let isHandled = false;
-      for (const [normalizedField, variants] of Object.entries(fieldMappings)) {
-        if (variants.includes(key)) {
-          isHandled = true;
-          break;
-        }
-      }
-      
-      // Als het veld nog niet is afgehandeld, sla het op onder zijn eigen naam
-      if (!isHandled) {
-        console.log(`[TRANSFORM] Unmapped numeric field: ${key} = ${value}`);
-        (solution as any)[key] = value;
-        
-        // Ook normaliseren als lowercase
-        const normalizedKey = key.toLowerCase()
-          .replace(/\s+/g, '_')
-          .replace(/-/g, '_');
-        
-        if (normalizedKey !== key) {
-          console.log(`[TRANSFORM] Also storing as normalized key: ${normalizedKey}`);
-          (solution as any)[normalizedKey] = value;
-        }
-      }
-    }
-  });
-  
-  // Log het uiteindelijke resultaat voor debug doeleinden
-  console.log('[TRANSFORM] Final solution scores:');
-  Object.entries(solution).forEach(([key, value]) => {
-    if (typeof value === 'number') {
-      console.log(`  ${key}: ${value}`);
-    }
-  });
-  
+
   return solution;
 }
 
 /**
  * Transform a Contentful GovernanceModel entry to a domain GovernanceModel
  */
-export function transformGovernanceModel(
-  entry: Entry<IGovernanceModel>
-): GovernanceModel {
-  // Veiliger benadering met type assertions
-  const fields = entry.fields as any;
-  
-  // Debug logging voor governance model velden
-  console.log(`[TRANSFORM GOVERNANCE] Model: ${fields.title || 'Unnamed'} (ID: ${entry.sys.id})`);
-  console.log('[TRANSFORM GOVERNANCE] Available fields:');
-  Object.keys(fields).forEach(key => {
-    console.log(`  - ${key}: ${typeof fields[key]}`);
-    
-    // Extra debug info voor rechtsvorm velden en varianten
-    if (key.toLowerCase().includes('rechtsvorm') || 
-        key.toLowerCase().includes('vereniging') ||
-        key.toLowerCase().includes('stichting') ||
-        key.toLowerCase().includes('biz') ||
-        key.toLowerCase().includes('cooperatie') ||
-        key.toLowerCase().includes('bv') ||
-        key.toLowerCase().includes('fonds')) {
-      console.log(`    Value: "${fields[key]}"`);
-    }
-  });
-  
-  // Check veldnamen in verschillende formaten (camelCase, snake_case, kebab-case)
-  const getField = (baseNames: string[]) => {
-    for (const baseName of baseNames) {
-      // Check camelCase (geenRechtsvorm)
-      if (fields[baseName]) return fields[baseName];
-      
-      // Check snake_case (geen_rechtsvorm)
-      const snakeCase = baseName.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (fields[snakeCase]) return fields[snakeCase];
-      
-      // Check kebab-case (geen-rechtsvorm)
-      const kebabCase = baseName.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-      if (fields[kebabCase]) return fields[kebabCase];
-      
-      // Check andere variaties
-      const variations = [
-        baseName.toLowerCase(), 
-        baseName.toUpperCase(),
-        baseName.charAt(0).toUpperCase() + baseName.slice(1)
-      ];
-      
-      for (const variation of variations) {
-        if (fields[variation]) return fields[variation];
-      }
-    }
-    return undefined;
-  };
-  
+export function transformGovernanceModel(entry: Entry<any>): GovernanceModel {
+  const fields = entry.fields;
+  // Log alleen keys om circular structure error te voorkomen
+  console.log(`Transforming GovernanceModel entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
+
   return {
     id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : '',
+    title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
     description: typeof fields.description === 'string' ? fields.description : '',
-    summary: typeof fields.summary === 'string' ? fields.summary : 
-             typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
-    advantages: Array.isArray(fields.advantages) ? fields.advantages : [],
-    disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages : [],
-    applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios : [],
+    summary: typeof fields.summary === 'string' ? fields.summary : undefined,
+    advantages: Array.isArray(fields.advantages) ? fields.advantages.filter((a): a is string => typeof a === 'string') : [],
+    disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages.filter((d): d is string => typeof d === 'string') : [],
+    applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios.filter((s): s is string => typeof s === 'string') : [],
     organizationalStructure: typeof fields.organizationalStructure === 'string' ? fields.organizationalStructure : undefined,
     legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
-    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders : undefined,
-    
-    // Implementation plan fields
+    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders.filter((s): s is string => typeof s === 'string') : [],
     samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
-    benodigdhedenOprichting: fields.benodigdhedenOprichting || undefined,
-    doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
+    benodigdhedenOprichting: fields.benodigdhedenOprichting,
     doorlooptijdLang: typeof fields.doorlooptijdLang === 'string' ? fields.doorlooptijdLang : undefined,
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    links: fields.links || undefined,
-    voorbeeldContracten: fields.voorbeeldContracten || undefined,
-    
-    // Rechtsvorm velden met verschillende naming varianten
-    geenRechtsvorm: getField(['geenRechtsvorm', 'geen_rechtsvorm', 'geen-rechtsvorm', 'GeenRechtsvorm']),
-    vereniging: getField(['vereniging', 'Vereniging']),
-    stichting: getField(['stichting', 'Stichting']),
-    ondernemersBiz: getField(['ondernemersBiz', 'ondernemers_biz', 'ondernemers-biz', 'OndernemersBiz']),
-    vastgoedBiz: getField(['vastgoedBiz', 'vastgoed_biz', 'vastgoed-biz', 'VastgoedBiz']),
-    gemengdeBiz: getField(['gemengdeBiz', 'gemengde_biz', 'gemengde-biz', 'GemengdeBiz']),
-    cooperatieUa: getField(['cooperatieUa', 'cooperatie_ua', 'cooperatie-ua', 'CooperatieUa']),
-    bv: getField(['bv', 'Bv', 'BV']),
-    ondernemersfonds: getField(['ondernemersfonds', 'Ondernemersfonds'])
+    links: fields.links,
+    voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten.map(getSafeAssetUrl).filter((url): url is string => !!url) : [],
+    geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
+    vereniging: typeof fields.vereniging === 'string' ? fields.vereniging : undefined,
+    stichting: typeof fields.stichting === 'string' ? fields.stichting : undefined,
+    ondernemersBiz: typeof fields.ondernemersBiz === 'string' ? fields.ondernemersBiz : undefined,
+    vastgoedBiz: typeof fields.vastgoedBiz === 'string' ? fields.vastgoedBiz : undefined,
+    gemengdeBiz: typeof fields.gemengdeBiz === 'string' ? fields.gemengdeBiz : undefined,
+    cooperatieUa: typeof fields.cooperatieUa === 'string' ? fields.cooperatieUa : undefined,
+    bv: typeof fields.bv === 'string' ? fields.bv : undefined,
+    ondernemersfonds: typeof fields.ondernemersfonds === 'string' ? fields.ondernemersfonds : undefined,
+    rechtsvormBeschrijving: typeof fields.rechtsvormBeschrijving === 'string' ? fields.rechtsvormBeschrijving : undefined,
   };
 }
 
@@ -470,4 +262,71 @@ export function transformImplementationPlan(
     requiredResources: Array.isArray(fields.requiredResources) ? fields.requiredResources : [],
     keySuccessFactors: Array.isArray(fields.keySuccessFactors) ? fields.keySuccessFactors : []
   };
+}
+
+// Type guard for Contentful links
+function isLink(obj: any): obj is { sys: { id: string, type: string, linkType: string } } {
+  return obj && typeof obj === 'object' && obj.sys && typeof obj.sys.id === 'string';
+}
+
+// Type guard for Contentful AssetFile
+function isAssetFile(obj: any): obj is AssetFile {
+  return obj && typeof obj === 'object' && typeof obj.url === 'string';
+}
+
+// Type guard for Contentful Asset
+function isAsset(obj: any): obj is Asset {
+  return obj && obj.sys?.type === 'Asset' && isAssetFile(obj.fields?.file);
+}
+
+// Helper om een array van references om te zetten naar een array van objecten met ID
+function getRefIdArray(refs: any): Array<{ sys: { id: string } }> {
+  if (!Array.isArray(refs)) return [];
+  return refs
+    .map(ref => {
+      if (isLink(ref)) {
+        return { sys: { id: ref.sys.id } };
+      }
+      return null;
+    })
+    .filter((item): item is { sys: { id: string } } => item !== null);
+}
+
+// Helper to extract URL from various potential Asset structures
+function getSafeAssetUrl(assetField: any): string | undefined {
+  if (isAsset(assetField) && assetField.fields.file) {
+    return assetField.fields.file.url as string;
+  }
+  // Handle cases where the link might not be resolved
+  if (isLink(assetField) && assetField.sys.linkType === 'Asset') {
+    console.warn(`Asset link ${assetField.sys.id} is unresolved.`);
+    return undefined;
+  }
+  return undefined;
+}
+
+// Helper functie om velden te vinden in verschillende formaten (voor scores)
+function findScoreFieldValue(fields: any, baseNames: string[]): number | undefined {
+  for (const baseName of baseNames) {
+    // Check direct name and variations
+    const variations = [
+      baseName,
+      baseName.toLowerCase(),
+      baseName.replace(/_/g, '-'),
+      baseName.replace(/_/g, ' '),
+      baseName.charAt(0).toUpperCase() + baseName.slice(1),
+      // Add specific known variants from Contentful
+      baseName === 'parkeer_bereikbaarheidsproblemen' ? 'Parkeer- en bereikbaarheidsproblemen' : '',
+      baseName === 'personeelszorg_en_behoud' ? 'Personeelszorg en -behoud' : '',
+    ].filter(Boolean);
+    
+    for (const variation of variations) {
+      if (typeof fields[variation] === 'number') {
+        console.log(`[Score Mapping] Found score for ${baseName} via variant '${variation}': ${fields[variation]}`);
+        return fields[variation];
+      }
+    }
+  }
+  console.log(`[Score Mapping] No score found for base names: ${baseNames.join(', ')}`);
+  return undefined;
 } 
