@@ -3,6 +3,7 @@
 import { useDialog } from '../contexts/dialog-context';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
+import { MarkdownWithAccordions } from './markdown-with-accordions';
 import { useEffect } from 'react';
 
 export function SolutionDialog() {
@@ -116,7 +117,7 @@ export function SolutionDialog() {
             {paspoort && (
               <section className="mb-6">
                 <h2 className="text-xl font-bold mb-2">Paspoort</h2>
-                <MarkdownContent content={paspoort} />
+                <MarkdownWithAccordions content={paspoort} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
@@ -124,7 +125,7 @@ export function SolutionDialog() {
             {/* Solution description */}
             <section className="mb-6">
               <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
-              <MarkdownContent content={currentSolution.description || ''} />
+              <MarkdownWithAccordions content={currentSolution.description || ''} />
               <div className="border-b border-gray-200 mt-6"></div>
             </section>
             
@@ -132,7 +133,7 @@ export function SolutionDialog() {
             {collectiefVsIndiviueel && (
               <section className="mb-6">
                 <h2 className="text-xl font-bold mb-2">Collectief vs Individueel</h2>
-                <MarkdownContent content={collectiefVsIndiviueel} />
+                <MarkdownWithAccordions content={collectiefVsIndiviueel} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
@@ -141,7 +142,7 @@ export function SolutionDialog() {
             {effecten && (
               <section className="mb-6">
                 <h2 className="text-xl font-bold mb-2">Effecten</h2>
-                <MarkdownContent content={effecten} />
+                <MarkdownWithAccordions content={effecten} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
@@ -150,7 +151,7 @@ export function SolutionDialog() {
             {investering && (
               <section className="mb-6">
                 <h2 className="text-xl font-bold mb-2">Investering</h2>
-                <MarkdownContent content={investering} />
+                <MarkdownWithAccordions content={investering} />
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}

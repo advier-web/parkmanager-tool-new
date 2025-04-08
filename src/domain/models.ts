@@ -69,11 +69,11 @@ export interface MobilitySolution {
   
   // Teruggezette velden:
   effecten?: string;
-  gemeenteBijdrage?: string;
-  provincieBijdrage?: string;
-  reizigerBijdrage?: string;
-  vastgoedBijdrage?: string;
-  bedrijvenVervoervraag?: string;
+  // gemeenteBijdrage?: string;
+  // provincieBijdrage?: string;
+  // reizigerBijdrage?: string;
+  // vastgoedBijdrage?: string;
+  // bedrijvenVervoervraag?: string;
 
   // Score velden (teruggezet)
   parkeer_bereikbaarheidsproblemen?: number;
