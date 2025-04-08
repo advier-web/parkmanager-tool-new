@@ -27,7 +27,7 @@ export interface MobilitySolution {
   paspoort?: string;
   description?: string;
   collectiefVsIndiviueel?: string;
-  // effecten?: string;
+  effecten?: string;
   investering?: string;
   implementatie?: string;
   governanceModels?: (GovernanceModel | string)[];
