@@ -13,7 +13,7 @@ export interface GovernanceModel {
   samenvatting?: string;
   aansprakelijkheid?: string;
   benodigdhedenOprichting?: any;
-  // doorlooptijd?: string;
+  doorlooptijd?: string;
   doorlooptijdLang?: string;
   implementatie?: string;
   links?: any;
@@ -27,8 +27,10 @@ export interface MobilitySolution {
   paspoort?: string;
   description?: string;
   collectiefVsIndiviueel?: string;
-  effecten?: string;
-  investering?: string;
+  // effecten?: string;
+  costs?: string;
+  uitvoeringsmogelijkheden?: string;
+  governancemodellenToelichting?: string;
   implementatie?: string;
   governanceModels?: (GovernanceModel | string)[];
   governanceModelsMits?: (GovernanceModel | string)[];

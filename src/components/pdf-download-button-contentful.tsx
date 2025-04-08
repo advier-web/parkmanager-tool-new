@@ -436,9 +436,10 @@ export default function PdfDownloadButtonContentful({
         const sections = [
           { title: 'Beschrijving', content: mobilityData?.description },
           { title: 'Collectief vs. Individueel', content: mobilityData?.collectiefVsIndiviueel },
-          { title: 'Effecten', content: mobilityData?.effecten },
-          { title: 'Investering', content: mobilityData?.investering },
-          { title: 'Implementatie', content: mobilityData?.implementatie }
+          // effecten: mobilityData?.effecten, // Verwijderd
+          { title: 'Investering', content: mobilityData?.costs }, // Gebruik 'costs' veld als 'investering'
+          { title: 'Uitvoeringsmogelijkheden', content: mobilityData?.uitvoeringsmogelijkheden },
+          { title: 'Implementatie', content: mobilityData?.implementatie },
         ];
         
         // Process each section

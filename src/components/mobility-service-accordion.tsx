@@ -22,7 +22,7 @@ export function MobilityServiceAccordion({ solution }: MobilityServiceAccordionP
         <div className="border-b pb-6">
           <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
           <p className="text-gray-700">
-            Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, wat de effecten er van zijn, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
+            Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
           </p>
         </div>
         {solution.benefits && solution.benefits.length > 0 && (

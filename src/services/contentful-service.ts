@@ -464,7 +464,6 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       // Nieuwe velden van Contentful
       paspoort: getStringField('paspoort'),
       collectiefVsIndiviueel: getStringField('collectiefVsIndiviueel'),
-      effecten: getStringField('effecten'),
       costs: getStringField('costs'),
       governanceModels,
       governanceModelsMits,
@@ -480,6 +479,13 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       cooperatieUa: getStringField('cooperatieUa'),
       bv: getStringField('bv'),
       ondernemersfonds: getStringField('ondernemersfonds'),
+      
+      // Verwijderde bijdrage velden
+      // gemeenteBijdrage: getStringField('gemeenteBijdrage'),
+      // provincieBijdrage: getStringField('provincieBijdrage'),
+      // reizigerBijdrage: getStringField('reizigerBijdrage'),
+      // vastgoedBijdrage: getStringField('vastgoedBijdrage'), // Ook verwijderd/commented in interface
+      // bedrijvenVervoervraag: getStringField('bedrijvenVervoervraag'), // Ook verwijderd/commented in interface
       
       // Rating fields
       parkeer_bereikbaarheidsproblemen: Number(entry.fields.parkeer_bereikbaarheidsproblemen || 0),

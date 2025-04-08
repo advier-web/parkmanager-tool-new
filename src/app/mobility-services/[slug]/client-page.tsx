@@ -257,9 +257,9 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           </div>
 
           <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-3">PDF Informatie</h2>
-            <p className="mb-4">
-              Download meer informatie over deze mobilitietsoplossing. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, wat de effecten er van zijn, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
+            <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
+            <p className="text-gray-700">
+              Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
             </p>
             <PdfDownloadButtonContentful
               mobilityServiceId={solution.id}

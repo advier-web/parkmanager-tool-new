@@ -199,8 +199,9 @@ interface PdfTemplateProps {
     paspoort?: string;
     description?: string;
     collectiefVsIndiviueel?: string;
-    effecten?: string;
+    // effecten?: string;
     investering?: string;
+    uitvoeringsmogelijkheden?: string;
     implementatie?: string;
     governanceModels?: (GovernanceModel | string)[];
     governancemodellenToelichting?: string;
@@ -295,8 +296,9 @@ const PdfTemplate: React.FC<PdfTemplateProps> = ({ data }) => {
         {/* Overige secties */}
         <PDFSection title="Beschrijving" content={data.description} />
         <PDFSection title="Collectief vs. Individueel" content={data.collectiefVsIndiviueel} />
-        <PDFSection title="Effecten" content={data.effecten} />
+        {/* <PDFSection title="Effecten" content={data.effecten} /> */}
         <PDFSection title="Investering" content={data.investering} />
+        <PDFSection title="Uitvoeringsmogelijkheden" content={data.uitvoeringsmogelijkheden} />
         <PDFSection title="Implementatie" content={data.implementatie} />
 
         {/* Governance modellen */}

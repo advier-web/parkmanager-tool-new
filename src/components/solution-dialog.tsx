@@ -96,7 +96,7 @@ export function SolutionDialog() {
     // Nieuwe velden uit Contentful toegevoegd
     const paspoort = currentSolution.paspoort || '';
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel || '';
-    const effecten = currentSolution.effecten || '';
+    // const effecten = currentSolution.effecten || ''; // Verwijderd uit Contentful
     const investering = currentSolution.costs || '';
 
     return (
@@ -138,16 +138,7 @@ export function SolutionDialog() {
               </section>
             )}
             
-            {/* Effecten (nieuw veld) */}
-            {effecten && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold mb-2">Effecten</h2>
-                <MarkdownWithAccordions content={effecten} />
-                <div className="border-b border-gray-200 mt-6"></div>
-              </section>
-            )}
-            
-            {/* Investering (nieuw veld) */}
+            {/* Investering (nieuw veld, uses costs) */}
             {investering && (
               <section className="mb-6">
                 <h2 className="text-xl font-bold mb-2">Investering</h2>

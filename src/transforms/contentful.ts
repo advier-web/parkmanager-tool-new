@@ -141,12 +141,6 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
     bedrijfsverhuizingToelichting: typeof fields.bedrijfsverhuizingToelichting === 'string' ? fields.bedrijfsverhuizingToelichting : undefined,
     energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
     pdfLink: getSafeAssetUrl(fields.pdfLink),
-    effecten: typeof fields.effecten === 'string' ? fields.effecten : undefined,
-    gemeenteBijdrage: typeof fields.gemeenteBijdrage === 'string' ? fields.gemeenteBijdrage : undefined,
-    provincieBijdrage: typeof fields.provincieBijdrage === 'string' ? fields.provincieBijdrage : undefined,
-    reizigerBijdrage: typeof fields.reizigerBijdrage === 'string' ? fields.reizigerBijdrage : undefined,
-    vastgoedBijdrage: typeof fields.vastgoedBijdrage === 'string' ? fields.vastgoedBijdrage : undefined,
-    bedrijvenVervoervraag: typeof fields.bedrijvenVervoervraag === 'string' ? fields.bedrijvenVervoervraag : undefined,
     // Scores mappen met helper functie
     parkeer_bereikbaarheidsproblemen: findScoreFieldValue(fields, ['parkeer_bereikbaarheidsproblemen']),
     gezondheid: findScoreFieldValue(fields, ['gezondheid']),

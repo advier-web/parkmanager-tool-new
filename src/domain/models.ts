@@ -67,13 +67,13 @@ export interface MobilitySolution {
   // Extra velden
   pdfLink?: string;
   
-  // Teruggezette velden:
-  effecten?: string;
-  // gemeenteBijdrage?: string;
+  // Verwijderde velden:
+  // gemeenteBijdrage?: string; 
+  // effecten?: string;
   // provincieBijdrage?: string;
   // reizigerBijdrage?: string;
-  // vastgoedBijdrage?: string;
-  // bedrijvenVervoervraag?: string;
+  // vastgoedBijdrage?: string; // Behoud deze voor nu
+ // bedrijvenVervoervraag?: string; // Behoud deze voor nu
 
   // Score velden (teruggezet)
   parkeer_bereikbaarheidsproblemen?: number;
