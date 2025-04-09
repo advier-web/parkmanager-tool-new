@@ -5,9 +5,11 @@ import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
 import ReactMarkdown from 'react-markdown';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { Accordion } from '../../../components/accordion';
+import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
+import { Label } from "../../../components/ui/label";
 
 // Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
 const MarkdownContentLegacy = ({ content }: { content: string }) => {
@@ -176,6 +178,57 @@ function isNonEmptyArray(field: any): boolean {
   return Array.isArray(field) && field.length > 0;
 }
 
+// Updated Helper function to extract relevant implementation text based on :::variant[Name]...::: syntax
+const extractImplementationText = (
+  markdown: string | undefined,
+  selectedVariantName: string | null
+): string => {
+  if (!markdown) return 'Geen implementatieplan beschikbaar.';
+  
+  if (!selectedVariantName) {
+    // Check if *any* :::variant block exists to determine if prompt is needed
+    // This assumes if variants are defined in the model, they should exist in the text
+    if (markdown.includes(':::variant[')) {
+        return "*Selecteer hierboven een implementatievariant om de specifieke tekst te zien.*";
+    } else {
+        // No variant blocks found, maybe this solution doesn't use variants?
+        // The calling component should ideally handle this based on solution.implementatievarianten,
+        // but as a fallback, show full text.
+        console.warn('[extractImplementationText] No variant selected and no :::variant blocks found in markdown. Returning full text.');
+        return markdown; 
+    }
+  }
+
+  // Escape potential special characters in the variant name for regex/string matching
+  // We will use string indexOf for simplicity and robustness here, but escaping is good practice if needed.
+  const escapedVariantName = selectedVariantName; // Keep as is for indexOf
+  const startTag = `:::variant[${escapedVariantName}]`;
+  const endTag = `:::`;
+
+  const startIndex = markdown.indexOf(startTag);
+
+  if (startIndex === -1) {
+    // The specific variant block was not found
+    console.error(`[extractImplementationText] Start tag '${startTag}' not found in markdown.`);
+    return `*Specifieke implementatie-informatie blok voor '${selectedVariantName}' (zoekt naar '${startTag}') kon niet worden gevonden in de tekst.*`;
+  }
+
+  // Find the end tag *after* the start tag
+  const contentStartIndex = startIndex + startTag.length;
+  const endIndex = markdown.indexOf(endTag, contentStartIndex);
+
+  if (endIndex === -1) {
+    // End tag was not found after the start tag - indicates syntax error in content
+    console.error(`[extractImplementationText] End tag '${endTag}' not found after start tag '${startTag}' (searched from index ${contentStartIndex}).`);
+    return `*Syntaxfout gevonden in de implementatietekst: Eind-tag '${endTag}' ontbreekt na start-tag '${startTag}'.*`;
+  }
+
+  // Extract the text between the tags
+  const extractedText = markdown.substring(contentStartIndex, endIndex).trim();
+
+  return extractedText || `*Geen specifieke tekst gevonden in het blok voor '${selectedVariantName}'.*`;
+};
+
 export default function ImplementationPlanPage() {
   const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
   const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
@@ -186,6 +239,9 @@ export default function ImplementationPlanPage() {
     currentGovernanceModelId 
   } = useWizardStore();
   
+  // State to hold the selected variant NAME for each solution
+  const [selectedVariantMap, setSelectedVariantMap] = useState<Record<string, string | null>>({});
+
   // Get selected governance model data
   const selectedGovernanceModelData = governanceModels && selectedGovernanceModel
     ? governanceModels.find(model => model.id === selectedGovernanceModel)
@@ -666,27 +722,81 @@ export default function ImplementationPlanPage() {
           {!isLoading && !error && selectedSolutionsData.length > 0 && (
             /* Implementatieplan voor mobiliteitsoplossingen sectie */
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-              {selectedSolutionsData.map(solution => (
-                <Accordion 
-                  key={solution.id}
-                  title={`Implementatieplan ${solution.title}`}
-                  defaultOpen={false}
-                  icon={<BiTask className="text-blue-600 text-xl" />}
-                >
-                  <div className="text-gray-700">
-                    <div className="flex items-center mb-2">
-                      <BiTask className="text-blue-600 text-xl mr-2" />
-                      <h5 className="font-semibold">Implementatie</h5>
+              {selectedSolutionsData.map(solution => {
+                // Get the available variant names from the solution data
+                const availableVariants = solution.implementatievarianten || [];
+                const hasDefinedVariants = availableVariants.length > 0;
+                const implementationText = solution.implementatie || '';
+                
+                // Get the currently selected variant NAME for this specific solution
+                const selectedVariantName = selectedVariantMap[solution.id] || null;
+
+                // Determine the text to display
+                let textToShow: string;
+                if (!hasDefinedVariants) {
+                   // No variants defined for this solution, show full text
+                   textToShow = implementationText;
+                } else if (!selectedVariantName) {
+                    // Variants defined, but none selected yet, show prompt
+                    textToShow = `*Kies een implementatievariant:* ${availableVariants.join(', ')}`;
+                } else {
+                    // Variant selected, extract the relevant section
+                    textToShow = extractImplementationText(implementationText, selectedVariantName);
+                }
+
+                return (
+                  <Accordion 
+                    key={solution.id}
+                    title={`Implementatieplan ${solution.title}`}
+                    defaultOpen={false} // Start closed by default
+                    icon={<BiTask className="text-blue-600 text-xl" />}
+                  >
+                    <div className="text-gray-700">
+                      {/* Show RadioGroup only if variants are defined */}
+                      {hasDefinedVariants && (
+                        <div className="mb-6 p-4 bg-gray-50 rounded-md border">
+                          <Label className="font-semibold mb-2 block">Kies implementatievariant:</Label>
+                          <RadioGroup 
+                            value={selectedVariantName || ''} 
+                            onValueChange={(value) => {
+                              setSelectedVariantMap(prev => ({
+                                ...prev,
+                                [solution.id]: value // Store the selected variant name (string)
+                              }));
+                            }}
+                            className="flex flex-col sm:flex-row gap-4"
+                          >
+                            {/* Dynamically create radio buttons from available variants */}
+                            {availableVariants.map(variantName => (
+                              <div key={variantName} className="flex items-center space-x-2">
+                                <RadioGroupItem value={variantName} id={`${solution.id}-${variantName}`} />
+                                <Label htmlFor={`${solution.id}-${variantName}`}>{variantName}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      )}
+
+                      {/* Render the implementation details */}
+                      <div className="flex items-center mb-2">
+                        <BiTask className="text-blue-600 text-xl mr-2" />
+                        <h5 className="font-semibold">
+                          {/* Dynamic heading based on variant selection */}
+                          {hasDefinedVariants && selectedVariantName
+                            ? `Implementatie bij ${selectedVariantName}`
+                            : 'Implementatie'}
+                        </h5>
+                      </div>
+                      <div className="pl-7">
+                        {implementationText ? 
+                          renderRichContent(textToShow) :
+                          <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
+                        }
+                      </div>
                     </div>
-                    <div className="pl-7">
-                      {solution.implementatie ? 
-                        renderRichContent(solution.implementatie) :
-                        <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
-                      }
-                    </div>
-                  </div>
-                </Accordion>
-              ))}
+                  </Accordion>
+                );
+              })}
             </div>
           )}
           

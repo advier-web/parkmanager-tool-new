@@ -89,6 +89,9 @@ export interface MobilitySolution {
 
   // Type vervoer (teruggezet)
   typeVervoer?: TrafficType[];
+  
+  // Dynamische implementatie varianten
+  implementatievarianten?: string[];
 }
 
 // Governance modellen
@@ -199,6 +202,13 @@ export enum TrafficType {
   COMMUTER = 'woon-werkverkeer',
   BUSINESS = 'zakelijk verkeer',
   VISITOR = 'bezoekers verkeer'
+}
+
+// Acquisition type enum
+export enum AcquisitionType {
+  PROCURE = 'inkopen',
+  SELF_PURCHASE = 'zelf aanschaffen',
+  UNKNOWN = 'onbekend'
 }
 
 // Website Collectief Vervoer - Homepage content

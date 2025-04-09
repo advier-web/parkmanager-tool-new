@@ -154,6 +154,10 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
     energiebalans: findScoreFieldValue(fields, ['energiebalans']),
     // Type vervoer mappen
     typeVervoer: parseTypeVervoer(fields.typeVervoer),
+    // Map implementatievarianten (assuming it's an array of strings in Contentful)
+    implementatievarianten: Array.isArray(fields.implementatievarianten) 
+      ? fields.implementatievarianten.filter((v): v is string => typeof v === 'string') 
+      : undefined,
   };
 
   return solution;

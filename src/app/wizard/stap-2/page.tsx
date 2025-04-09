@@ -144,7 +144,8 @@ export default function MobilitySolutionsPage() {
     setSelectedSolutions, 
     resetWizard,
     businessParkInfo,  // Add this to get traffic types
-    updateTrafficTypes
+    updateTrafficTypes,
+    setSelectedReasons
   } = useWizardStore();
   
   // Fetch mobility solutions and reasons data
@@ -425,12 +426,16 @@ export default function MobilitySolutionsPage() {
   
   // Handle filter changes for reason filters
   const handleFilterChange = (reasonId: string) => {
-    setActiveFilters(prev => {
-      // Toggle het filter
-      return prev.includes(reasonId)
-        ? prev.filter(id => id !== reasonId)
-        : [...prev, reasonId];
-    });
+    // Calculate the next state for filters based on the current local state
+    const nextActiveFilters = activeFilters.includes(reasonId)
+        ? activeFilters.filter(id => id !== reasonId)
+        : [...activeFilters, reasonId];
+    
+    // Update local state for immediate UI feedback in FilterPanel
+    setActiveFilters(nextActiveFilters);
+
+    // ALSO update the central Zustand store
+    setSelectedReasons(nextActiveFilters);
   };
   
   // Handle filter changes for traffic type filters
