@@ -236,12 +236,11 @@ export default function ImplementationPlanPage() {
   const { 
     selectedGovernanceModel,
     selectedSolutions,
-    currentGovernanceModelId 
+    currentGovernanceModelId,
+    selectedVariants,
+    setSelectedVariant
   } = useWizardStore();
   
-  // State to hold the selected variant NAME for each solution
-  const [selectedVariantMap, setSelectedVariantMap] = useState<Record<string, string | null>>({});
-
   // Get selected governance model data
   const selectedGovernanceModelData = governanceModels && selectedGovernanceModel
     ? governanceModels.find(model => model.id === selectedGovernanceModel)
@@ -728,8 +727,8 @@ export default function ImplementationPlanPage() {
                 const hasDefinedVariants = availableVariants.length > 0;
                 const implementationText = solution.implementatie || '';
                 
-                // Get the currently selected variant NAME for this specific solution
-                const selectedVariantName = selectedVariantMap[solution.id] || null;
+                // Get the currently selected variant NAME for this specific solution from the store
+                const selectedVariantName = selectedVariants[solution.id] || null;
 
                 // Determine the text to display
                 let textToShow: string;
@@ -754,17 +753,15 @@ export default function ImplementationPlanPage() {
                     <div className="text-gray-700">
                       {/* Show RadioGroup only if variants are defined */}
                       {hasDefinedVariants && (
-                        <div className="mb-6 p-4 bg-gray-50 rounded-md border">
+                        <div className="mb-4 p-2 rounded-md">
                           <Label className="font-semibold mb-2 block">Kies implementatievariant:</Label>
                           <RadioGroup 
                             value={selectedVariantName || ''} 
                             onValueChange={(value) => {
-                              setSelectedVariantMap(prev => ({
-                                ...prev,
-                                [solution.id]: value // Store the selected variant name (string)
-                              }));
+                              // Call the action from the store
+                              setSelectedVariant(solution.id, value);
                             }}
-                            className="flex flex-col sm:flex-row gap-4"
+                            className="flex flex-row gap-3"
                           >
                             {/* Dynamically create radio buttons from available variants */}
                             {availableVariants.map(variantName => (

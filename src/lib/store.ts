@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { WizardState, BusinessParkInfo, TrafficType } from '../domain/models';
 
+// Define the type for the selected variants map
+export type SelectedVariantMap = Record<string, string | null>;
+
 // Initial state for the wizard
 const initialState: WizardState = {
   businessParkInfo: {
@@ -14,6 +17,7 @@ const initialState: WizardState = {
   selectedSolutions: [],
   selectedGovernanceModel: null,
   selectedImplementationPlan: null,
+  selectedVariants: {},
   businessParkName: '',
   contactPerson: '',
   contactEmail: ''
@@ -39,6 +43,7 @@ interface WizardStore extends WizardState {
   
   // Stap 4: Implementatieplan
   setSelectedImplementationPlan: (planId: string | null) => void;
+  setSelectedVariant: (solutionId: string, variantName: string | null) => void;
   
   // Extra gegevens
   setBusinessParkDetails: (name: string, contactPerson: string, contactEmail: string) => void;
@@ -87,6 +92,12 @@ export const useWizardStore = create<WizardStore>()(
       
       // Stap 4: Implementatieplan
       setSelectedImplementationPlan: (planId) => set({ selectedImplementationPlan: planId }),
+      setSelectedVariant: (solutionId, variantName) => set((state) => ({
+        selectedVariants: { 
+          ...state.selectedVariants, 
+          [solutionId]: variantName 
+        }
+      })),
       
       // Extra gegevens
       setBusinessParkDetails: (name, contactPerson, contactEmail) => set({

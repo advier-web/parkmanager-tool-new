@@ -5,6 +5,9 @@
 
 import { Asset } from 'contentful';
 
+// Import the type we defined in store.ts
+import { SelectedVariantMap } from '../lib/store';
+
 // Bedrijfsterreinen-redenen
 export interface BusinessParkReason {
   id: string;
@@ -176,6 +179,7 @@ export interface WizardState {
   
   // Stap 4: Implementatieplan
   selectedImplementationPlan: string | null;
+  selectedVariants: SelectedVariantMap;
   
   // Extra gegevens
   businessParkName: string;

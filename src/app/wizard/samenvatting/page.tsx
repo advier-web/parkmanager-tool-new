@@ -45,7 +45,8 @@ export default function SummaryPage() {
     selectedReasons,
     selectedSolutions,
     selectedGovernanceModel,
-    selectedImplementationPlan
+    selectedImplementationPlan,
+    selectedVariants
   } = useWizardStore();
   
   const { data: reasons, isLoading: isLoadingReasons, error: reasonsError } = useBusinessParkReasons();
@@ -134,30 +135,30 @@ export default function SummaryPage() {
             
             <section>
               <h3 className="text-xl font-semibold mb-2">Informatie over het bedrijventerrein</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Aantal bedrijven:</p>
                   <p>{businessParkInfo.numberOfCompanies}</p>
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-500">Verkeerstypen:</p>
+                    <ul className="list-disc pl-5">
+                      {(businessParkInfo.trafficTypes || []).map(type => (
+                        <li key={type}>{type}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Aantal werknemers:</p>
                   <p>{businessParkInfo.numberOfEmployees}</p>
+                  {currentGovernanceModelTitle && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-500">Huidig bestuursmodel:</p>
+                      <p>{currentGovernanceModelTitle}</p>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="mt-4">
-                <p className="text-sm font-medium text-gray-500">Verkeerstypen:</p>
-                <ul className="list-disc pl-5">
-                  {(businessParkInfo.trafficTypes || []).map(type => (
-                    <li key={type}>{type}</li>
-                  ))}
-                </ul>
-              </div>
-              {currentGovernanceModelTitle && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-500">Huidig bestuursmodel:</p>
-                  <p>{currentGovernanceModelTitle}</p>
-                </div>
-              )}
               
               {/* Locatiekenmerken weergave */}
               <div className="mt-6">
@@ -226,10 +227,19 @@ export default function SummaryPage() {
                       <p className="mb-4 text-gray-700">{solution.samenvattingLang}</p>
                     )}
                     
+                    {/* --- START: Show selected implementation variant --- */}
+                    {selectedVariants[solution.id] && (
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-500">Gekozen implementatievariant:</p>
+                        <p>{selectedVariants[solution.id]}</p>
+                      </div>
+                    )}
+                    {/* --- END: Show selected implementation variant --- */}
+                    
                     {/* --- START: Show contributions to selected reasons --- */}
                     {selectedReasons.length > 0 && reasons && (
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                        <h5 className="text-md font-semibold text-gray-800">Bijdrage aan uw aanleidingen:</h5>
+                        <h5 className="text-md font-semibold text-gray-800">Bijdrage aan geselecteerde aanleidingen:</h5>
                         {selectedReasons.map(reasonId => {
                           const reason = reasons.find(r => r.id === reasonId);
                           if (!reason || !reason.identifier) return null; 
@@ -295,7 +305,6 @@ export default function SummaryPage() {
                     {/* --- START: Show explanation per selected solution --- */}
                     {selectedSolutionsData.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                        <h5 className="text-md font-semibold text-gray-800">Toelichting per Geselecteerde Oplossing:</h5>
                         {selectedSolutionsData.map(solution => {
                           const fieldName = governanceTitleToFieldName(model.title);
                           if (!fieldName) return null;
