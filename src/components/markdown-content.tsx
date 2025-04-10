@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface MarkdownContentProps {
   content: string;
@@ -30,6 +31,7 @@ export function MarkdownContent({
   return (
     <div className={`prose prose-blue max-w-none ${className}`}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           // Styling voor headings
           h1: ({ node, ...props }) => (
