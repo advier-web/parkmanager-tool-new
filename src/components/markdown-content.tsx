@@ -139,9 +139,6 @@ export function processMarkdownText(text: string): string {
   });
   
   // Process standard Markdown formats
-  // Bold text with double underscores or double asterisks
-  processed = processed.replace(/__(.*?)__/g, '**$1**');
-  
   // Make sure numbered lists with asterisks are handled correctly
   processed = processed.replace(/(\d+\.)\s+\*([^*\n]+)\*/g, '$1 *$2*');
   

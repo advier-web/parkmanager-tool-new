@@ -111,3 +111,41 @@ export const extractPassportTextWithVariant = (
   // Filter(Boolean) removes any empty strings that might have resulted from trimming
   return resultBuilder.filter(Boolean).join('\n\n');
 }; 
+
+/**
+ * Extracts the first """samenvatting..."""/samenvatting""" block found within any block matching the selected
+ * :::variant[...]...:::` in the implementation text.
+ */
+export const extractImplementationSummaryFromVariant = (
+  implementationText: string | undefined,
+  selectedVariantName: string | null
+): string => {
+  if (!implementationText || !selectedVariantName) {
+    return '';
+  }
+
+  // 1. Find ALL blocks matching the selected variant name
+  const escapedVariantName = selectedVariantName.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&');
+  const patternString = `:::variant\\[\\s*${escapedVariantName}\s*\\]([\\s\\S]*):::`;
+  const specificVariantBlockRegex = new RegExp(patternString, 'g');
+  const allVariantMatches = Array.from(implementationText.matchAll(specificVariantBlockRegex));
+
+  if (allVariantMatches.length === 0) {
+    return '';
+  }
+
+  // 2. Search within each found variant block for the new summary tag structure
+  const summaryBlockRegex = /"""samenvatting([\s\S]*?)"""\/samenvatting"""/;
+
+  for (const [index, variantMatch] of allVariantMatches.entries()) {
+    const variantContent = variantMatch[1];
+    if (variantContent) {
+      const summaryMatch = variantContent.match(summaryBlockRegex);
+      if (summaryMatch && summaryMatch[1]) {
+        return summaryMatch[1].trim();
+      }
+    }
+  }
+
+  return '';
+}; 

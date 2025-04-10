@@ -8,7 +8,7 @@ import { isValidEmail } from '../../../utils/helper';
 import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
 import { MarkdownContent } from '../../../components/markdown-content';
 import { processMarkdownText } from '../../../components/markdown-content';
-import { extractPassportTextWithVariant } from '../../../utils/wizard-helpers';
+import { extractPassportTextWithVariant, extractImplementationSummaryFromVariant } from '../../../utils/wizard-helpers';
 
 // Helper function to convert snake_case to camelCase
 const snakeToCamel = (str: string): string => 
@@ -247,6 +247,25 @@ export default function SummaryPage() {
                         />
                       </div>
                     )}
+                    
+                    {/* --- RESTORE Original Implementation Summary Code --- */}
+                    {solution.implementatie && selectedVariants[solution.id] && (
+                       (() => { 
+                        const implementationSummary = extractImplementationSummaryFromVariant(
+                          solution.implementatie,
+                          selectedVariants[solution.id]
+                        );
+                        if (!implementationSummary) return null; 
+                        return (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="text-gray-700 prose prose-sm max-w-none">
+                              <MarkdownContent content={processMarkdownText(implementationSummary)} />
+                            </div>
+                          </div>
+                        );
+                      })()
+                    )}
+                    {/* --- END: Implementation Summary --- */}
                     
                     {/* --- START: Show contributions to selected reasons --- */}
                     {selectedReasons.length > 0 && reasons && (

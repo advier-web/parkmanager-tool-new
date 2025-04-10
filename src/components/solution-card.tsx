@@ -1,6 +1,7 @@
 import { MobilitySolution, BusinessParkReason, TrafficType } from '../domain/models';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
@@ -206,7 +207,10 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
-          <p className="text-gray-600 mb-3">{solution.samenvattingLang || solution.description}</p>
+          {/* Render description using MarkdownContent */}
+          <div className="text-gray-600 mb-3 prose prose-sm max-w-none">
+            <MarkdownContent content={processMarkdownText(solution.samenvattingLang || solution.description || '')} />
+          </div>
           
           {/* Voordelen en Nadelen */}
           <div className="mb-4 space-y-2">
