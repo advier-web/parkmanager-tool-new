@@ -389,9 +389,9 @@ export default function GovernanceModelsPage() {
       </div>
       
       <WizardNavigation
-        previousStep="/wizard/stap-2"
+        previousStep="/wizard/stap-2b"
         nextStep="/wizard/stap-4"
-        isNextDisabled={!hasSelectedModel}
+        isNextDisabled={!selectedGovernanceModel}
       />
     </div>
   );

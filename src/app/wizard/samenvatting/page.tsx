@@ -7,6 +7,8 @@ import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useI
 import { isValidEmail } from '../../../utils/helper';
 import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
 import { MarkdownContent } from '../../../components/markdown-content';
+import { processMarkdownText } from '../../../components/markdown-content';
+import { extractPassportTextWithVariant } from '../../../utils/wizard-helpers';
 
 // Helper function to convert snake_case to camelCase
 const snakeToCamel = (str: string): string => 
@@ -222,12 +224,8 @@ export default function SummaryPage() {
                 {selectedSolutionsData.map((solution) => (
                   <div key={solution.id} className="border-b pb-6 last:border-b-0 last:pb-0">
                     <h4 className="font-medium text-lg mb-2">{solution.title}</h4>
-                    {/* Show solution summary */}
-                    {solution.samenvattingLang && (
-                      <p className="mb-4 text-gray-700">{solution.samenvattingLang}</p>
-                    )}
                     
-                    {/* --- START: Show selected implementation variant --- */}
+                    {/* --- MOVED: Show selected implementation variant --- */}
                     {selectedVariants[solution.id] && (
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-500">Gekozen implementatievariant:</p>
@@ -235,6 +233,20 @@ export default function SummaryPage() {
                       </div>
                     )}
                     {/* --- END: Show selected implementation variant --- */}
+                    
+                    {/* Show solution passport filtered by selected variant */}
+                    {solution.paspoort && (
+                      <div className="mb-4 text-gray-700 prose prose-sm max-w-none">
+                        <MarkdownContent 
+                          content={processMarkdownText(
+                            extractPassportTextWithVariant(
+                              solution.paspoort, 
+                              selectedVariants[solution.id] // Pass the selected variant name
+                            )
+                          )} 
+                        />
+                      </div>
+                    )}
                     
                     {/* --- START: Show contributions to selected reasons --- */}
                     {selectedReasons.length > 0 && reasons && (

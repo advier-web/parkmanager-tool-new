@@ -589,48 +589,11 @@ export default function MobilitySolutionsPage() {
         </div>
       </div>
       
-      {!hasSelectedSolutions && (
-        <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-md text-yellow-800 mb-4">
-          <div className="flex items-start">
-            <svg className="h-5 w-5 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <p>
-              <strong>Selecteer minimaal één mobiliteitsoplossing</strong> voordat u naar de volgende stap gaat.
-            </p>
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-between mt-8">
-        <button
-          onClick={() => router.push("/wizard/stap-1")}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Vorige stap
-        </button>
-
-        <button
-          onClick={() => {
-            if (hasSelectedSolutions) {
-              console.log("Navigating to next step, solutions selected:", selectedSolutions);
-              router.push("/wizard/stap-3");
-            } else {
-              console.log("Cannot navigate, no solutions selected");
-              // Optioneel: toon een melding of markeer de waarschuwing duidelijker
-            }
-          }}
-          disabled={!hasSelectedSolutions}
-          className={`px-4 py-2 rounded-md ${
-            !hasSelectedSolutions
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-          }`}
-          aria-disabled={!hasSelectedSolutions}
-        >
-          Volgende stap
-        </button>
-      </div>
+      <WizardNavigation
+        previousStep="/wizard/stap-1"
+        nextStep="/wizard/stap-2b"
+        isNextDisabled={!selectedSolutions || selectedSolutions.length === 0}
+      />
     </div>
   );
 } 

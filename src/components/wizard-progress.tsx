@@ -14,9 +14,10 @@ const STEPS: Step[] = [
   { id: 0, name: 'Bedrijventerrein', path: '/wizard/bedrijventerrein' },
   { id: 1, name: 'Aanleiding', path: '/wizard/stap-1' },
   { id: 2, name: 'Oplossingen', path: '/wizard/stap-2' },
-  { id: 3, name: 'Governance', path: '/wizard/stap-3' },
-  { id: 4, name: 'Implementatie', path: '/wizard/stap-4' },
-  { id: 5, name: 'Samenvatting', path: '/wizard/samenvatting' },
+  { id: 3, name: 'Implementatievariant', path: '/wizard/stap-2b' },
+  { id: 4, name: 'Governance', path: '/wizard/stap-3' },
+  { id: 5, name: 'Implementatie', path: '/wizard/stap-4' },
+  { id: 6, name: 'Samenvatting', path: '/wizard/samenvatting' },
 ];
 
 export function WizardProgress() {
@@ -71,7 +72,7 @@ export function WizardProgress() {
             if (isDisabled) {
               return (
                 <div className={baseClasses}>
-                  {children}
+                  {isCompleted ? '✓' : step.id}
                 </div>
               );
             }
@@ -81,7 +82,7 @@ export function WizardProgress() {
                 href={step.path}
                 className={baseClasses}
               >
-                {children}
+                {isCompleted ? '✓' : step.id}
               </Link>
             );
           };
