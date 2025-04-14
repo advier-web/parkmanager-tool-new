@@ -1,7 +1,7 @@
 'use client';
 
 import { GovernanceModel } from '@/domain/models';
-import { ItemWithMarkdown } from '@/components/item-with-markdown';
+import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
 import { LinkIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
@@ -77,14 +77,14 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {model.description && (
             <div className="mb-4 rounded-lg bg-white px-1 py-6">
               <h2 className="font-semibold text-xl mb-3">Beschrijving</h2>
-              <ItemWithMarkdown content={model.description} />
+              <MarkdownContent content={processMarkdownText(model.description)} />
             </div>
           )}
 
           {model.aansprakelijkheid && (
             <div className="mb-4 rounded-lg bg-white px-1 py-6">
               <h2 className="font-semibold text-xl mb-3">Aansprakelijkheid</h2>
-              <ItemWithMarkdown content={model.aansprakelijkheid} />
+              <MarkdownContent content={processMarkdownText(model.aansprakelijkheid || '')} />
             </div>
           )}
 
@@ -97,13 +97,13 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                     <ul className="list-disc pl-5 space-y-1">
                       {voordelen.map((voordeel, index) => (
                         <li key={index}>
-                          <ItemWithMarkdown content={voordeel} />
+                          <MarkdownContent content={processMarkdownText(voordeel)} disableListStyles={true} />
                         </li>
                       ))}
                     </ul>
                   )}
                   {typeof voordelen === 'string' && voordelen && (
-                    <ItemWithMarkdown content={voordelen} />
+                    <MarkdownContent content={processMarkdownText(voordelen)} />
                   )}
                 </div>
               </SimpleAccordion>
@@ -119,13 +119,13 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                     <ul className="list-disc pl-5 space-y-1">
                       {nadelen.map((nadeel, index) => (
                         <li key={index}>
-                          <ItemWithMarkdown content={nadeel} />
+                          <MarkdownContent content={processMarkdownText(nadeel)} disableListStyles={true} />
                         </li>
                       ))}
                     </ul>
                   )}
                   {typeof nadelen === 'string' && nadelen && (
-                    <ItemWithMarkdown content={nadelen} />
+                    <MarkdownContent content={processMarkdownText(nadelen)} />
                   )}
                 </div>
               </SimpleAccordion>
@@ -135,12 +135,12 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {model.benodigdhedenOprichting && (
             <div className="mb-4 rounded-lg bg-white px-1 py-6">
               <h2 className="font-semibold text-xl mb-3">Benodigdheden voor oprichting</h2>
-              <ItemWithMarkdown content={typeof model.benodigdhedenOprichting === 'string' 
+              <MarkdownContent content={processMarkdownText(typeof model.benodigdhedenOprichting === 'string' 
                 ? model.benodigdhedenOprichting 
                 : Array.isArray(model.benodigdhedenOprichting) 
-                  ? model.benodigdhedenOprichting.join('\n- ') 
-                  : ''} 
-              />
+                  ? model.benodigdhedenOprichting.map(item => typeof item === 'string' ? `- ${item}` : '').join('\n') 
+                  : ''
+              )} />
             </div>
           )}
 
@@ -158,7 +158,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                         if (typeof link === 'string' && !link.match(/https?:\/\//) && !link.match(/\[.+\]\(.+\)/)) {
                           return (
                             <div key={index} className="mb-2">
-                              <ItemWithMarkdown content={link} />
+                              <MarkdownContent content={processMarkdownText(link)} />
                             </div>
                           );
                         }
@@ -260,10 +260,24 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                           </div>
                         );
                       }
-                      return <ItemWithMarkdown content={links} />;
+                      return <MarkdownContent content={processMarkdownText(links)} />;
                     })()
                   ) : (
-                    <ItemWithMarkdown content={links} />
+                    links.match(/^https?:\/\//) ? (
+                      <div className="flex items-center">
+                        <LinkIcon className="h-4 w-4 text-teal-600 mr-2 shrink-0" />
+                        <a 
+                          href={links} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-teal-600 hover:underline"
+                        >
+                          {extractUrlTitle(links)}
+                        </a>
+                      </div>
+                    ) : (
+                      <MarkdownContent content={processMarkdownText(links)} />
+                    )
                   )}
                 </div>
               )}
@@ -274,7 +288,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {doorlooptijd && (
             <div className="mb-4 rounded-lg bg-white px-1 py-6">
               <h2 className="font-semibold text-xl mb-3">Doorlooptijd</h2>
-              <ItemWithMarkdown content={doorlooptijd} />
+              <MarkdownContent content={processMarkdownText(doorlooptijd)} />
             </div>
           )}
           

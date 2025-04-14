@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MobilitySolution, GovernanceModel } from '@/domain/models';
-import { ItemWithMarkdown } from '@/components/item-with-markdown';
+import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
 import { useGovernanceModels } from '@/hooks/use-domain-models';
@@ -131,7 +131,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           {solution.collectiefVsIndiviueel && (
             <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Collectief versus Individueel</h2>
-              <ItemWithMarkdown content={solution.collectiefVsIndiviueel} />
+              <MarkdownContent content={processMarkdownText(solution.collectiefVsIndiviueel)} />
             </div>
           )}
           
@@ -271,28 +271,28 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           {solution.benefits && solution.benefits.length > 0 && (
             <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
-              <ItemWithMarkdown content={solution.benefits.map(benefit => `- ${benefit}`).join('\n')} />
+              <MarkdownContent content={processMarkdownText(solution.benefits.map(benefit => `- ${benefit}`).join('\n'))} />
             </div>
           )}
 
           {solution.challenges && solution.challenges.length > 0 && (
             <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Uitdagingen</h2>
-              <ItemWithMarkdown content={solution.challenges.map(challenge => `- ${challenge}`).join('\n')} />
+              <MarkdownContent content={processMarkdownText(solution.challenges.map(challenge => `- ${challenge}`).join('\n'))} />
             </div>
           )}
 
           {solution.implementationTime && (
             <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Implementatietijd</h2>
-              <ItemWithMarkdown content={solution.implementationTime} />
+              <MarkdownContent content={processMarkdownText(solution.implementationTime)} />
             </div>
           )}
 
           {solution.costs && (
             <div className="bg-white rounded-lg p-6 mb-8">
               <h2 className="font-semibold text-xl mb-3">Kosten</h2>
-              <ItemWithMarkdown content={solution.costs} />
+              <MarkdownContent content={processMarkdownText(solution.costs)} />
             </div>
           )}
         </div>

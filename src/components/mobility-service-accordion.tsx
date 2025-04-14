@@ -2,7 +2,7 @@
 
 import { MobilitySolution } from '@/domain/models';
 import { Accordion } from './accordion';
-import { ItemWithMarkdown } from './item-with-markdown';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 import PdfDownloadButtonContentful from './pdf-download-button-contentful';
 
 interface MobilityServiceAccordionProps {
@@ -16,7 +16,7 @@ export function MobilityServiceAccordion({ solution }: MobilityServiceAccordionP
         {solution.description && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Beschrijving</h2>
-            <ItemWithMarkdown content={solution.description} />
+            <MarkdownContent content={processMarkdownText(solution.description)} />
           </div>
         )}
         <div className="border-b pb-6">
@@ -28,25 +28,25 @@ export function MobilityServiceAccordion({ solution }: MobilityServiceAccordionP
         {solution.benefits && solution.benefits.length > 0 && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Voordelen</h2>
-            <ItemWithMarkdown content={solution.benefits.map(benefit => `- ${benefit}`).join('\n')} />
+            <MarkdownContent content={processMarkdownText(solution.benefits.map(benefit => `- ${benefit}`).join('\n'))} />
           </div>
         )}
         {solution.challenges && solution.challenges.length > 0 && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Uitdagingen</h2>
-            <ItemWithMarkdown content={solution.challenges.map(challenge => `- ${challenge}`).join('\n')} />
+            <MarkdownContent content={processMarkdownText(solution.challenges.map(challenge => `- ${challenge}`).join('\n'))} />
           </div>
         )}
         {solution.implementationTime && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Implementatietijd</h2>
-            <ItemWithMarkdown content={solution.implementationTime} />
+            <MarkdownContent content={processMarkdownText(solution.implementationTime)} />
           </div>
         )}
         {solution.costs && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Kosten</h2>
-            <ItemWithMarkdown content={solution.costs} />
+            <MarkdownContent content={processMarkdownText(solution.costs)} />
           </div>
         )}
         <PdfDownloadButtonContentful

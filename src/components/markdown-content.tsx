@@ -122,6 +122,9 @@ export function processMarkdownText(text: string): string {
   // Normalize line endings
   let processed = text.replace(/\r\n/g, '\n');
   
+  // Remove ONLY the :::variant tags, keeping the content inside
+  processed = processed.replace(/:::variant\[.*?\]\s*([\s\S]*?)\s*:::/g, '$1'); // Replace match with content (group 1)
+  
   // Process tables first
   processed = preprocessTables(processed);
   

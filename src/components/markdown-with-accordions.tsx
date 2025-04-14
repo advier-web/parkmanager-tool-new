@@ -1,5 +1,5 @@
-import { ItemWithMarkdown } from './item-with-markdown';
 import { SimpleAccordion } from './simple-accordion';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 interface MarkdownWithAccordionsProps {
   content: string;
@@ -74,7 +74,7 @@ export function MarkdownWithAccordions({ content }: MarkdownWithAccordionsProps)
                   key={itemIndex}
                   title={item.title}
                 >
-                  <ItemWithMarkdown content={item.content} />
+                  <MarkdownContent content={processMarkdownText(item.content)} />
                 </SimpleAccordion>
               ))}
             </div>
@@ -87,7 +87,7 @@ export function MarkdownWithAccordions({ content }: MarkdownWithAccordionsProps)
               key={`${groupIndex}-${contentIndex}`} 
               className={`${(previousGroupWasAccordion && contentIndex === 0) ? 'mt-16' : ''} mb-4`}
             >
-              <ItemWithMarkdown content={content} />
+              <MarkdownContent content={processMarkdownText(content)} />
             </div>
           ));
         }

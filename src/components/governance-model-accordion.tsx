@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { GovernanceModel } from '../domain/models';
 import { Accordion } from './accordion';
-import { ItemWithMarkdown } from './item-with-markdown';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 import PdfDownloadButtonContentful from './pdf-download-button-contentful';
 
 interface GovernanceModelAccordionProps {
@@ -27,7 +27,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
         {model.description && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Beschrijving</h2>
-            <ItemWithMarkdown content={model.description} />
+            <MarkdownContent content={processMarkdownText(model.description)} />
           </div>
         )}
         
@@ -35,7 +35,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
         {model.aansprakelijkheid && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Aansprakelijkheid</h2>
-            <ItemWithMarkdown content={model.aansprakelijkheid} />
+            <MarkdownContent content={processMarkdownText(model.aansprakelijkheid)} />
           </div>
         )}
         
@@ -50,7 +50,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
                   <div className="space-y-4">
                     {advantages.map((advantage, index) => (
                       <div key={index} className="voordeel">
-                        <ItemWithMarkdown content={advantage} />
+                        <MarkdownContent content={processMarkdownText(advantage)} />
                       </div>
                     ))}
                   </div>
@@ -64,7 +64,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
                   <div className="space-y-4">
                     {disadvantages.map((disadvantage, index) => (
                       <div key={index} className="nadeel">
-                        <ItemWithMarkdown content={disadvantage} />
+                        <MarkdownContent content={processMarkdownText(disadvantage)} />
                       </div>
                     ))}
                   </div>
@@ -78,7 +78,7 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
         {(model.doorlooptijdLang || model.doorlooptijd) && (
           <div className="border-b pb-6">
             <h2 className="font-semibold text-lg mb-3">Doorlooptijd</h2>
-            <ItemWithMarkdown content={model.doorlooptijdLang || model.doorlooptijd || ""} />
+            <MarkdownContent content={processMarkdownText(model.doorlooptijdLang || model.doorlooptijd || "")} />
           </div>
         )}
         

@@ -2,7 +2,7 @@
 
 import { BusinessParkReason } from '../domain/models';
 import { Accordion } from './accordion';
-import { ItemWithMarkdown } from './item-with-markdown';
+import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 interface BusinessParkReasonAccordionProps {
   reason: BusinessParkReason;
@@ -12,7 +12,7 @@ export function BusinessParkReasonAccordion({ reason }: BusinessParkReasonAccord
   return (
     <Accordion title={reason.title}>
       <div className="prose max-w-none">
-        <ItemWithMarkdown content={reason.description} />
+        <MarkdownContent content={processMarkdownText(reason.description)} />
       </div>
     </Accordion>
   );
