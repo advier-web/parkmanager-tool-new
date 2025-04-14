@@ -5,6 +5,8 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { MarkdownWithAccordions } from './markdown-with-accordions';
 import { useEffect } from 'react';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { BiDollar } from 'react-icons/bi';
 
 export function SolutionDialog() {
   const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, closeDialog } = useDialog();
@@ -146,6 +148,29 @@ export function SolutionDialog() {
                 <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
+            
+            {/* --- NEW: Investering Section --- */}
+            {currentSolution?.investering && (() => {
+              const rawText = currentSolution.investering;
+              // Remove variant tags directly inline
+              const startTagRegex = /:::variant\[.*?\]\s*\n?/g;
+              const endTagRegex = /\s*\n?:::/g;
+              let cleanedText = rawText.replace(startTagRegex, '');
+              cleanedText = cleanedText.replace(endTagRegex, '').trim();
+
+              return (
+                <div className="mt-6 pt-4 border-t">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                    <BiDollar className="h-5 w-5 mr-2 text-green-600" />
+                    Investering
+                  </h3>
+                  <div className="prose prose-sm max-w-none text-gray-600">
+                    <MarkdownContent content={processMarkdownText(cleanedText)} />
+                  </div>
+                </div>
+              );
+            })()}
+            {/* --- END NEW --- */}
             
             {/* Compatible governance models */}
             <section className="mb-6">

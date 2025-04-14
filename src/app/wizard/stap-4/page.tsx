@@ -3,12 +3,12 @@
 import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
-import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle } from 'react-icons/bi';
+import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle, BiDollar } from 'react-icons/bi';
 import ReactMarkdown from 'react-markdown';
 import { useEffect, useState } from 'react';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { Accordion } from '../../../components/accordion';
-import { extractImplementationText } from '../../../utils/wizard-helpers';
+import { extractImplementationText, extractPassportTextWithVariant } from '../../../utils/wizard-helpers';
 
 // Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
 const MarkdownContentLegacy = ({ content }: { content: string }) => {
@@ -703,6 +703,14 @@ export default function ImplementationPlanPage() {
                     textToShow = extractImplementationText(implementationText, selectedVariantName);
                 }
 
+                // --- NEW: Process Investment Text ---
+                const investmentTextRaw = solution.investering; // Assuming 'investering' field exists on solution
+                // Restore the use of the helper function
+                const investmentTextToShow = investmentTextRaw
+                  ? extractPassportTextWithVariant(investmentTextRaw, selectedVariantName)
+                  : '';
+                // --- END NEW ---
+
                 return (
                   <Accordion 
                     key={solution.id}
@@ -710,22 +718,43 @@ export default function ImplementationPlanPage() {
                     defaultOpen={false} // Start closed again
                     icon={<BiTask className="text-blue-600 text-xl" />}
                   >
-                    <div className="text-gray-700">
-                      <div className="flex items-center mb-2">
-                        <BiTask className="text-blue-600 text-xl mr-2" />
-                        <h5 className="font-semibold">
-                          {/* Dynamic heading based on variant selection */}
-                          {hasDefinedVariants && selectedVariantName
-                            ? `Implementatie bij variant: ${selectedVariantName}`
-                            : 'Implementatie'}
-                        </h5>
+                    <div className="text-gray-700 space-y-6"> {/* Added space-y-6 for separation */}
+                      {/* Implementatie Section (existing) */}
+                      <div> 
+                        <div className="flex items-center mb-2">
+                          <BiTask className="text-blue-600 text-xl mr-2" />
+                          <h5 className="font-semibold">
+                            {/* Dynamic heading based on variant selection */}
+                            {hasDefinedVariants && selectedVariantName
+                              ? `Implementatie bij variant: ${selectedVariantName}`
+                              : 'Implementatie'}
+                          </h5>
+                        </div>
+                        <div className="pl-7 prose prose-sm max-w-none">
+                          {implementationText ? 
+                            <MarkdownContent content={processMarkdownText(textToShow)} /> :
+                            <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
+                          }
+                        </div>
                       </div>
-                      <div className="pl-7 prose prose-sm max-w-none">
-                        {implementationText ? 
-                          <MarkdownContent content={processMarkdownText(textToShow)} /> :
-                          <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
-                        }
-                      </div>
+
+                      {/* --- NEW: Investering Section --- */}
+                      {investmentTextToShow && ( // Only render if there is text to show
+                        <div className="border-t pt-4"> {/* Added border for visual separation */}
+                          <div className="flex items-center mb-2">
+                            <BiDollar className="text-green-600 text-xl mr-2" /> {/* Using BiDollar icon */}
+                            <h5 className="font-semibold">
+                              Investering
+                              {hasDefinedVariants && selectedVariantName ? ` (Variant: ${selectedVariantName})` : ''}
+                            </h5>
+                          </div>
+                          <div className="pl-7 prose prose-sm max-w-none">
+                            <MarkdownContent content={processMarkdownText(investmentTextToShow)} /> 
+                          </div>
+                        </div>
+                      )}
+                      {/* --- END NEW --- */}
+
                     </div>
                   </Accordion>
                 );

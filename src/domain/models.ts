@@ -36,6 +36,9 @@ export interface MobilitySolution {
   // Implementation plan field
   implementatie?: string;
   
+  // Investment field (new)
+  investering?: string;
+  
   // Nieuwe velden van Contentful
   paspoort?: string;
   collectiefVsIndiviueel?: string;

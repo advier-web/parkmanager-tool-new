@@ -116,6 +116,7 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
     icon: typeof fields.icon === 'string' ? fields.icon : undefined,
     implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
     paspoort: typeof fields.paspoort === 'string' ? fields.paspoort : undefined,
+    investering: typeof fields.investering === 'string' ? fields.investering : undefined,
     collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
     uitvoeringsmogelijkheden: typeof fields.uitvoeringsmogelijkheden === 'string' ? fields.uitvoeringsmogelijkheden : undefined,
     governanceModels: getRefIdArray(fields.governanceModels),
