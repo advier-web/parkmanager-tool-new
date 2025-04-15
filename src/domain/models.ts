@@ -17,6 +17,7 @@ export interface BusinessParkReason {
   icon?: string;
   category?: string;
   identifier?: string; // Identifier die overeenkomt met veldnamen in MobilitySolution rating velden
+  order?: number; // Added field for sorting order
 }
 
 // Mobiliteitsoplossingen

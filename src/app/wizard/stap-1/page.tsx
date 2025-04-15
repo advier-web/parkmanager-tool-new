@@ -15,14 +15,21 @@ export default function BusinessParkReasonsPage() {
   // Group reasons by category when data is loaded
   useEffect(() => {
     if (reasons) {
-      // Create a default category for reasons without a category
-      const reasonsWithCategory = reasons.map(reason => ({
+      // Create a default category and sort reasons by the 'order' field
+      const mappedReasons = reasons.map(reason => ({
         ...reason,
         category: reason.category || 'overig'
       }));
       
-      // Group by category
-      const grouped = groupBy(reasonsWithCategory, 'category');
+      // 2. Sort the mapped reasons
+      const sortedReasons = mappedReasons.sort((a, b) => {
+        const orderA = a.order ?? Infinity;
+        const orderB = b.order ?? Infinity;
+        return orderA - orderB;
+      });
+      
+      // 3. Group the sorted reasons
+      const grouped = groupBy(sortedReasons, 'category');
       setGroupedReasons(grouped);
     }
   }, [reasons]);

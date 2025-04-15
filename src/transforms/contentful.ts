@@ -89,7 +89,8 @@ export function transformBusinessParkReason(
              typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
     icon: typeof fields.icon === 'string' ? fields.icon : undefined,
     category: typeof fields.category === 'string' ? fields.category : undefined,
-    identifier: typeof fields.identifier === 'string' ? fields.identifier : undefined
+    identifier: typeof fields.identifier === 'string' ? fields.identifier : undefined,
+    order: typeof fields.order === 'number' ? fields.order : undefined
   };
 }
 
