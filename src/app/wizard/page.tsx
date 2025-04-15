@@ -72,6 +72,16 @@ export default function WizardPage() {
               <span className="text-blue-600 font-semibold">3</span>
             </div>
             <div>
+              <h4 className="font-medium">Implementatievariant</h4>
+              <p className="text-gray-600">Kies de gewenste variant voor de implementatie van uw gekozen oplossingen.</p>
+            </div>
+          </li>
+          
+          <li className="flex items-start">
+            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <span className="text-blue-600 font-semibold">4</span>
+            </div>
+            <div>
               <h4 className="font-medium">Governance modellen</h4>
               <p className="text-gray-600">Bepaal hoe u de mobiliteitsoplossingen wilt organiseren en beheren.</p>
             </div>
@@ -79,7 +89,7 @@ export default function WizardPage() {
           
           <li className="flex items-start">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">4</span>
+              <span className="text-blue-600 font-semibold">5</span>
             </div>
             <div>
               <h4 className="font-medium">Implementatieplan</h4>
@@ -89,7 +99,7 @@ export default function WizardPage() {
           
           <li className="flex items-start">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">5</span>
+              <span className="text-blue-600 font-semibold">6</span>
             </div>
             <div>
               <h4 className="font-medium">Samenvatting</h4>
