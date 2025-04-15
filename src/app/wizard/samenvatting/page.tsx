@@ -1,14 +1,18 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useImplementationPlans } from '../../../hooks/use-domain-models';
 import { isValidEmail } from '../../../utils/helper';
 import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
-import { MarkdownContent } from '../../../components/markdown-content';
-import { processMarkdownText } from '../../../components/markdown-content';
+import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { extractPassportTextWithVariant, extractImplementationSummaryFromVariant } from '../../../utils/wizard-helpers';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import SummaryPdfDocument from '../../../components/summary-pdf-document';
+import { Button } from '@/components/ui/button';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { MobilitySolution } from '@/domain/models';
 
 // Helper function to convert snake_case to camelCase
 const snakeToCamel = (str: string): string => 
@@ -100,6 +104,17 @@ export default function SummaryPage() {
 
   const isLoading = isLoadingReasons || isLoadingSolutions || isLoadingModels;
   const error = reasonsError || solutionsError || modelsError;
+
+  // Add state for client-side rendering
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Function to pass to PDF component (simplified, assuming direct use of helper)
+  const getPassportTextForPdf = (solution: MobilitySolution, variant: string | undefined): string => {
+      return extractPassportTextWithVariant(solution.paspoort, variant ?? null);
+  };
 
   return (
     <div className="space-y-8">
@@ -214,6 +229,59 @@ export default function SummaryPage() {
             </section>
           </div>
           
+          {/* --- MOVED & STYLED: Download full summary PDF --- */}
+          <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
+            <h4 className="text-lg font-semibold mb-3 text-white">Download Samenvatting</h4>
+            <p className="text-white text-sm mb-4">
+              Download een PDF met de op deze pagina getoonde samenvatting van uw gemaakte keuzes.
+            </p>
+            {isClient && (
+              <PDFDownloadLink
+                document={(
+                  <SummaryPdfDocument 
+                    businessParkInfo={businessParkInfo} 
+                    currentGovernanceModelTitle={currentGovernanceModelTitle}
+                    selectedReasonTitles={selectedReasonTitles} 
+                    selectedSolutionsData={selectedSolutionsData}
+                    selectedVariants={selectedVariants}
+                    selectedGovernanceModelId={selectedGovernanceModel} 
+                    selectedImplementationPlanTitle={selectedImplementationPlanTitle}
+                    governanceModels={governanceModels || []} 
+                    governanceTitleToFieldName={governanceTitleToFieldName} 
+                    extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
+                    reasons={reasons || []} 
+                    selectedReasons={selectedReasons} 
+                    snakeToCamel={snakeToCamel} 
+                  />
+                )}
+                fileName="parkmanager-samenvatting.pdf"
+              >
+                {({
+                  blob,
+                  url,
+                  loading,
+                  error,
+                }) => (
+                  <Button 
+                    variant="secondary"
+                    className="bg-white text-teal-600 hover:bg-gray-100 hover:text-teal-700"
+                    disabled={loading}
+                  >
+                    <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                    {loading ? 'PDF genereren...' : 'Download Samenvatting PDF'}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
+            {!isClient && (
+                <Button variant="secondary" disabled className="bg-white text-teal-600 opacity-75">
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                  PDF laden...
+                </Button>
+            )}
+          </div>
+          {/* --- END: Moved Download --- */}
+          
           {/* Geselecteerde mobiliteitsoplossingen sectie */}
           <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h3 className="text-xl font-semibold mb-4">Geselecteerde mobiliteitsoplossingen</h3>
@@ -303,8 +371,7 @@ export default function SummaryPage() {
                     <div className="mt-4">
                       <PdfDownloadButtonContentful
                         mobilityServiceId={solution.id}
-                        fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
-                        contentType="mobilityService"
+                        fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-factsheet.pdf`}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       />
                     </div>
