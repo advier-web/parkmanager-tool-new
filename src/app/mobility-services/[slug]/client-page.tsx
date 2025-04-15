@@ -10,6 +10,7 @@ import { SiteHeader } from '@/components/site-header';
 import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { SimpleAccordion } from '@/components/simple-accordion';
+import { BiEuro } from 'react-icons/bi';
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
@@ -109,7 +110,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           </div>
 
           {solution.paspoort && (
-            <div className="mb-8 rounded-lg bg-teal-600 p-6 text-white">
+            <div className="mb-8 rounded-lg bg-gray-100 p-6 text-gray-900">
               <h2 className="text-xl font-semibold mb-3">Pitch</h2>
               <MarkdownWithAccordions content={solution.paspoort} />
             </div>
@@ -135,6 +136,18 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             </div>
           )}
           
+          {/* --- NEW: Investering Section --- */}
+          {solution.investering && (
+            <div className="mb-8 rounded-lg bg-white p-6">
+              <h2 className="text-xl font-semibold mb-3 flex items-center">
+                <BiEuro className="h-5 w-5 mr-2 text-green-600" />
+                Investering
+              </h2>
+              <MarkdownWithAccordions content={processMarkdownText(solution.investering)} />
+            </div>
+          )}
+          {/* --- END NEW --- */}
+
           <div className="bg-white rounded-lg p-6 mb-8">
             <h2 className="font-semibold text-xl mb-3">Geschikte governance modellen</h2>
 
@@ -258,7 +271,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
 
           <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
             <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
-            <p className="text-gray-700">
+            <p className="mb-6">
               Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
             </p>
             <PdfDownloadButtonContentful
