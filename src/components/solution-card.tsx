@@ -98,7 +98,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
     // Map van identifier naar toelichting veld naam
     const explanationFieldMap: Record<string, keyof MobilitySolution> = {
       'parkeer_bereikbaarheidsproblemen': 'parkeerBereikbaarheidsproblemenToelichting',
-      'bereikbaarheidsproblemen': 'parkeerBereikbaarheidsproblemenToelichting',
+      'bereikbaarheidsproblemen': 'bereikbaarheidsproblemenToelichting',
       'waarde_vastgoed': 'waardeVastgoedToelichting',
       'personeelszorg_en_behoud': 'personeelszorgEnBehoudToelichting',
       'vervoerkosten': 'vervoerkostenToelichting',

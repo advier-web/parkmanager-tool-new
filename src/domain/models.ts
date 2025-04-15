@@ -61,6 +61,7 @@ export interface MobilitySolution {
   
   // Toelichting velden van Contentful
   parkeerBereikbaarheidsproblemenToelichting?: string;
+  bereikbaarheidsproblemenToelichting?: string;
   waardeVastgoedToelichting?: string;
   personeelszorgEnBehoudToelichting?: string;
   vervoerkostenToelichting?: string;

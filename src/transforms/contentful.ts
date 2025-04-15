@@ -133,6 +133,7 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
     ondernemersfonds: typeof fields.ondernemersfonds === 'string' ? fields.ondernemersfonds : undefined,
     geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
     parkeerBereikbaarheidsproblemenToelichting: typeof fields.parkeerBereikbaarheidsproblemenToelichting === 'string' ? fields.parkeerBereikbaarheidsproblemenToelichting : undefined,
+    bereikbaarheidsproblemenToelichting: typeof fields.bereikbaarheidsproblemenToelichting === 'string' ? fields.bereikbaarheidsproblemenToelichting : undefined,
     waardeVastgoedToelichting: typeof fields.waardeVastgoedToelichting === 'string' ? fields.waardeVastgoedToelichting : undefined,
     personeelszorgEnBehoudToelichting: typeof fields.personeelszorgEnBehoudToelichting === 'string' ? fields.personeelszorgEnBehoudToelichting : undefined,
     vervoerkostenToelichting: typeof fields.vervoerkostenToelichting === 'string' ? fields.vervoerkostenToelichting : undefined,
