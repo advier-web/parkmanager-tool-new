@@ -131,7 +131,7 @@ export default function BusinessParkInfoPage() {
         {/* Right Column - Form */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-2xl font-bold mb-4">Informatie over uw bedrijventerrein</h2>
+            <h2 className="text-2xl font-bold mb-4">Informatie over uw bedrijvenvereniging</h2>
             <p className="mb-6">
               Voordat we beginnen, hebben we wat basisinformatie nodig over het bedrijventerrein 
               waarvoor u het mobiliteitsplan wilt opstellen.
@@ -273,7 +273,7 @@ export default function BusinessParkInfoPage() {
                     {/* Bereikbaarheid met auto */}
                     <div>
                       <label htmlFor="carAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe is de bereikbaarheid met de auto?
+                        Hoe wordt de bereikbaarheid met de auto ervaren?
                       </label>
                       <select
                         id="carAccessibility"
@@ -292,7 +292,7 @@ export default function BusinessParkInfoPage() {
                     {/* Bereikbaarheid met trein */}
                     <div>
                       <label htmlFor="trainAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe is de bereikbaarheid met de trein?
+                        Hoe wordt de bereikbaarheid met de trein ervaren?
                       </label>
                       <select
                         id="trainAccessibility"
@@ -311,7 +311,7 @@ export default function BusinessParkInfoPage() {
                     {/* Bereikbaarheid met bus */}
                     <div>
                       <label htmlFor="busAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe is de bereikbaarheid met de bus?
+                        Hoe wordt de bereikbaarheid met de bus ervaren?
                       </label>
                       <select
                         id="busAccessibility"
