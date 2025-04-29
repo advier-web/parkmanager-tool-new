@@ -10,7 +10,8 @@ const initialState: WizardState = {
   businessParkInfo: {
     numberOfCompanies: 0,
     numberOfEmployees: 0,
-    trafficTypes: []
+    trafficTypes: [],
+    employeePickupPreference: null
   },
   currentGovernanceModelId: null,
   selectedReasons: [],
@@ -20,7 +21,7 @@ const initialState: WizardState = {
   selectedVariants: {},
   businessParkName: '',
   contactPerson: '',
-  contactEmail: ''
+  contactEmail: '',
 };
 
 // Define the store interface with actions

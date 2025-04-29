@@ -12,7 +12,7 @@ export function SiteHeader() {
       <div className="container mx-auto max-w-7xl px-6 py-6 flex justify-between items-center">
         <div>
           <Link href="/" className="text-xl font-bold text-blue-600">
-            ParkManager Tool
+            Parkmanagement tool
           </Link>
         </div>
         <nav>

@@ -149,3 +149,23 @@ export const extractImplementationSummaryFromVariant = (
 
   return '';
 }; 
+
+// --- NEW Helper Function --- 
+// Extracts variant names from markdown in the order they appear.
+export const extractVariantNamesInOrder = (
+  markdown: string | undefined
+): string[] => {
+  if (!markdown) return [];
+
+  const names: string[] = [];
+  const regex = /:::variant\[([^\]]+)\]/g; // Regex to find :::variant[Name]
+  let match;
+
+  while ((match = regex.exec(markdown)) !== null) {
+    if (match[1]) {
+      names.push(match[1].trim()); // Add the captured name (inside brackets)
+    }
+  }
+
+  return names;
+}; 

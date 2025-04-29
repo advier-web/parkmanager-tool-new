@@ -71,7 +71,7 @@ export default function BusinessParkInfoPage() {
   // Handle select changes for location characteristics
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setBusinessParkInfo({ [name]: value });
+    setBusinessParkInfo({ [name]: value === '' ? null : value });
   };
   
   // Check if form is valid for navigation
@@ -80,53 +80,50 @@ export default function BusinessParkInfoPage() {
   
   return (
     <div className="space-y-8">
+      {/* Restore the grid layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column - Information */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
-              <p className="text-gray-600 text-sm">
-                Deze informatie helpt ons om een passend advies te geven voor uw bedrijventerrein. 
-                De grootte en complexiteit van het terrein bepalen mede welke mobiliteitsoplossingen het meest geschikt zijn.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Huidige situatie</h3>
-              <p className="text-gray-600 text-sm">
-                Het is belangrijk om te weten wat uw huidige bestuursmodel is. 
-                Dit helpt ons later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe mobiliteitsoplossingen.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Type verkeer</h3>
-              <p className="text-gray-600 text-sm">
-                Door aan te geven voor welk type verkeer u oplossingen zoekt, 
-                kunnen we gerichter adviseren over mobiliteitsoplossingen die aansluiten bij uw behoeften.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Locatiekenmerken</h3>
-              <p className="text-gray-600 text-sm">
-                De bereikbaarheid van uw bedrijventerrein met verschillende vervoermiddelen 
-                en de afstand tussen woonplaats en werk zijn belangrijke factoren bij het 
-                kiezen van geschikte mobiliteitsoplossingen.
-              </p>
-            </div>
-
-            <div className="border-t pt-4 mt-6">
-              <div className="flex items-center text-sm text-blue-600">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Deze gegevens worden gebruikt om uw advies te personaliseren</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Restore Left Column - Information */}
+        <div className="lg:col-span-1 lg:sticky lg:top-28"> 
+           <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
+               <p className="text-gray-600 text-sm">
+                 Deze informatie helpt ons om een passend advies te geven voor uw bedrijventerrein. 
+                 De grootte en complexiteit van het terrein bepalen mede welke mobiliteitsoplossingen het meest geschikt zijn.
+               </p>
+             </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Huidige situatie</h3>
+               <p className="text-gray-600 text-sm">
+                 Het is belangrijk om te weten wat uw huidige bestuursmodel is. 
+                 Dit helpt ons later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe mobiliteitsoplossingen.
+               </p>
+             </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Type verkeer</h3>
+               <p className="text-gray-600 text-sm">
+                 Door aan te geven voor welk type verkeer u oplossingen zoekt, 
+                 kunnen we gerichter adviseren over mobiliteitsoplossingen die aansluiten bij uw behoeften.
+               </p>
+             </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Locatiekenmerken</h3>
+               <p className="text-gray-600 text-sm">
+                 De bereikbaarheid van uw bedrijventerrein met verschillende vervoermiddelen 
+                 en de afstand tussen woonplaats en werk zijn belangrijke factoren bij het 
+                 kiezen van geschikte mobiliteitsoplossingen.
+               </p>
+             </div>
+             <div className="border-t pt-4 mt-6">
+               <div className="flex items-center text-sm text-blue-600">
+                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+                 <span>Deze gegevens worden gebruikt om uw advies te personaliseren</span>
+               </div>
+             </div>
+           </div>
+         </div>
 
         {/* Right Column - Form */}
         <div className="lg:col-span-3">
@@ -216,30 +213,42 @@ export default function BusinessParkInfoPage() {
                 </fieldset>
               </div>
               
-              {/* Divider onder Type vervoer sectie */}
+              {/* Nieuwe Ophalen werknemers vraag */}
+              <div className="mt-6">
+                <label htmlFor="employeePickupPreference" className="block text-sm font-medium text-gray-700 mb-1">
+                  Wilt u werknemers vanaf thuis naar kantoor halen of vanaf een locatie (treinstation/P&R etc)?
+                </label>
+                <select
+                  id="employeePickupPreference"
+                  name="employeePickupPreference"
+                  value={businessParkInfo.employeePickupPreference || ''}
+                  onChange={handleSelectChange}
+                  className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Selecteer een optie</option>
+                  <option value="thuis">Ophalen vanaf thuis</option>
+                  <option value="locatie">Ophalen vanaf een locatie</option>
+                </select>
+              </div>
+              {/* Divider */}
               <div className="border-t border-gray-200 my-6"></div>
-
-              {/* Locatiekenmerken sectie */}
+              
+              {/* --- Locatiekenmerken sectie START --- */} 
               <div>
                 <fieldset>
                   <legend className="block text-sm font-medium text-gray-700 mb-4">
                     Locatiekenmerken
                   </legend>
-                  
-                  {/* Twee kolommen grid voor alle locatiekenmerken velden */}
+                  {/* Twee kolommen grid */} 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    {/* Aantal bedrijven */}
+                    {/* Aantal bedrijven */} 
                     <div>
                       <label htmlFor="numberOfCompanies" className="block text-sm font-medium text-gray-700 mb-1">
                         Aantal bedrijven op het terrein
                       </label>
                       <input
-                        type="number"
-                        id="numberOfCompanies"
-                        name="numberOfCompanies"
-                        min="1"
-                        value={businessParkInfo.numberOfCompanies || ''}
-                        onChange={handleNumberChange}
+                        type="number" id="numberOfCompanies" name="numberOfCompanies"
+                        min="1" value={businessParkInfo.numberOfCompanies || ''} onChange={handleNumberChange}
                         className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
                           formErrors.numberOfCompanies ? 'border-red-300' : 'border-gray-300'
                         } focus:ring-blue-500 focus:border-blue-500`}
@@ -248,19 +257,14 @@ export default function BusinessParkInfoPage() {
                         <p className="mt-1 text-sm text-red-600">{formErrors.numberOfCompanies}</p>
                       )}
                     </div>
-                    
-                    {/* Aantal werknemers */}
+                    {/* Aantal werknemers */} 
                     <div>
                       <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-700 mb-1">
                         Totaal aantal werknemers
                       </label>
                       <input
-                        type="number"
-                        id="numberOfEmployees"
-                        name="numberOfEmployees"
-                        min="1"
-                        value={businessParkInfo.numberOfEmployees || ''}
-                        onChange={handleNumberChange}
+                        type="number" id="numberOfEmployees" name="numberOfEmployees"
+                        min="1" value={businessParkInfo.numberOfEmployees || ''} onChange={handleNumberChange}
                         className={`block w-full rounded-md shadow-sm px-3 py-2 border ${
                           formErrors.numberOfEmployees ? 'border-red-300' : 'border-gray-300'
                         } focus:ring-blue-500 focus:border-blue-500`}
@@ -269,18 +273,15 @@ export default function BusinessParkInfoPage() {
                         <p className="mt-1 text-sm text-red-600">{formErrors.numberOfEmployees}</p>
                       )}
                     </div>
-                    
-                    {/* Bereikbaarheid met auto */}
+                    {/* Bereikbaarheid auto */} 
                     <div>
                       <label htmlFor="carAccessibility" className="block text-sm text-gray-700 mb-1">
                         Hoe wordt de bereikbaarheid met de auto ervaren?
                       </label>
                       <select
-                        id="carAccessibility"
-                        name="carAccessibility"
+                        id="carAccessibility" name="carAccessibility"
                         className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.carAccessibility || ''}
-                        onChange={handleSelectChange}
+                        value={businessParkInfo.carAccessibility || ''} onChange={handleSelectChange}
                       >
                         <option value="">Selecteer bereikbaarheid</option>
                         <option value="slecht">Slecht</option>
@@ -288,18 +289,15 @@ export default function BusinessParkInfoPage() {
                         <option value="goed">Goed</option>
                       </select>
                     </div>
-                    
-                    {/* Bereikbaarheid met trein */}
+                    {/* Bereikbaarheid trein */} 
                     <div>
                       <label htmlFor="trainAccessibility" className="block text-sm text-gray-700 mb-1">
                         Hoe wordt de bereikbaarheid met de trein ervaren?
                       </label>
                       <select
-                        id="trainAccessibility"
-                        name="trainAccessibility"
+                        id="trainAccessibility" name="trainAccessibility"
                         className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.trainAccessibility || ''}
-                        onChange={handleSelectChange}
+                        value={businessParkInfo.trainAccessibility || ''} onChange={handleSelectChange}
                       >
                         <option value="">Selecteer bereikbaarheid</option>
                         <option value="slecht">Slecht</option>
@@ -307,18 +305,15 @@ export default function BusinessParkInfoPage() {
                         <option value="goed">Goed</option>
                       </select>
                     </div>
-                    
-                    {/* Bereikbaarheid met bus */}
+                    {/* Bereikbaarheid bus */} 
                     <div>
                       <label htmlFor="busAccessibility" className="block text-sm text-gray-700 mb-1">
                         Hoe wordt de bereikbaarheid met de bus ervaren?
                       </label>
                       <select
-                        id="busAccessibility"
-                        name="busAccessibility"
+                        id="busAccessibility" name="busAccessibility"
                         className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.busAccessibility || ''}
-                        onChange={handleSelectChange}
+                        value={businessParkInfo.busAccessibility || ''} onChange={handleSelectChange}
                       >
                         <option value="">Selecteer bereikbaarheid</option>
                         <option value="slecht">Slecht</option>
@@ -326,36 +321,30 @@ export default function BusinessParkInfoPage() {
                         <option value="goed">Goed</option>
                       </select>
                     </div>
-                    
-                    {/* Voldoende parkeerplaatsen */}
+                    {/* Parkeerplaatsen */} 
                     <div>
                       <label htmlFor="sufficientParking" className="block text-sm text-gray-700 mb-1">
                         Zijn er voldoende parkeerplaatsen?
                       </label>
                       <select
-                        id="sufficientParking"
-                        name="sufficientParking"
+                        id="sufficientParking" name="sufficientParking"
                         className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.sufficientParking || ''}
-                        onChange={handleSelectChange}
+                        value={businessParkInfo.sufficientParking || ''} onChange={handleSelectChange}
                       >
                         <option value="">Selecteer antwoord</option>
                         <option value="ja">Ja</option>
                         <option value="nee">Nee</option>
                       </select>
                     </div>
-                    
-                    {/* Gemiddelde afstand woonplaats */}
+                    {/* Afstand */} 
                     <div className="md:col-span-2">
                       <label htmlFor="averageDistance" className="block text-sm text-gray-700 mb-1">
                         Wat is de gemiddelde afstand van de woonplaats van werknemers t.o.v. bedrijventerrein?
                       </label>
                       <select
-                        id="averageDistance"
-                        name="averageDistance"
+                        id="averageDistance" name="averageDistance"
                         className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.averageDistance || ''}
-                        onChange={handleSelectChange}
+                        value={businessParkInfo.averageDistance || ''} onChange={handleSelectChange}
                       >
                         <option value="">Selecteer afstand</option>
                         <option value="0-5">0-5 km</option>
@@ -368,11 +357,12 @@ export default function BusinessParkInfoPage() {
                   </div>
                 </fieldset>
               </div>
+              {/* --- Locatiekenmerken sectie END --- */} 
             </div>
           </div>
         </div>
       </div>
-      
+
       <WizardNavigation
         nextStep="/wizard/stap-1"
         isNextDisabled={!isFormValid}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMobilitySolutions, useBusinessParkReasons, useGovernanceModels } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { SolutionCard } from '../../../components/solution-card';
@@ -12,6 +12,7 @@ import { useContentfulContentTypes } from '../../../hooks/use-contentful-models'
 import { shouldUseContentful } from '../../../utils/env';
 import { useDialog } from '../../../contexts/dialog-context';
 import { useRouter } from 'next/navigation';
+import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 
 // Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
 let reasonIdToIdentifierMap: Record<string, string> = {};
@@ -19,10 +20,7 @@ let reasonIdToIdentifierMap: Record<string, string> = {};
 // Helper function om score te vinden voor een identifier (case-insensitief)
 const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
   // Standaard debug waarde voor belangrijke oplossingen
-  const debugEnabled = solution.title && (
-    solution.title.includes('Vanpool') || 
-    solution.title.includes('fiets')
-  );
+  const debugEnabled = false; // solution.title && (solution.title.includes('Vanpool') || solution.title.includes('fiets'));
   
   if (debugEnabled) {
     console.log(`\n--- findScoreForIdentifier voor ${solution.title} - ${identifier} ---`);
@@ -133,7 +131,6 @@ export default function MobilitySolutionsPage() {
   
   // State variables
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [activeTrafficTypes, setActiveTrafficTypes] = useState<TrafficType[]>([]);
   const [groupedSolutions, setGroupedSolutions] = useState<Record<string, MobilitySolution[]>>({});
   
   // Get store data
@@ -143,7 +140,7 @@ export default function MobilitySolutionsPage() {
     toggleSolution, 
     setSelectedSolutions, 
     resetWizard,
-    businessParkInfo,  // Add this to get traffic types
+    businessParkInfo,
     updateTrafficTypes,
     setSelectedReasons
   } = useWizardStore();
@@ -156,25 +153,12 @@ export default function MobilitySolutionsPage() {
   // Access the dialog context
   const { openSolutionDialog } = useDialog();
   
-  // Show all solutions initially
-  const [showAllSolutions, setShowAllSolutions] = useState(true);
-  
-  // Get the filtered solutions
-  const [filteredSolutions, setFilteredSolutions] = useState<MobilitySolution[] | null>(null);
-  
-  // Initialize activeFilters with selectedReasons when component mounts
+  // Initialize activeFilters with selectedReasons from the store
   useEffect(() => {
     if (selectedReasons && selectedReasons.length > 0) {
       setActiveFilters(selectedReasons);
     }
   }, [selectedReasons]);
-  
-  // Initialize activeTrafficTypes with businessParkInfo.trafficTypes when component mounts
-  useEffect(() => {
-    if (businessParkInfo && businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0) {
-      setActiveTrafficTypes(businessParkInfo.trafficTypes);
-    }
-  }, [businessParkInfo]);
   
   // Build the reason identifier mapping
   useEffect(() => {
@@ -188,15 +172,6 @@ export default function MobilitySolutionsPage() {
       });
     }
   }, [reasons]);
-  
-  // Update filtered solutions when mobility solutions or filters change
-  useEffect(() => {
-    if (mobilitySolutions) {
-      // Instead of filtering out solutions, we'll show all of them
-      // but sort them appropriately in the sortSolutionsByScore function
-      setFilteredSolutions(mobilitySolutions);
-    }
-  }, [mobilitySolutions, activeFilters, activeTrafficTypes, reasons]);
   
   // Handle showing solution details in dialog
   const handleShowMoreInfo = (solution: MobilitySolution) => {
@@ -215,255 +190,144 @@ export default function MobilitySolutionsPage() {
     return correctedSolution;
   };
   
-  // Bereken scores direct met de gecorrigeerde waarden
+  // Calculate score based on selected reasons and their weights
   const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
-    // Bijhouden welke filters al verwerkt zijn
-    const processedFilters = new Set<string>();
     let score = 0;
-    let scoreBreakdown: Record<string, number> = {};
+    // Ensure reasons is not null before filtering
+    const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
 
-    // Debug logging voor belangrijke oplossingen
-    const isDebugSolution = solution.title && (
-      solution.title.includes('Vanpool') || 
-      solution.title.includes('fiets')
-    );
-
-    if (isDebugSolution) {
-      console.log(`===== DEBUG SCORE VOOR ${solution.title} =====`);
-      console.log(`Solution ID: ${solution.id}`);
-      console.log(`Filters: ${filters.join(', ')}`);
-      console.log(`Filter mappings:`);
-      filters.forEach(filterId => {
-        const identifier = reasonIdToIdentifierMap[filterId];
-        console.log(`- Filter ID: ${filterId}, Mapped to: ${identifier}`);
-      });
-      
-      // Log alle score velden in de solution
-      console.log(`Beschikbare score velden in solution:`);
-      Object.keys(solution).forEach(key => {
-        if (typeof (solution as any)[key] === 'number') {
-          console.log(`- ${key}: ${(solution as any)[key]}`);
-        }
-      });
-    }
-    
-    // Verwerk alle filters
-    filters.forEach(reasonId => {
-      // Skip als deze filter al verwerkt is
-      if (processedFilters.has(reasonId)) {
-        if (isDebugSolution) {
-          console.log(`- Filter ${reasonId} is al verwerkt, wordt overgeslagen`);
-        }
-        return;
-      }
-      
-      // Haal de identifier op die bij deze reden hoort
-      const identifier = reasonIdToIdentifierMap[reasonId];
-      
-      if (identifier) {
-        // Gebruik de gedeelde helper functie
-        const fieldScore = findScoreForIdentifier(solution, identifier);
-        
-        if (fieldScore > 0) {
-          score += fieldScore;
-          scoreBreakdown[identifier] = fieldScore;
-          
-          if (isDebugSolution) {
-            console.log(`Score voor ${identifier} toegevoegd: ${fieldScore}`);
-          }
-        } else if (isDebugSolution) {
-          console.log(`Geen score gevonden voor ${identifier}`);
-        }
-        
-        // Markeer deze filter als verwerkt
-        processedFilters.add(reasonId);
+    reasonDetails.forEach(reason => {
+      // Assume criteriaScores exists, add explicit type for cs
+      const criteriaScore = solution.criteriaScores?.find((cs: { reasonId: string; score: number }) => cs.reasonId === reason.id);
+      if (criteriaScore) {
+        // Assume weight exists or default to 1
+        score += criteriaScore.score * (reason.weight || 1);
       }
     });
-    
-    // Eindresultaat loggen voor debug oplossingen
-    if (isDebugSolution) {
-      console.log(`Score breakdown voor ${solution.title}:`);
-      Object.entries(scoreBreakdown).forEach(([key, value]) => {
-        console.log(`- ${key}: ${value}`);
-      });
-      console.log(`Totale score voor ${solution.title}: ${score}`);
-      console.log(`===============================`);
-    }
-    
+
+    // Add traffic type match score
+    score += getTrafficTypeMatchScore(solution);
+
     return score;
   };
-  
-  // Function to calculate how well a solution matches the active traffic types
-  const getTrafficTypeMatchScore = (solution: MobilitySolution): number => {
-    // If no active traffic types are selected, don't affect sorting
-    if (activeTrafficTypes.length === 0) {
-      return 0;
-    }
-    
-    if (!solution.typeVervoer || solution.typeVervoer.length === 0) {
-      return 0; // No traffic types to match
-    }
-    
-    // Count how many of the active traffic types match the solution's traffic types
-    const matchCount = solution.typeVervoer.filter(type => 
-      activeTrafficTypes.includes(type)
-    ).length;
-    
-    // Higher score for solutions that match all selected traffic types
-    if (matchCount === activeTrafficTypes.length) {
-      return 1000 + matchCount; // Massive bonus to ensure these always come first
-    }
-    
-    // Solutions with at least one match still get a high score
-    if (matchCount > 0) {
-      return 500 + matchCount;
-    }
-    
-    return 0;
-  };
-  
-  // Sorteer de gefilterde oplossingen op basis van hun scores en traffic types
-  const sortSolutionsByScore = (solutions: MobilitySolution[]): MobilitySolution[] => {
-    if (!reasons) return solutions;
-    
-    const validActiveFilters = activeFilters.filter(id => reasons.some(reason => reason.id === id));
-    
-    return [...solutions].sort((a, b) => {
-      // Calculate reason-based scores
-      const aReasonScore = validActiveFilters.length > 0 ? 
-        calculateScoreForSolution(a, validActiveFilters) : 0;
-      const bReasonScore = validActiveFilters.length > 0 ? 
-        calculateScoreForSolution(b, validActiveFilters) : 0;
-      
-      // Calculate traffic type matches
-      const aTrafficMatches = getTrafficTypeMatchScore(a);
-      const bTrafficMatches = getTrafficTypeMatchScore(b);
-      
-      // First prioritize traffic type matches
-      if (aTrafficMatches !== bTrafficMatches) {
-        return bTrafficMatches - aTrafficMatches; // Higher traffic matches first
+
+  // Calculate individual scores for each reason
+  const getReasonScores = (solution: MobilitySolution, filters: string[]): { [reasonId: string]: number } => {
+    const scores: { [reasonId: string]: number } = {};
+    // Ensure reasons is not null before filtering
+    const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
+
+    reasonDetails.forEach(reason => {
+      // Assume criteriaScores exists, add explicit type for cs
+      const criteriaScore = solution.criteriaScores?.find((cs: { reasonId: string; score: number }) => cs.reasonId === reason.id);
+      if (criteriaScore) {
+        // Assume weight exists or default to 1
+        scores[reason.id] = criteriaScore.score * (reason.weight || 1);
+      } else {
+        scores[reason.id] = 0; // Assign 0 if no score found for the reason
       }
-      
-      // If traffic matches are the same, then compare reason scores
-      if (aReasonScore !== bReasonScore) {
-        return bReasonScore - aReasonScore; // Higher reason score first
-      }
-      
-      // If both scores are equal, maintain original order
-      return 0;
     });
+    return scores;
   };
   
-  // Generate a tag indicating why a solution is ranked highly
-  const getSolutionRankingTag = (solution: MobilitySolution): { text: string, type: 'traffic' | 'reason' | 'both' | null } => {
-    if ((!solution.typeVervoer || solution.typeVervoer.length === 0) && activeTrafficTypes.length === 0) {
-      return { text: '', type: null };
+  // Match score based on selected traffic types (use store value)
+  const getTrafficTypeMatchScore = (solution: MobilitySolution): number => {
+    const currentTrafficTypes = businessParkInfo.trafficTypes || [];
+    if (currentTrafficTypes.length === 0 || !solution.typeVervoer) return 0;
+    const matches = solution.typeVervoer.filter(type => currentTrafficTypes.includes(type));
+    if (matches.length > 0 && matches.length === currentTrafficTypes.length) {
+        return 1000 + matches.length; // Bonus for matching all
     }
-    
-    const trafficMatches = solution.typeVervoer?.filter(type => 
-      activeTrafficTypes.includes(type)
-    ) || [];
-    
+    return matches.length;
+  };
+
+  // Sorting function
+  const sortSolutionsByScore = (solutions: MobilitySolution[], currentFilters: string[], currentTrafficTypes: TrafficType[]): MobilitySolution[] => {
+    if (!solutions) return [];
+    const scoredSolutions = solutions.map(solution => ({
+      solution,
+      score: calculateScoreForSolution(solution, currentFilters),
+      trafficMatch: getTrafficTypeMatchScore(solution)
+    }));
+    scoredSolutions.sort((a, b) => {
+      if (b.trafficMatch !== a.trafficMatch) return b.trafficMatch - a.trafficMatch;
+      return b.score - a.score;
+    });
+    return scoredSolutions.map(item => item.solution);
+  };
+  
+  // Filtering and Sorting Logic using useMemo
+  const processedSolutions = useMemo(() => {
+    if (!mobilitySolutions || !reasons) return { filtered: [], grouped: {} };
+
+    let filtered = [...mobilitySolutions]; // Start with all solutions
+    const currentTrafficTypes = businessParkInfo.trafficTypes || [];
+
+    // Filter by Selected Reasons (Only if reasons are selected)
+    let reasonsToScoreBy: string[] = activeFilters;
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter(sol => 
+        activeFilters.some(reasonId => {
+          const identifier = reasonIdToIdentifierMap[reasonId];
+          return identifier && findScoreForIdentifier(sol, identifier) > 0;
+        })
+      );
+    } else {
+      reasonsToScoreBy = []; // Don't score by reason if none selected
+    }
+
+    // Sort Solutions
+    const sorted = sortSolutionsByScore(filtered, reasonsToScoreBy, currentTrafficTypes); 
+
+    // Group by category
+    const grouped = groupBy(sorted, 'category');
+    return { filtered: sorted, grouped };
+
+  }, [mobilitySolutions, reasons, businessParkInfo.trafficTypes, activeFilters]);
+  
+  // Ranking Tag Logic (use store value)
+  const getSolutionRankingTag = (solution: MobilitySolution, activeFilters: string[]): { text: string, type: 'traffic' | 'reason' | 'both' | null } | null => {
+    const currentTrafficTypes = businessParkInfo.trafficTypes || []; // Get from store
+    const trafficMatchScore = getTrafficTypeMatchScore(solution);
+    const trafficMatch = trafficMatchScore > 0;
     const reasonScore = reasons && activeFilters.length > 0 ? 
       calculateScoreForSolution(solution, activeFilters) : 0;
-    
-    // If there are traffic types selected, prioritize those in the tags
-    if (activeTrafficTypes.length > 0) {
-      if (trafficMatches.length > 0) {
-        if (trafficMatches.length === activeTrafficTypes.length) {
-          // Perfect match on all traffic types
-          return { 
-            text: `Perfecte match op ${trafficMatches.length} type${trafficMatches.length > 1 ? 's' : ''} vervoer`, 
-            type: reasonScore > 6 ? 'both' : 'traffic' 
-          };
-        } else {
-          // Partial match on traffic types
-          return { 
-            text: `Match op ${trafficMatches.length} van ${activeTrafficTypes.length} type${activeTrafficTypes.length > 1 ? 's' : ''} vervoer`, 
-            type: reasonScore > 6 ? 'both' : 'traffic' 
-          };
-        }
-      } else if (reasonScore > 6) {
-        // No traffic match but high reason score
-        return { 
-          text: 'Hoge score op aanleidingen',
-          type: 'reason' 
-        };
-      }
-    } else if (reasonScore > 6) {
-      // Only reason filters are active
-      return { 
-        text: 'Hoge score op aanleidingen', 
-        type: 'reason' 
-      };
+    const isRelevant = reasonScore > 0;
+
+    // Prioritize perfect traffic match tag
+    if (trafficMatchScore >= 1000) {
+        return { text: `Perfecte match op vervoer`, type: isRelevant ? 'both' : 'traffic' };
     }
-    
-    return { text: '', type: null };
+    if (trafficMatch && isRelevant) return { text: "Relevant & Matcht Vervoer", type: 'both' };
+    if (trafficMatch) return { text: "Matcht Vervoer", type: 'traffic' };
+    if (isRelevant) return { text: "Relevant", type: 'reason' };
+    return null;
   };
   
-  // Sorteer en groepeer de oplossingen
-  const sortedAndGroupedSolutions = (() => {
-    if (!filteredSolutions) return {};
-    
-    // Sorteer eerst op basis van score
-    const sortedSolutions = sortSolutionsByScore(filteredSolutions);
-    
-    // Groepeer daarna op categorie
-    const solutionsWithCategory = sortedSolutions.map(solution => ({
-      ...solution,
-      category: solution.category || 'overig'
-    }));
-    
-    return groupBy(solutionsWithCategory, 'category');
-  })();
-  
-  // Group solutions by category when data is loaded and apply sorting
-  useEffect(() => {
-    if (filteredSolutions && reasons) {
-      setGroupedSolutions(sortedAndGroupedSolutions);
-    }
-  }, [filteredSolutions, activeFilters, reasons]);
-  
-  // Handle filter changes for reason filters
+  // RE-ADD handleFilterChange 
   const handleFilterChange = (reasonId: string) => {
-    // Calculate the next state for filters based on the current local state
     const nextActiveFilters = activeFilters.includes(reasonId)
         ? activeFilters.filter(id => id !== reasonId)
         : [...activeFilters, reasonId];
-    
-    // Update local state for immediate UI feedback in FilterPanel
-    setActiveFilters(nextActiveFilters);
+    setActiveFilters(nextActiveFilters); // Update local state for UI
+    setSelectedReasons(nextActiveFilters); // Update store state as well
+  };
 
-    // ALSO update the central Zustand store
-    setSelectedReasons(nextActiveFilters);
-  };
-  
-  // Handle filter changes for traffic type filters
+  // Modify traffic type filter handling to only update store
   const handleTrafficTypeFilterChange = (type: TrafficType) => {
-    setActiveTrafficTypes(prev => {
-      // Toggle the filter
-      const newTrafficTypes = prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type];
-      
-      return newTrafficTypes;
-    });
+    const currentTrafficTypes = businessParkInfo.trafficTypes || []; // Get current types from store
+    const newTypes = currentTrafficTypes.includes(type)
+      ? currentTrafficTypes.filter(t => t !== type)
+      : [...currentTrafficTypes, type];
+    updateTrafficTypes(newTypes); // Only update store
   };
-  
-  // Update the store when activeTrafficTypes change
-  useEffect(() => {
-    // Only update the store if activeTrafficTypes has been initialized (not empty after first render)
-    if (activeTrafficTypes.length > 0 || businessParkInfo.trafficTypes?.length > 0) {
-      updateTrafficTypes(activeTrafficTypes);
-    }
-  }, [activeTrafficTypes, updateTrafficTypes]);
   
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
   
   // Log selectedSolutions voor debug doeleinden
   console.log("Geselecteerde oplossingen:", selectedSolutions);
-  console.log("Active traffic types:", activeTrafficTypes);
+  console.log("Active traffic types:", businessParkInfo.trafficTypes);
   console.log("Selected traffic types from step 0:", businessParkInfo.trafficTypes);
   
   const router = useRouter();
@@ -471,9 +335,10 @@ export default function MobilitySolutionsPage() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column - Filters en Information */}
-        <div className="lg:col-span-1">
-          {/* Filter panel - Nu bovenaan */}
+        {/* Left Column - Add Choices Summary above FilterPanel/Info */}
+        <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
+          <WizardChoicesSummary />
+          {/* Filter panel */}
           {reasons && (
             <div className="mb-6">
               <FilterPanel
@@ -481,40 +346,37 @@ export default function MobilitySolutionsPage() {
                 selectedReasonIds={selectedReasons}
                 activeFilterIds={activeFilters}
                 onReasonFilterChange={handleFilterChange}
-                activeTrafficTypes={activeTrafficTypes}
+                activeTrafficTypes={businessParkInfo.trafficTypes || []}
                 selectedTrafficTypes={businessParkInfo.trafficTypes || []}
                 onTrafficTypeFilterChange={handleTrafficTypeFilterChange}
               />
             </div>
           )}
-          
-          {/* Informatieve tekst - Nu onderaan */}
+          {/* Original Informational text */}
           <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
-              <p className="text-gray-600 text-sm">
-                Mobiliteitsoplossingen helpen uw bedrijventerrein bereikbaar te houden. 
-                Kies oplossingen die passen bij de redenen die u in de vorige stap heeft geselecteerd.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Filteren</h3>
-              <p className="text-gray-600 text-sm">
-                Gebruik de filteropties links om de oplossingen te sorteren op 
-                basis van de door u geselecteerde redenen.
-              </p>
-            </div>
-
-            <div className="border-t pt-4 mt-6">
-              <div className="flex items-center text-sm text-blue-600">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Selecteer minimaal één oplossing om door te gaan</span>
-              </div>
-            </div>
-          </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
+               <p className="text-gray-600 text-sm">
+                 Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante mobiliteitsoplossingen. 
+                 Selecteer de oplossingen die u wilt overwegen.
+               </p>
+             </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
+               <p className="text-gray-600 text-sm">
+                 Bekijk de details van elke oplossing door erop te klikken. 
+                 Selecteer de oplossingen die het beste aansluiten bij uw situatie.
+               </p>
+             </div>
+             <div className="border-t pt-4 mt-6">
+               <div className="flex items-center text-sm text-blue-600">
+                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+                 <span>Selecteer minimaal één oplossing om door te gaan</span>
+               </div>
+             </div>
+           </div>
         </div>
 
         {/* Right Column - Content */}
@@ -542,47 +404,38 @@ export default function MobilitySolutionsPage() {
               </div>
             )}
             
-            {filteredSolutions && filteredSolutions.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-600">Geen mobiliteitsoplossingen gevonden die aan uw criteria voldoen.</p>
-              </div>
-            )}
-            
             {/* Display solutions */}
-            <div className="grid grid-cols-1 gap-6 mt-8">
-              {!filteredSolutions || isLoadingSolutions ? (
-                // Loading state
-                Array.from({ length: 4 }).map((_, index) => (
-                  <div 
-                    key={index}
-                    className="bg-white p-6 rounded-lg border border-gray-200 animate-pulse"
-                  >
-                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
-                    <div className="h-10 bg-gray-200 rounded w-1/4"></div>
+            <div className="space-y-8 mt-8">
+              {Object.entries(processedSolutions.grouped).length > 0 ? (
+                Object.entries(processedSolutions.grouped).map(([group, solutions]) => (
+                  <div key={group} className="mb-6">
+                    {/* Conditionally render the group title */}
+                    {group && group.toLowerCase() !== 'onbekend' && (
+                       <h3 className="text-xl font-semibold mb-3 text-blue-600">{group}</h3>
+                    )}
+                    <div className="grid grid-cols-1 gap-4">
+                      {solutions.map((solution) => (
+                        <SolutionCard
+                          key={solution.id}
+                          solution={solution}
+                          reasonScores={getReasonScores(solution, activeFilters)}
+                          score={calculateScoreForSolution(solution, activeFilters)}
+                          trafficTypeMatchScore={getTrafficTypeMatchScore(solution)}
+                          rankingTag={getSolutionRankingTag(solution, activeFilters)}
+                          onMoreInfo={() => handleShowMoreInfo(solution)}
+                          isSelected={selectedSolutions.includes(solution.id)}
+                          onToggleSelect={(solutionId: string) => toggleSolution(solution.id)}
+                          calculateScoreForSolution={(sol: MobilitySolution) => calculateScoreForSolution(sol, activeFilters)}
+                          getTrafficTypeMatchScore={getTrafficTypeMatchScore}
+                          selectedReasons={(reasons || []).filter(r => activeFilters.includes(r.id))}
+                          activeTrafficTypes={businessParkInfo.trafficTypes || []}
+                        />
+                      ))}
+                    </div>
                   </div>
                 ))
-              ) : filteredSolutions.length === 0 ? (
-                // No solutions found
-                <div>
-                  <p className="text-center text-gray-500 my-8">
-                    Geen mobiliteitsoplossingen gevonden die voldoen aan de geselecteerde criteria.
-                  </p>
-                </div>
               ) : (
-                // Solutions found
-                sortSolutionsByScore(filteredSolutions).map(solution => (
-                  <SolutionCard
-                    key={solution.id}
-                    solution={solution}
-                    isSelected={selectedSolutions.includes(solution.id)}
-                    onToggleSelect={toggleSolution}
-                    onMoreInfo={handleShowMoreInfo}
-                    selectedReasons={reasons ? reasons.filter(reason => activeFilters.includes(reason.id)) : []}
-                    activeTrafficTypes={activeTrafficTypes}
-                  />
-                ))
+                <p className="text-gray-500 text-center py-8">Geen oplossingen gevonden die overeenkomen met uw selectie.</p>
               )}
             </div>
           </div>
@@ -592,7 +445,7 @@ export default function MobilitySolutionsPage() {
       <WizardNavigation
         previousStep="/wizard/stap-1"
         nextStep="/wizard/stap-2b"
-        isNextDisabled={!selectedSolutions || selectedSolutions.length === 0}
+        isNextDisabled={!hasSelectedSolutions}
       />
     </div>
   );

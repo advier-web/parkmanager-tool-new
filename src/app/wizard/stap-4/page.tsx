@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import { useEffect, useState } from 'react';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { Accordion } from '../../../components/accordion';
+import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { extractImplementationText, extractPassportTextWithVariant } from '../../../utils/wizard-helpers';
 
 // Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
@@ -309,43 +310,32 @@ export default function ImplementationPlanPage() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column - Information */}
-        <div className="lg:col-span-1">
+        {/* Left Column - Add Choices Summary above Info */}
+        <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
+          <WizardChoicesSummary />
           <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
-              <p className="text-gray-600 text-sm">
-                Het implementatieplan geeft u een duidelijk overzicht van de stappen die nodig zijn om uw 
-                gekozen mobiliteitsoplossingen en governance model te realiseren. Dit helpt u bij een 
-                gestructureerde aanpak.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Governance model</h3>
-              <p className="text-gray-600 text-sm">
-                Als u hetzelfde governance model heeft gekozen als uw huidige model, zijn er geen extra 
-                implementatiestappen nodig voor het bestuursmodel. U kunt dan direct focussen op de 
-                mobiliteitsoplossingen.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Mobiliteitsoplossing</h3>
-              <p className="text-gray-600 text-sm">
-                Voor elke gekozen mobiliteitsoplossing ziet u specifieke implementatiestappen. Deze zijn 
-                gebaseerd op praktijkervaring en helpen u bij een succesvolle uitrol.
-              </p>
-            </div>
-
-            <div className="border-t pt-4 mt-6">
-              <div className="flex items-center text-sm text-blue-600">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Bekijk alle stappen zorgvuldig voor een goede voorbereiding</span>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
+               <p className="text-gray-600 text-sm">
+                  Het implementatieplan geeft u een duidelijk overzicht van de stappen die nodig zijn om uw gekozen 
+                  mobiliteitsoplossingen en governance model te realiseren. Dit helpt u bij een gestructureerde aanpak.
+               </p>
+             </div>
+             <div>
+               <h3 className="text-lg font-semibold mb-2">Governance model</h3>
+               <p className="text-gray-600 text-sm">
+                 Als u hetzelfde governance model heeft gekozen als uw huidige model, 
+                 zijn er geen extra implementatiestappen nodig voor het governance aspect.
+               </p>
+             </div>
+             <div className="border-t pt-4 mt-6">
+                <div className="flex items-center text-sm text-blue-600">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Hier vindt u praktische informatie voor implementatie.</span>
+                </div>
               </div>
-            </div>
           </div>
         </div>
 
@@ -373,48 +363,8 @@ export default function ImplementationPlanPage() {
             )}
             
             {!isLoading && !error && (
-              /* Context van eerdere keuzes */
-              <div className="bg-blue-50 p-4 rounded-md">
-                <h3 className="text-md font-semibold mb-2">Uw keuzes</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium">Governance model:</h4>
-                    {selectedGovernanceModelData ? (
-                      <p className="text-blue-800">{selectedGovernanceModelData.title}</p>
-                    ) : (
-                      <p className="text-gray-500 italic">Geen governance model geselecteerd</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium">Geselecteerde mobiliteitsoplossingen:</h4>
-                    {selectedSolutionsData.length > 0 ? (
-                      <p className="text-blue-800">{selectedSolutionsData.map(solution => solution.title).join(', ')}</p>
-                    ) : (
-                      <p className="text-gray-500 italic">Geen mobiliteitsoplossingen geselecteerd</p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* NEW: Display selected implementation variants */}
-                <div className="mt-4 pt-4 border-t border-blue-100">
-                  <h4 className="text-sm font-medium">Gekozen implementatievarianten:</h4>
-                  {Object.keys(selectedVariants).length > 0 && selectedSolutionsData.length > 0 ? (
-                    <ul className="list-disc pl-5 mt-1 text-sm text-blue-800">
-                      {selectedSolutionsData
-                        .filter(solution => selectedVariants[solution.id]) // Only show if a variant is selected for this solution
-                        .map(solution => (
-                          <li key={solution.id}>
-                            {solution.title}: {selectedVariants[solution.id]}
-                          </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic mt-1">Geen implementatievarianten geselecteerd of van toepassing.</p>
-                  )}
-                </div>
-              </div>
+              /* Render null instead of the removed summary box */
+              null 
             )}
           </div>
           

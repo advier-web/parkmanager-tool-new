@@ -109,10 +109,22 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             )}
           </div>
 
+          {/* Comment out the Paspoort section 
           {solution.paspoort && (
             <div className="mb-8 rounded-lg bg-gray-100 p-6 text-gray-900">
               <h2 className="text-xl font-semibold mb-3">Pitch</h2>
               <MarkdownWithAccordions content={solution.paspoort} />
+            </div>
+          )}
+          */}
+
+          {/* Add Samenvatting section here */}
+          {solution.samenvattingLang && (
+            <div className="mb-8 rounded-lg text-gray-900">
+               {/* Apply styling to the text container */}
+              <div className="text-lg font-semibold">
+                <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
+              </div>
             </div>
           )}
 
@@ -136,7 +148,8 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             </div>
           )}
           
-          {/* --- NEW: Investering Section --- */}
+          {/* --- Comment out Investering Section --- */}
+          {/* 
           {solution.investering && (
             <div className="mb-8 rounded-lg bg-white p-6">
               <h2 className="text-xl font-semibold mb-3 flex items-center">
@@ -146,129 +159,12 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
               <MarkdownWithAccordions content={processMarkdownText(solution.investering)} />
             </div>
           )}
-          {/* --- END NEW --- */}
+          */}
+          {/* --- END --- */}
 
-          <div className="bg-white rounded-lg p-6 mb-8">
-            <h2 className="font-semibold text-xl mb-3">Geschikte governance modellen</h2>
+          {/* Governance Modellen Section REMOVED */}
 
-            {isLoading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Governance modellen worden geladen...</p>
-              </div>
-            )}
-
-            {!isLoading && (
-              <>
-                {/* Aanbevolen governance modellen */}
-                {recommendedModels.length > 0 && (
-                  <div className="mb-6 border-b pb-6">
-                    <h3 className="font-semibold text-green-700 border-b pb-2 mb-2">Aanbevolen modellen</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Deze modellen worden aanbevolen voor deze mobiliteitsoplossing.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {recommendedModels.map((model) => {
-                        const rechtsvormText = getRechtsvormText(model);
-                        return (
-                          <div key={model.id} className="p-3 border rounded-md bg-green-50 border-green-200 h-full flex flex-col">
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-medium">{model.title}</h4>
-                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
-                                Aanbevolen
-                              </span>
-                            </div>
-                            {rechtsvormText ? (
-                              <div className="text-sm text-gray-600">
-                                <p>{rechtsvormText}</p>
-                              </div>
-                            ) : (
-                              model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Aanbevolen mits governance modellen */}
-                {conditionalModels.length > 0 && (
-                  <SimpleAccordion title="Aanbevolen, mits...">
-                    <div className="pt-2">
-                      <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
-                        <p className="text-sm text-blue-800">
-                          Deze modellen zijn geschikt voor deze mobiliteitsoplossing, maar vereisen extra aandacht of aanpassingen.
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {conditionalModels.map((model) => {
-                          const rechtsvormText = getRechtsvormText(model);
-                          return (
-                            <div key={model.id} className="p-3 border rounded-md bg-blue-50 border-blue-200 h-full flex flex-col">
-                              <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium">{model.title}</h4>
-                                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
-                                  Aanbevolen, mits...
-                                </span>
-                              </div>
-                              {rechtsvormText ? (
-                                <div className="text-sm text-gray-600">
-                                  <p>{rechtsvormText}</p>
-                                </div>
-                              ) : (
-                                model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </SimpleAccordion>
-                )}
-
-                {/* Niet geschikte governance modellen */}
-                {unsuitableModels.length > 0 && (
-                  <SimpleAccordion title="Ongeschikte governance modellen">
-                    <div className="pt-2">
-                      <div className="bg-red-50 p-4 rounded-md mb-4 border border-red-200">
-                        <p className="text-sm text-red-800">
-                          Deze modellen zijn minder geschikt voor deze mobiliteitsoplossing.
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {unsuitableModels.map((model) => {
-                          const rechtsvormText = getRechtsvormText(model);
-                          return (
-                            <div key={model.id} className="p-3 border rounded-md bg-red-50 border-red-200 h-full flex flex-col">
-                              <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium">{model.title}</h4>
-                                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded ml-2 shrink-0">
-                                  Niet geschikt
-                                </span>
-                              </div>
-                              {rechtsvormText ? (
-                                <div className="text-sm text-gray-600">
-                                  <p>{rechtsvormText}</p>
-                                </div>
-                              ) : (
-                                model.summary && <p className="text-sm text-gray-600">{model.summary}</p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </SimpleAccordion>
-                )}
-
-                {!recommendedModels.length && !conditionalModels.length && !unsuitableModels.length && (
-                  <p className="text-gray-500 italic my-4">Geen specifieke governance modellen gevonden voor deze oplossing.</p>
-                )}
-              </>
-            )}
-          </div>
-
+          {/* PDF Download Section */}
           <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
             <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
             <p className="mb-6">

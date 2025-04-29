@@ -10,6 +10,12 @@ interface SolutionCardProps {
   onMoreInfo?: (solution: MobilitySolution) => void;
   selectedReasons?: BusinessParkReason[];
   activeTrafficTypes?: TrafficType[];
+  reasonScores: { [reasonId: string]: number };
+  score: number;
+  trafficTypeMatchScore: number;
+  rankingTag: { text: string, type: string | null } | null;
+  calculateScoreForSolution: (solution: MobilitySolution) => number;
+  getTrafficTypeMatchScore: (solution: MobilitySolution) => number;
 }
 
 export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo, selectedReasons = [], activeTrafficTypes = [] }: SolutionCardProps) {
@@ -200,7 +206,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
         <div className="flex-grow">
           <div className="flex items-center mb-2">
             {solution.icon && (
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
                 <span className="text-blue-600 text-xl">{getIconDisplay(solution.icon)}</span>
               </div>
             )}
@@ -275,20 +281,22 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             )}
           </div>
           
-          {/* Meer informatie knop */}
-          <div className="flex items-center justify-between mt-4 pt-3 border-t">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onMoreInfo) onMoreInfo(solution);
-              }}
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
-            >
-              <InformationCircleIcon className="h-4 w-4 mr-1" />
-              Meer informatie
-            </button>
-          </div>
+          {/* Re-add Meer informatie button section */}
+          {onMoreInfo && (
+            <div className="flex items-center justify-start mt-4 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card selection
+                  onMoreInfo(solution);
+                }}
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+              >
+                <InformationCircleIcon className="h-4 w-4 mr-1" />
+                Meer informatie
+              </button>
+            </div>
+          )}
         </div>
         
         {/* Checkbox */}

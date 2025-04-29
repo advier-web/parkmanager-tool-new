@@ -1,0 +1,81 @@
+mobilityService velden voor PDF
+
+- title
+- paspoort
+- description
+- uitvoeringsmogelijkheden
+- collectiefVsIndiviueel
+- effecten
+- investering
+- implementatie
+- governanceModels
+- governanceModelsMits
+- governanceModelsNietgeschikt
+
+GovernanceModel velden voor PDF
+- title
+- description
+- aansprakelijkheid
+- voordelen
+- nadelen
+- benodigdhedenOprichting
+- links
+- doorlooptijdLang
+- implementatie
+
+
+parkeerBereikbaarheidsproblemenToelichting
+waardeVastgoedToelichting
+personeelszorgEnBehoudToelichting
+vervoerkostenToelichting
+gezondheidToelichting
+gastvrijheidToelichting
+imagoToelichting
+milieuverordeningToelichting
+bedrijfsverhuizingToelichting
+energiebalansToelichting
+
+
+Rechtsvormen in mobilityService 
+Geen rechtsvorm - geenRechtsvorm
+Vereniging - vereniging
+Stichting - stichting
+Ondernemers BIZ - ondernemersBiz
+Vastgoed BIZ - vastgoedBiz
+Gemengde BIZ - gemengdeBiz
+Cooperatie UA - cooperatieUa
+BV - bv
+Ondernemersfonds - ondernemersfonds
+
+
+governanceModelsMits
+governanceModelsNietgeschikt
+
+
+:::variant[Naam variant]
+
+"""samenvatting
+
+"""/samenvatting"""
+
+:::
+
+
+:::variant[Zelf aanschaffen]
+De entiteit koopt zelf in en regelt zelf vervoer voor de leden van de entiteit
+:::
+
+:::variant[Een lid koopt in]
+Eén bedrijf die lid is van de entiteit koopt in en andere bedrijven sluiten aan (contracten, eigendom en aansprakelijkheid buiten de entiteit)
+:::
+
+:::variant[Aanbevolen serviceprovider]
+Entiteit selecteert en beveelt één serviceprovider aan waar alle bedrijven inkopen
+:::
+
+:::variant[Inkopen]
+Entiteit huurt service provider in die zaken voor de entiteit organiseert
+:::
+
+
+- wat moet er komen in korte factsheet?

@@ -1,4 +1,5 @@
 import { BusinessParkReason, TrafficType } from '../domain/models';
+import { useMemo } from 'react';
 
 interface FilterPanelProps {
   reasons: BusinessParkReason[];
@@ -19,10 +20,21 @@ export function FilterPanel({
   selectedTrafficTypes,
   onTrafficTypeFilterChange
 }: FilterPanelProps) {
-  // Organiseer redenen per categorie
+  // Sort reasons by order property before rendering
+  const sortedReasons = useMemo(() => {
+    if (!reasons) return [];
+    return [...reasons].sort((a, b) => {
+      const orderA = a.order ?? Infinity;
+      const orderB = b.order ?? Infinity;
+      return orderA - orderB;
+    });
+  }, [reasons]);
+
+  // Organiseer redenen per categorie - Gebruik gesorteerde redenen
   const reasonsByCategory: Record<string, BusinessParkReason[]> = {};
   
-  reasons.forEach(reason => {
+  // Iterate over the sorted list for grouping
+  sortedReasons.forEach(reason => { 
     const category = reason.category || 'Overig';
     if (!reasonsByCategory[category]) {
       reasonsByCategory[category] = [];

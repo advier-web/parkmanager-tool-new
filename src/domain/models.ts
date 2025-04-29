@@ -18,6 +18,7 @@ export interface BusinessParkReason {
   category?: string;
   identifier?: string; // Identifier die overeenkomt met veldnamen in MobilitySolution rating velden
   order?: number; // Added field for sorting order
+  weight?: number; // Add optional weight property
 }
 
 // Mobiliteitsoplossingen
@@ -100,6 +101,13 @@ export interface MobilitySolution {
   
   // Dynamische implementatie varianten
   implementatievarianten?: string[];
+
+  voordelen?: string[]; // Used by Contentful
+  nadelen?: string[]; // Used by Contentful
+  criteriaScores?: { reasonId: string; score: number; }[]; // Add optional criteria scores
+
+  // Allow any other potential properties from Contentful/JSON
+  [key: string]: any;
 }
 
 // Governance modellen
@@ -197,6 +205,7 @@ export interface BusinessParkInfo {
   numberOfCompanies: number;
   numberOfEmployees: number;
   trafficTypes: TrafficType[];
+  employeePickupPreference?: 'thuis' | 'locatie' | null;
   
   // Locatiekenmerken
   carAccessibility?: 'slecht' | 'matig' | 'goed';
