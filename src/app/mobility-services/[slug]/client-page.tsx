@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MobilitySolution, GovernanceModel } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
@@ -11,6 +11,9 @@ import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { SimpleAccordion } from '@/components/simple-accordion';
 import { BiEuro } from 'react-icons/bi';
+import { Accordion } from '@/components/accordion';
+import { BiChevronUp, BiChevronDown } from 'react-icons/bi';
+import { Button } from '@/components/ui/button';
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
@@ -45,6 +48,36 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
       setUnsuitableModels(governanceModels.filter(model => unsuitableIds.includes(model.id)));
     }
   }, [solution, governanceModels]);
+
+  // --- ADD: Parse Uitvoeringsmogelijkheden into Accordion structure ---
+  const uitvoeringsmogelijkhedenAccordions = useMemo(() => {
+    if (!solution?.uitvoeringsmogelijkheden) return [];
+
+    const markdown = solution.uitvoeringsmogelijkheden;
+    const variants: { title: string; content: string }[] = [];
+    // Corrected Regex: Find :::variant[Title] block, capture Title and Content until next :::variant or end
+    const regex = /:::variant\[([^\]]+)\]([\s\S]*?)(?=:::variant|$)/g;
+    
+    let match;
+    let lastIndex = 0;
+    while ((match = regex.exec(markdown)) !== null) {
+      const title = match[1]?.trim();
+      // Content is captured until the lookahead stops, so no need to remove trailing :::
+      let content = match[2]?.trim();
+      
+      if (title) {
+        variants.push({ title, content: content || '' });
+      }
+      lastIndex = regex.lastIndex; // Keep track for potential text after last variant
+    }
+
+    // Optional: Capture text after the last variant block if needed
+    // const remainingText = markdown.substring(lastIndex).trim();
+    // if (remainingText) { ... handle remaining text ... }
+
+    return variants;
+  }, [solution?.uitvoeringsmogelijkheden]);
+  // --- END: Parse --- 
 
   if (!solution) {
     return (
@@ -102,7 +135,7 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             ← Terug naar overzicht
           </Link>
           
-          <div className="mb-8">
+          <div className="mb-10 mt-6">
             <h1 className="mb-4 text-3xl font-bold">{solution.title}</h1>
             {solution.subtitle && (
               <p className="text-xl text-gray-600">{solution.subtitle}</p>
@@ -120,30 +153,59 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
 
           {/* Add Samenvatting section here */}
           {solution.samenvattingLang && (
-            <div className="mb-8 rounded-lg text-gray-900">
-               {/* Apply styling to the text container */}
-              <div className="text-lg font-semibold">
+            <div className="mb-10 rounded-lg text-gray-900">
+               {/* Increase font size */}
+              <div className="text-2xl font-semibold">
                 <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
               </div>
             </div>
           )}
 
           {solution.description && (
-            <div className="mb-12 rounded-lg bg-white p-6">
+            <div className="mb-12 rounded-lg bg-white">
               <MarkdownWithAccordions content={solution.description} />
             </div>
           )}
 
           {solution.uitvoeringsmogelijkheden && (
-            <div className="mb-8 rounded-lg bg-white p-6">
-              <h2 className="text-xl font-semibold mb-3">Uitvoeringsmogelijkheden</h2>
-              <MarkdownWithAccordions content={solution.uitvoeringsmogelijkheden} />
+            <div className="mb-10 rounded-lg bg-white">
+              <h2 className="text-3xl font-semibold mb-3">Uitvoeringsmogelijkheden</h2>
+              <div className="space-y-2">
+                {uitvoeringsmogelijkhedenAccordions.map((variant, index) => {
+                  const [isOpen, setIsOpen] = useState(false);
+                  return (
+                     <div key={index} className="bg-teal-50 rounded-md p-4 border border-teal-100">
+                        <button
+                          className="w-full flex items-center justify-between text-left"
+                          onClick={() => setIsOpen(!isOpen)}
+                        >
+                          <h4 className="text-base font-semibold text-teal-800">{variant.title}</h4> 
+                          <span className="text-xl text-teal-700">
+                            {isOpen ? <BiChevronUp /> : <BiChevronDown />}
+                          </span>
+                        </button>
+                        <div
+                          className={`transition-all duration-300 ease-in-out overflow-hidden ${ 
+                            isOpen ? 'mt-3 max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                          }`}
+                        >
+                          <div className="text-gray-700 prose prose-sm max-w-none pt-2 border-t border-teal-200">
+                            <MarkdownContent content={processMarkdownText(variant.content)} />
+                          </div>
+                        </div>
+                    </div>
+                  );
+                })}
+                {uitvoeringsmogelijkhedenAccordions.length === 0 && (
+                  <p className="text-gray-500 italic">Geen specifieke uitvoeringsmogelijkheden gevonden in het verwachte formaat.</p>
+                )}
+              </div>
             </div>
           )}
 
           {solution.collectiefVsIndiviueel && (
-            <div className="bg-white rounded-lg p-6 mb-8">
-              <h2 className="font-semibold text-xl mb-3">Collectief versus Individueel</h2>
+            <div className="bg-white rounded-lg mb-10">
+              <h2 className="font-semibold text-3xl mb-3">Collectief versus Individueel</h2>
               <MarkdownContent content={processMarkdownText(solution.collectiefVsIndiviueel)} />
             </div>
           )}
@@ -164,8 +226,25 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
 
           {/* Governance Modellen Section REMOVED */}
 
+          {/* --- NEW: Gedetailleerd Advies Section --- */}
+          <div className="bg-white rounded-lg p-6 mb-10">
+            <h2 className="font-semibold text-xl mb-3">Gedetailleerd advies</h2>
+            <p className="mb-4 text-gray-700">
+              Wil u gedetailleerd advies over het implementeren van deze mobiliteitsoplossing binnen uw bedrijfsvereniging? Start de wizard! 
+            </p>
+            <Link href="/wizard/bedrijventerrein">
+              <Button 
+                variant="default" 
+                className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md transition-colors text-base"
+              >
+                Start de wizard
+              </Button>
+            </Link>
+          </div>
+          {/* --- END: Gedetailleerd Advies Section --- */}
+
           {/* PDF Download Section */}
-          <div className="bg-teal-600 text-white rounded-lg p-6 mb-8">
+          <div className="bg-teal-600 text-white rounded-lg p-6 mb-10">
             <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
             <p className="mb-6">
               Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
@@ -178,28 +257,28 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           </div>
 
           {solution.benefits && solution.benefits.length > 0 && (
-            <div className="bg-white rounded-lg p-6 mb-8">
+            <div className="bg-white rounded-lg p-6 mb-10">
               <h2 className="font-semibold text-xl mb-3">Voordelen</h2>
               <MarkdownContent content={processMarkdownText(solution.benefits.map(benefit => `- ${benefit}`).join('\n'))} />
             </div>
           )}
 
           {solution.challenges && solution.challenges.length > 0 && (
-            <div className="bg-white rounded-lg p-6 mb-8">
+            <div className="bg-white rounded-lg p-6 mb-10">
               <h2 className="font-semibold text-xl mb-3">Uitdagingen</h2>
               <MarkdownContent content={processMarkdownText(solution.challenges.map(challenge => `- ${challenge}`).join('\n'))} />
             </div>
           )}
 
           {solution.implementationTime && (
-            <div className="bg-white rounded-lg p-6 mb-8">
+            <div className="bg-white rounded-lg p-6 mb-10">
               <h2 className="font-semibold text-xl mb-3">Implementatietijd</h2>
               <MarkdownContent content={processMarkdownText(solution.implementationTime)} />
             </div>
           )}
 
           {solution.costs && (
-            <div className="bg-white rounded-lg p-6 mb-8">
+            <div className="bg-white rounded-lg p-6 mb-10">
               <h2 className="font-semibold text-xl mb-3">Kosten</h2>
               <MarkdownContent content={processMarkdownText(solution.costs)} />
             </div>
