@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
-import { BusinessParkInfo, MobilitySolution, GovernanceModel } from '@/domain/models';
+import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation } from '@/domain/models'; // Add ImplementationVariation
 import { SelectedVariantMap } from '@/lib/store';
-import { extractPassportTextWithVariant } from '@/utils/wizard-helpers';
+import { extractPassportTextWithVariant, stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers'; // Import new helper
 
 // Register font (optional, but good for consistency)
 // Ensure you have the font files available or use standard fonts
@@ -198,6 +198,7 @@ interface SummaryPdfDocumentProps {
   reasons: Array<{ id: string; title: string; identifier?: string }>;
   selectedReasons: string[];
   snakeToCamel: (str: string) => string;
+  selectedVariationsData?: ImplementationVariation[]; // Add prop
 }
 
 // Cleaner: Preserves structure, trims lines.
@@ -342,7 +343,8 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   extractImplementationSummaryFromVariant,
   reasons,
   selectedReasons,
-  snakeToCamel
+  snakeToCamel,
+  selectedVariationsData // Destructure prop
 }) => {
   const selectedGovernanceModel = governanceModels.find(m => m.id === selectedGovernanceModelId);
   const selectedGovernanceModelTitle = selectedGovernanceModel?.title || 'N/A';
@@ -401,18 +403,23 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           <View style={styles.section}>
             <Text style={styles.h2}>Geselecteerde Mobiliteitsoplossingen</Text>
             {selectedSolutionsData.map((solution, index) => {
-               const variant = selectedVariants[solution.id];
-               const passportText = extractPassportTextWithVariant(solution.paspoort, variant ?? null);
-               const implementationSummary = extractImplementationSummaryFromVariant(solution.implementatie, variant ?? null);
+               const variantId = selectedVariants[solution.id];
+               // Find full variation data using the ID
+               const variation = selectedVariationsData?.find(v => v.id === variantId);
+               const variantTitle = variation ? stripSolutionPrefixFromVariantTitle(variation.title) : (variantId || null); // Apply helper, fallback to ID
+               
+               const passportText = extractPassportTextWithVariant(solution.paspoort, variantTitle); // Pass title to extraction
+               const implementationSummary = extractImplementationSummaryFromVariant(solution.implementatie, variantTitle);
                const isLastItemInList = index === selectedSolutionsData.length - 1;
 
                return (
                  <View key={solution.id} style={isLastItemInList ? styles.lastSolutionItem : styles.solutionItem}>
                    <Text style={styles.h3}>{solution.title}</Text>
-                   {variant && (
+                   {variantTitle && (
                      <View style={styles.indent}>
                        <Text style={styles.label}>Gekozen variant</Text>
-                       <Text style={styles.paragraph}>{variant}</Text>
+                       {/* Display the stripped title */}
+                       <Text style={styles.paragraph}>{variantTitle}</Text> 
                      </View>
                    )}
                    {passportText && (

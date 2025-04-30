@@ -1,6 +1,8 @@
-import { GovernanceModel } from '../domain/models';
+import { GovernanceModel, ImplementationVariation } from '../domain/models';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
+import { governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle } from '../utils/wizard-helpers';
+import { SelectedVariantMap } from '@/lib/store';
 
 interface GovernanceCardProps {
   model: GovernanceModel;
@@ -10,6 +12,8 @@ interface GovernanceCardProps {
   isConditionalRecommended?: boolean;
   isCurrent?: boolean;
   onMoreInfo?: (model: GovernanceModel) => void;
+  relevantVariations?: ImplementationVariation[];
+  selectedVariants: SelectedVariantMap;
 }
 
 export function GovernanceCard({ 
@@ -19,99 +23,28 @@ export function GovernanceCard({
   isRecommended = false,
   isConditionalRecommended = false,
   isCurrent = false,
-  onMoreInfo
+  onMoreInfo,
+  relevantVariations,
+  selectedVariants
 }: GovernanceCardProps) {
-  // Debug logging
-  console.log(`[GOVERNANCE CARD] Rendering model: ${model.title} (ID: ${model.id})`);
-  console.log('[GOVERNANCE CARD] Model properties:', {
-    geenRechtsvorm: model.geenRechtsvorm,
-    vereniging: model.vereniging,
-    stichting: model.stichting,
-    ondernemersBiz: model.ondernemersBiz,
-    vastgoedBiz: model.vastgoedBiz,
-    gemengdeBiz: model.gemengdeBiz,
-    cooperatieUa: model.cooperatieUa,
-    bv: model.bv,
-    ondernemersfonds: model.ondernemersfonds
+  // Calculate variant specific texts, filtering by currently selected variants
+  const currentlySelectedVariantIds = Object.values(selectedVariants); 
+
+  const variationsToDisplay = relevantVariations?.filter(variation => {
+    const isSelected = currentlySelectedVariantIds.includes(variation.id);
+    return isSelected;
   });
 
-  // Helper functie om de juiste rechtsvorm tekst te bepalen voor dit specifieke governance model
-  const getRechtsvormText = () => {
-    let matchSource = '';
-    let matchValue = '';
-    
-    // Eerst controleren of er een expliciete legalForm in het model staat
-    if (model.legalForm) {
-      const legalForm = model.legalForm.toLowerCase();
-      matchSource = 'legalForm';
-      matchValue = model.legalForm;
-      
-      if (legalForm.includes('vereniging')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor vereniging`);
-        return model.vereniging;
-      } else if (legalForm.includes('stichting')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor stichting`);
-        return model.stichting;
-      } else if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor ondernemersBiz`);
-        return model.ondernemersBiz;
-      } else if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor vastgoedBiz`);
-        return model.vastgoedBiz;
-      } else if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor gemengdeBiz`);
-        return model.gemengdeBiz;
-      } else if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor cooperatieUa`);
-        return model.cooperatieUa;
-      } else if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor bv`);
-        return model.bv;
-      } else if (legalForm.includes('ondernemersfonds')) {
-        console.log(`[RECHTSVORM] Match gevonden in legalForm '${model.legalForm}' voor ondernemersfonds`);
-        return model.ondernemersfonds;
+  const variantSpecificTexts = variationsToDisplay?.map(variation => {
+      const fieldName = governanceTitleToFieldName(model.title);
+      if (!fieldName) {
+        return null;
       }
-    }
-    
-    // Als er geen match is op legalForm, dan matchen op titel
-    const title = model.title.toLowerCase();
-    matchSource = 'title';
-    matchValue = model.title;
-    
-    // Match op basis van de titel van het governance model
-    if (title.includes('vereniging')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor vereniging`);
-      return model.vereniging;
-    } else if (title.includes('stichting')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor stichting`);
-      return model.stichting;
-    } else if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor ondernemersBiz`);
-      return model.ondernemersBiz;
-    } else if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor vastgoedBiz`);
-      return model.vastgoedBiz;
-    } else if (title.includes('gemengde biz') || title.includes('gemengdebiz')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor gemengdeBiz`);
-      return model.gemengdeBiz;
-    } else if (title.includes('coöperatie') || title.includes('cooperatie')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor cooperatieUa`);
-      return model.cooperatieUa;
-    } else if (title.includes('bv') || title.includes('besloten vennootschap')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor bv`);
-      return model.bv;
-    } else if (title.includes('ondernemersfonds')) {
-      console.log(`[RECHTSVORM] Match gevonden in titel '${model.title}' voor ondernemersfonds`);
-      return model.ondernemersfonds;
-    } else {
-      // Als er geen match is, toon dan de generieke "geen rechtsvorm" tekst
-      console.log(`[RECHTSVORM] Geen match gevonden in ${matchSource} '${matchValue}', gebruik geenRechtsvorm`);
-      return model.geenRechtsvorm;
-    }
-  };
-
-  const rechtsvormText = getRechtsvormText();
-  console.log(`[GOVERNANCE CARD] Rechtsvorm text voor ${model.title}: ${rechtsvormText || 'none'}`);
+      const text = (variation as any)[fieldName]; 
+      if (!text) return null;
+      const displayVariationTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+      return { variationTitle: displayVariationTitle, text };
+    }).filter(item => item !== null) as { variationTitle: string; text: string }[] | undefined;
 
   return (
     <div
@@ -172,12 +105,20 @@ export function GovernanceCard({
           </div>
           
           <div className="text-gray-600 mt-2 mb-4">
-            <MarkdownContent content={processMarkdownText(model.summary || model.description)} />
+            {/* General model summary - Fix potential undefined */}
+            <MarkdownContent content={processMarkdownText(model.summary || model.description || '')} />
             
-            {rechtsvormText && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-100">
-                <h4 className="text-sm font-semibold text-gray-700 mb-1">Details rechtsvorm</h4>
-                <p className="text-sm text-gray-700">{rechtsvormText}</p>
+            {/* Variant specific relevance text */}
+            {variantSpecificTexts && variantSpecificTexts.length > 0 && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-100 space-y-2">
+                 <h4 className="text-sm font-semibold text-gray-700 mb-1">Relevantie voor geselecteerde implementatievariant:</h4>
+                 {variantSpecificTexts.map(({ variationTitle, text }, index) => (
+                  <div key={index} className="text-sm text-gray-700">
+                    {/* Don't display the variant title here anymore based on previous request */}
+                    {/* <p className="font-medium">Variant: "{variationTitle}"</p> */}
+                    <div className="pl-2 prose prose-sm max-w-none"><MarkdownContent content={processMarkdownText(text)} /></div>
+                  </div>
+                 ))}
               </div>
             )}
           </div>

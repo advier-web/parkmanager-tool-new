@@ -194,7 +194,7 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
   return (
     <div
       className={`
-        p-6 rounded-lg transition-all cursor-pointer 
+        relative p-6 rounded-lg transition-all cursor-pointer 
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-md' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
@@ -213,8 +213,8 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
-          {/* Render description using MarkdownContent */}
-          <div className="text-gray-600 mb-3 prose prose-sm max-w-none">
+          {/* Revert to using MarkdownContent and prose */}
+          <div className="text-gray-600 mb-3 prose prose-sm max-w-none"> 
             <MarkdownContent content={processMarkdownText(solution.samenvattingLang || solution.description || '')} />
           </div>
           
@@ -298,14 +298,14 @@ export function SolutionCard({ solution, isSelected, onToggleSelect, onMoreInfo,
             </div>
           )}
         </div>
-        
-        {/* Checkbox */}
+
+        {/* Keep Checkbox section */}
         <div className="ml-4 mt-1 flex-shrink-0">
           <input
             type="checkbox"
             className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             checked={isSelected}
-            onChange={() => onToggleSelect(solution.id)}
+            onChange={() => { /* Outer div handles toggle */ }}
             onClick={(e) => e.stopPropagation()}
           />
         </div>

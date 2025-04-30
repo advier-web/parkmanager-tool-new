@@ -1,0 +1,46 @@
+ValidationFailed: {
+  "status": 422,
+  "statusText": "Unprocessable Entity",
+  "message": "Validation error",
+  "details": {
+    "errors": [
+      {
+        "name": "type",
+        "details": "The type of \"position\" is incorrect, expected type: String",
+        "path": [
+          "controls",
+          5,
+          "settings",
+          "position"
+        ],
+        "type": "String",
+        "value": {
+          "afterField": "description"
+        }
+      }
+    ]
+  },
+  "request": {
+    "url": "https://api.contentful.com/spaces/f11xar4h8uvm/environments/master/content_types/mobilityService/editor_interface",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/vnd.contentful.management.v1+json",
+      "X-Contentful-User-Agent": "app contentful.migration-cli/4.28.4; feature migration-library; sdk contentful-management-plain.js/11.52.2; platform node.js/v22.12.0; os macOS/v22.12.0;",
+      "CF-Sequence": "333afeaf-9974-4f74-ab3f-fd3feaa708a0",
+      "Authorization": "Bearer ...GEMJU",
+      "X-Contentful-Version": "162",
+      "User-Agent": "axios/1.9.0",
+      "Content-Length": "5168",
+      "Accept-Encoding": "gzip, compress, deflate, br"
+    },
+    "method": "put",
+    "payloadData": "{\"controls\":[{\"fieldId\":\"title\",\"widgetId\":\"singleLine\",\"settings\":{\"helpText\":\"Vul hier de naam van de mobiliteitsdienst in\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"typeVervoer\",\"widgetId\":\"checkbox\",\"settings\":{\"helpText\":\"Geef aan om welk type vervoer het gaat\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"samenvattingLang\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"paspoort\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Vul hier het mobiliteitspaspoort in van deze oplossing\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"description\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"uitvoering\",\"widgetId\":\"multipleLine\",\"settings\":{\"position\":{\"afterField\":\"description\"}},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"inputBusinesscase\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"implementatievarianten\",\"widgetId\":\"checkbox\",\"settings\":{\"helpText\":\"Geef hier aan welke mogelijke implementatievarianten er zijn bij deze mobiliteitsoplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"uitvoeringsmogelijkheden\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"collectiefVsIndiviueel\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"investering\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"implementatie\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier aan welke implementatiestappen zijn op korte, middellange en lange termijn voor het opzetten van deze dienst.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"governanceModels\",\"widgetId\":\"entryLinksEditor\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"governanceModelsMits\",\"widgetId\":\"entryLinksEditor\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"governanceModelsNietgeschikt\",\"widgetId\":\"entryLinksEditor\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"geenRechtsvorm\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"vereniging\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"stichting\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"ondernemersBiz\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"vastgoedBiz\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"gemengdeBiz\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"cooperatieUa\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"bv\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"ondernemersfonds\",\"widgetId\":\"markdown\",\"settings\":{\"helpText\":\"Geef hier de toelichting waarom deze rechtsvorm wel of niet geschikt is voor deze oplossing.\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"minimumInvestment\",\"widgetId\":\"numberEditor\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"parkeer_bereikbaarheidsproblemen\",\"widgetId\":\"numberEditor\",\"settings\":{\"helpText\":\"In hoeverre draagt deze dienst bij aan Parkeer- en bereikbaarheidsproblemen?\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"parkeerBereikbaarheidsproblemenToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"bereikbaarheidsproblemen\",\"widgetId\":\"numberEditor\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"bereikbaarheidsproblemenToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"personeelszorg_en_behoud\",\"widgetId\":\"numberEditor\",\"settings\":{\"helpText\":\"In hoeverre draagt deze dienst bij aan Personeelszorg en -behoud?\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"personeelszorgEnBehoudToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"gezondheid\",\"widgetId\":\"numberEditor\",\"settings\":{\"helpText\":\"In hoeverre draagt deze dienst bij aan Gezondheid?\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"gezondheidToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"imago\",\"widgetId\":\"numberEditor\",\"settings\":{\"helpText\":\"In hoeverre draagt deze dienst bij aan Imago / mvo?\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"imagoToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"milieuverordening\",\"widgetId\":\"numberEditor\",\"settings\":{\"helpText\":\"In hoeverre draagt deze dienst bij aan Milieuverordening/extern verzoek?\"},\"widgetNamespace\":\"builtin\"},{\"fieldId\":\"milieuverordeningToelichting\",\"widgetId\":\"markdown\",\"widgetNamespace\":\"builtin\"}]}"
+  },
+  "requestId": "53ac079a-897c-4523-8d72-76ff18f5baca"
+}
+    at errorHandler (/Users/nielsdevries/.npm/_npx/6136f24475edd877/node_modules/contentful-management/dist/contentful-management.node.js:31493:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async makeRequest (/Users/nielsdevries/.npm/_npx/6136f24475edd877/node_modules/contentful-management/dist/contentful-management.node.js:4860:10)
+    at async Task.task (/Users/nielsdevries/.npm/_npx/6136f24475edd877/node_modules/contentful-migration/built/bin/cli.js:189:29)
+    at async Task.run (/Users/nielsdevries/.npm/_npx/6136f24475edd877/node_modules/listr2/dist/lib/task.js:213:21)
+    at async /Users/nielsdevries/.npm/_npx/6136f24475edd877/node_modules/p-map/index.js:57:22

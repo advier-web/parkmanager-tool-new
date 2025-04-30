@@ -82,10 +82,18 @@ export const useWizardStore = create<WizardStore>()(
       setSelectedSolutions: (solutions) => set({ selectedSolutions: solutions }),
       toggleSolution: (solutionId) => set((state) => {
         const isSelected = state.selectedSolutions.includes(solutionId);
+        let updatedSelectedVariants = { ...state.selectedVariants };
         const selectedSolutions = isSelected
           ? state.selectedSolutions.filter(id => id !== solutionId)
           : [...state.selectedSolutions, solutionId];
-        return { selectedSolutions };
+
+        // If the solution is being deselected, remove its entry from selectedVariants
+        if (isSelected) {
+          delete updatedSelectedVariants[solutionId];
+        }
+        
+        // Return the updated state for both selectedSolutions and selectedVariants
+        return { selectedSolutions, selectedVariants: updatedSelectedVariants };
       }),
       
       // Stap 3: Governance modellen

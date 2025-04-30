@@ -47,6 +47,20 @@ Cooperatie UA - cooperatieUa
 BV - bv
 Ondernemersfonds - ondernemersfonds
 
+implementationvariations
+title
+samenvatting
+mobiliteitsdienstVariant
+investering
+realisatieplan
+realisatieplanLeveranciers
+realisatieplanContractvormen
+realisatieplanKrachtenveld
+realisatieplanVoorsEnTegens
+realisatieplanAandachtspunten
+realisatieplanChecklist
+
+
 
 governanceModelsMits
 governanceModelsNietgeschikt
@@ -77,5 +91,3 @@ Entiteit selecteert en beveelt één serviceprovider aan waar alle bedrijven ink
 Entiteit huurt service provider in die zaken voor de entiteit organiseert
 :::
 
-
-- wat moet er komen in korte factsheet?

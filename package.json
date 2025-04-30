@@ -55,6 +55,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "contentful-management": "^11.48.0",
+    "contentful-typescript-codegen": "^3.4.0",
+    "dotenv": "^16.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "tailwindcss": "^4",

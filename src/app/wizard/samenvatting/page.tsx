@@ -3,47 +3,25 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
-import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useImplementationPlans } from '../../../hooks/use-domain-models';
+import { useBusinessParkReasons, useGovernanceModels } from '../../../hooks/use-domain-models';
 import { isValidEmail } from '../../../utils/helper';
 import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
-import { extractPassportTextWithVariant, extractImplementationSummaryFromVariant } from '../../../utils/wizard-helpers';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import SummaryPdfDocument from '../../../components/summary-pdf-document';
 import { Button } from '@/components/ui/button';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { MobilitySolution } from '@/domain/models';
+import { ImplementationVariation, GovernanceModel, MobilitySolution } from '@/domain/models';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
+import { getImplementationVariationById, getMobilitySolutionById, getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
 
-// Helper function to convert snake_case to camelCase
-const snakeToCamel = (str: string): string => 
-  str.toLowerCase().replace(/([-_\s][a-z])/g, group => 
-    group
-      .toUpperCase()
-      .replace('-', '')
-      .replace('_', '')
-      .replace(' ', '')
-  );
-
-// Helper function to convert Governance Model title to field name used on MobilitySolution
-const governanceTitleToFieldName = (title: string | undefined): string | null => {
-  if (!title) return null;
-  const lowerTitle = title.toLowerCase();
-  // Specific mappings based on known titles and field names
-  if (lowerTitle.includes('coöperatie') && lowerTitle.includes('u.a.')) return 'cooperatieUa';
-  if (lowerTitle.includes('stichting')) return 'stichting';
-  if (lowerTitle.includes('ondernemers biz')) return 'ondernemersBiz'; // Assuming BIZ is always capitalized in field
-  if (lowerTitle.includes('vastgoed biz')) return 'vastgoedBiz';
-  if (lowerTitle.includes('gemengde biz')) return 'gemengdeBiz';
-  if (lowerTitle.includes('b.v.') || lowerTitle.includes(' bv ')) return 'bv'; // Handle variations
-  if (lowerTitle.includes('ondernemersfonds')) return 'ondernemersfonds';
-  if (lowerTitle.includes('geen rechtsvorm')) return 'geenRechtsvorm';
-  if (lowerTitle.includes('vereniging')) return 'vereniging';
-  // Add more mappings if needed
-  console.warn(`[governanceTitleToFieldName] No specific field name mapping found for title: ${title}`);
-  // Fallback: try simple camelCase conversion (might not match exactly)
-  return snakeToCamel(title.replace(/\./g, '')); 
-};
+// Import helpers from utils
+import { 
+    governanceTitleToFieldName,
+    snakeToCamel,
+    extractImplementationSummaryFromVariant,
+    stripSolutionPrefixFromVariantTitle
+} from '../../../utils/wizard-helpers'; 
 
 export default function SummaryPage() {
   const {
@@ -51,71 +29,85 @@ export default function SummaryPage() {
     currentGovernanceModelId,
     selectedReasons,
     selectedSolutions,
-    selectedGovernanceModel,
-    selectedImplementationPlan,
+    selectedGovernanceModel: selectedGovernanceModelId,
     selectedVariants
   } = useWizardStore();
   
   const { data: reasons, isLoading: isLoadingReasons, error: reasonsError } = useBusinessParkReasons();
-  const { data: solutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
   const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
-  const { data: implementationPlans } = useImplementationPlans();
   
-  // Map Reason IDs to their identifiers for easy lookup
-  const reasonIdToIdentifierMap = useMemo(() => {
-    if (!reasons) return {};
-    return reasons.reduce((acc, reason) => {
-      if (reason.identifier) {
-        acc[reason.id] = reason.identifier;
-      }
-      return acc;
-    }, {} as Record<string, string>);
-  }, [reasons]);
+  // State for fetched data
+  const [selectedVariationsData, setSelectedVariationsData] = useState<ImplementationVariation[]>([]);
+  const [selectedGovernanceModelData, setSelectedGovernanceModelData] = useState<GovernanceModel | null>(null);
+  // Store full solution objects now
+  const [selectedSolutionsData, setSelectedSolutionsData] = useState<Record<string, MobilitySolution>>({}); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter selected solutions data
-  const selectedSolutionsData = useMemo(() => {
-    if (!solutions || !selectedSolutions) return [];
-    return solutions.filter(solution => selectedSolutions.includes(solution.id));
-  }, [solutions, selectedSolutions]);
-  
-  // Get selected item titles
+  // Fetch all necessary data based on selections
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      setError(null);
+      const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
+      const solutionIds = selectedSolutions; // From store
+      const govModelId = selectedGovernanceModelId; // From store
+
+      try {
+        const variationPromises = variantIdsToFetch.map(id => getImplementationVariationById(id));
+        const solutionPromises = solutionIds.map(id => getMobilitySolutionById(id));
+        const govModelPromise = govModelId ? getGovernanceModelByIdFromContentful(govModelId) : Promise.resolve(null);
+
+        const [variationResults, solutionResults, govModelResult] = await Promise.all([
+          Promise.all(variationPromises),
+          Promise.all(solutionPromises),
+          govModelPromise
+        ]);
+
+        const fetchedVariations = variationResults.filter((v): v is ImplementationVariation => v !== null);
+        const fetchedSolutions = solutionResults.reduce((acc, sol) => {
+          if (sol) acc[sol.id] = sol;
+          return acc;
+        }, {} as Record<string, MobilitySolution>);
+
+        setSelectedVariationsData(fetchedVariations);
+        setSelectedSolutionsData(fetchedSolutions);
+        setSelectedGovernanceModelData(govModelResult);
+      } catch (err) {
+        console.error("Error fetching data for Summary Page:", err);
+        setError("Kon de benodigde data niet laden.");
+        setSelectedVariationsData([]);
+        setSelectedSolutionsData({});
+        setSelectedGovernanceModelData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [selectedVariants, selectedSolutions, selectedGovernanceModelId]);
+
+  // Get selected item titles (use fetched data where possible)
   const selectedReasonTitles = reasons
-    ? reasons
-        .filter(reason => selectedReasons.includes(reason.id))
-        .map(reason => reason.title)
+    ? reasons.filter(reason => selectedReasons.includes(reason.id)).map(reason => reason.title)
     : [];
     
-  const selectedSolutionTitles = solutions
-    ? solutions
-        .filter(solution => selectedSolutions.includes(solution.id))
-        .map(solution => solution.title)
-    : [];
+  const selectedSolutionTitles = Object.values(selectedSolutionsData).map(s => s.title); // Use fetched basic info
   
-  const selectedGovernanceModelTitle = governanceModels && selectedGovernanceModel
-    ? governanceModels.find(model => model.id === selectedGovernanceModel)?.title || ''
-    : '';
-    
-  const selectedImplementationPlanTitle = implementationPlans && selectedImplementationPlan
-    ? implementationPlans.find(plan => plan.id === selectedImplementationPlan)?.title || ''
-    : '';
-    
+  const selectedGovernanceModelTitle = selectedGovernanceModelData?.title || '';
+  
+  // selectedImplementationPlanTitle remains the same for now
+  const selectedImplementationPlanTitle = ''; // Assuming not used or fetched elsewhere 
+  
   const currentGovernanceModelTitle = governanceModels && currentGovernanceModelId
     ? governanceModels.find(model => model.id === currentGovernanceModelId)?.title || ''
     : '';
-
-  const isLoading = isLoadingReasons || isLoadingSolutions || isLoadingModels;
-  const error = reasonsError || solutionsError || modelsError;
 
   // Add state for client-side rendering
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // Function to pass to PDF component (simplified, assuming direct use of helper)
-  const getPassportTextForPdf = (solution: MobilitySolution, variant: string | undefined): string => {
-      return extractPassportTextWithVariant(solution.paspoort, variant ?? null);
-  };
 
   return (
     <div className="space-y-8">
@@ -160,16 +152,17 @@ export default function SummaryPage() {
                       businessParkInfo={businessParkInfo} 
                       currentGovernanceModelTitle={currentGovernanceModelTitle}
                       selectedReasonTitles={selectedReasonTitles} 
-                      selectedSolutionsData={selectedSolutionsData}
+                      selectedSolutionsData={Object.values(selectedSolutionsData)}
                       selectedVariants={selectedVariants}
-                      selectedGovernanceModelId={selectedGovernanceModel} 
-                      selectedImplementationPlanTitle={selectedImplementationPlanTitle}
+                      selectedGovernanceModelId={selectedGovernanceModelId} 
+                      selectedImplementationPlanTitle={''}
                       governanceModels={governanceModels || []} 
                       governanceTitleToFieldName={governanceTitleToFieldName}
                       extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
                       reasons={reasons || []}
                       selectedReasons={selectedReasons}
                       snakeToCamel={snakeToCamel}
+                      selectedVariationsData={selectedVariationsData}
                     />
                   )}
                   fileName={`Samenvatting_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
@@ -304,18 +297,14 @@ export default function SummaryPage() {
                   </div>
                 )}
 
-                {/* Implementatievariant */} 
-                {Object.keys(selectedVariants).length > 0 && solutions && (
-                  // Remove text-sm from container
+                {/* Implementatievariant - Apply helper and remove solution suffix */}
+                {selectedVariationsData.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Gekozen implementatievariant:</p>
-                    {/* Values inherit base size */}
+                    <p className="text-sm font-medium text-gray-500">Gekozen implementatievarianten:</p>
                     <ul className="list-disc pl-5 text-gray-900 space-y-1">
-                      {solutions
-                        .filter(s => selectedSolutions.includes(s.id) && selectedVariants[s.id])
-                        .map(s => (
-                          <li key={s.id}>{selectedVariants[s.id]}</li>
-                        ))}
+                      {selectedVariationsData.map(v => (
+                        <li key={v.id}>{stripSolutionPrefixFromVariantTitle(v.title)}</li>
+                      ))}
                     </ul>
                   </div>
                 )}
@@ -331,181 +320,174 @@ export default function SummaryPage() {
                 )}
               </div>
             </div>
-            {/* --- END Moved Selections --- */} 
+            {/* --- END Moved Selections --- */}
           </div>
 
-          {/* Conditionally render subsequent sections only if solutions are selected */}
-          {selectedSolutionsData.length > 0 ? (
-            <> 
-              {/* Geselecteerde mobiliteitsoplossingen section - Now its own card */}
-              <div className="bg-white rounded-lg p-8 shadow-even">
-                <h3 className="text-xl font-semibold mb-4">Geselecteerde mobiliteitsoplossingen</h3>
-                {isLoading && <p>Oplossingen laden...</p>}
-                {error && <p className="text-red-500">Fout bij laden oplossingen.</p>}
-                {!isLoading && !error && selectedSolutionsData.length > 0 ? (
-                  <div className="space-y-6">
-                    {selectedSolutionsData.map((solution) => (
-                      <div key={solution.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                        <h4 className="font-medium text-lg mb-2">{solution.title}</h4>
-                        
-                        {/* --- MOVED: Show selected implementation variant --- */}
-                        {selectedVariants[solution.id] && (
-                          <div className="mb-4">
-                            <p className="text-sm font-medium text-gray-500">Gekozen implementatievariant:</p>
-                            <p>{selectedVariants[solution.id]}</p>
-                          </div>
-                        )}
-                        {/* --- END: Show selected implementation variant --- */}
-                        
-                        {/* Show solution passport filtered by selected variant */}
-                        {solution.paspoort && (
-                          <div className="mb-4 text-gray-700 prose prose-sm max-w-none">
-                            <MarkdownContent 
-                              content={processMarkdownText(
-                                extractPassportTextWithVariant(
-                                  solution.paspoort, 
-                                  selectedVariants[solution.id] // Pass the selected variant name
-                                )
-                              )} 
-                            />
-                          </div>
-                        )}
-                        
-                        {/* --- RESTORE Original Implementation Summary Code --- */}
-                        {solution.implementatie && selectedVariants[solution.id] && (
-                           (() => { 
-                            const implementationSummary = extractImplementationSummaryFromVariant(
-                              solution.implementatie,
-                              selectedVariants[solution.id]
-                            );
-                            if (!implementationSummary) return null; 
+          {/* +++ START: New Section for Contribution Explanations +++ */}
+          {selectedReasons.length > 0 && reasons && Object.keys(selectedSolutionsData).length > 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-even">
+              <h3 className="text-xl font-semibold mb-4 border-b border-gray-200 pb-2">Bijdrage Oplossingen aan Aanleidingen</h3>
+              <div className="space-y-6">
+                {selectedReasons.map(reasonId => {
+                  const reason = reasons.find(r => r.id === reasonId);
+                  if (!reason || !reason.identifier) return null;
+
+                  const reasonIdentifierCamel = snakeToCamel(reason.identifier);
+                  const fieldName = `${reasonIdentifierCamel}Toelichting`;
+                  
+                  // Find solutions contributing to this reason
+                  const contributingSolutions = Object.values(selectedSolutionsData).filter(sol => {
+                    const text = (sol as any)[fieldName];
+                    return text && typeof text === 'string' && text.trim() !== '';
+                  });
+
+                  return (
+                    <div key={reasonId} className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
+                      <h4 className="font-medium text-lg mb-3">{reason.title}</h4>
+                      {contributingSolutions.length > 0 ? (
+                        <div className="space-y-3 pl-4">
+                          {contributingSolutions.map(solution => {
+                            const text = (solution as any)[fieldName];
                             return (
-                              <div className="mt-4 pt-4 border-t border-gray-100">
-                                <div className="text-gray-700 prose prose-sm max-w-none">
-                                  <MarkdownContent content={processMarkdownText(implementationSummary)} />
+                              <div key={solution.id}>
+                                <p className="text-sm font-medium text-gray-600 mb-1">
+                                  {solution.title}:
+                                </p>
+                                <div className="prose prose-sm max-w-none pl-4 text-gray-700">
+                                  <MarkdownContent content={processMarkdownText(text)} />
                                 </div>
                               </div>
                             );
-                          })()
-                        )}
-                        {/* --- END: Implementation Summary --- */}
-                        
-                        {/* --- START: Show contributions to selected reasons --- */}
-                        {selectedReasons.length > 0 && reasons && (
-                          <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                            <h5 className="text-md font-semibold text-gray-800">Bijdrage aan geselecteerde aanleidingen:</h5>
-                            {selectedReasons.map(reasonId => {
-                              const reason = reasons.find(r => r.id === reasonId);
-                              if (!reason || !reason.identifier) return null; 
-
-                              const reasonIdentifierSnake = reason.identifier;
-                              // Convert identifier to camelCase before appending 'Toelichting'
-                              const reasonIdentifierCamel = snakeToCamel(reasonIdentifierSnake);
-                              const fieldName = `${reasonIdentifierCamel}Toelichting`;
-                              const text = (solution as any)[fieldName];
-
-                              if (!text) return null; 
-
-                              return (
-                                <div key={reasonId} className="pl-2">
-                                  <p className="text-sm font-medium text-gray-600 mb-1 flex items-center">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2 inline-block"></span>
-                                    {reason.title}
-                                  </p>
-                                  <div className="prose prose-sm max-w-none pl-4 text-gray-700">
-                                    <MarkdownContent content={text} />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                        {/* --- END: Show contributions to selected reasons --- */}
-
-                        {/* PDF Download Button */}
-                        <div className="mt-4">
-                          <PdfDownloadButtonContentful
-                            mobilityServiceId={solution.id}
-                            fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-factsheet.pdf`}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          />
+                          })}
                         </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <p className="text-sm text-gray-500 italic pl-4">Geen geselecteerde oplossingen gevonden die specifiek bijdragen aan deze aanleiding.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {/* +++ END: New Section for Contribution Explanations +++ */}
+
+          {/* Conditionally render subsequent sections only if variations are selected */}
+          {selectedVariationsData.length > 0 ? (
+            <> 
+              {/* Geselecteerde mobiliteitsoplossingen/varianten section */}
+              <div className="bg-white rounded-lg p-8 shadow-even">
+                <h3 className="text-xl font-semibold mb-4">Geselecteerde Oplossingen & Varianten</h3>
+                {isLoading && <p>Details laden...</p>}
+                {error && <p className="text-red-500">{error}</p>}
+                {!isLoading && !error && selectedVariationsData.length > 0 ? (
+                  <div className="space-y-6">
+                    {selectedVariationsData.map((variation) => {
+                      const solutionId = Object.keys(selectedVariants).find(key => selectedVariants[key] === variation.id);
+                      const solution = solutionId ? selectedSolutionsData[solutionId] : null;
+                      const solutionTitle = solution?.title || 'Onbekende Oplossing';
+                      
+                      // --- DEBUG LOGS --- 
+                      console.log(`[Samenvatting] Processing Variation ID: ${variation.id}, Solution ID: ${solutionId}`);
+                      console.log(`[Samenvatting] Found Solution Object:`, solution);
+                      console.log(`[Samenvatting] Value of solution.samenvattingLang:`, solution?.samenvattingLang);
+                      // --- END DEBUG LOGS --- 
+
+                      // Apply helper to variation title for display
+                      const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+
+                      return (
+                        <div key={variation.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                          <h1 className="text-2xl font-bold mb-4">{solutionTitle}</h1>
+                          
+                          {/* Show solution.samenvattingLang FIRST */}
+                          {solution?.samenvattingLang && (
+                            <div className="mb-4 pb-4 border-b border-gray-100 text-gray-700 prose prose-sm max-w-none">
+                              <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
+                            </div>
+                          )}
+
+                          {/* Show variant.samenvatting */}
+                          {variation.samenvatting && (
+                            <div className="mb-4 text-gray-700 prose prose-sm max-w-none pt-4">
+                              <p className="text-md font-semibold text-gray-800 mb-1">{displayVariantTitle}:</p> 
+                              <p>{variation.samenvatting}</p>
+                            </div>
+                          )}
+                          
+                          {/* Show variant.realisatieplan */}
+                          {variation.realisatieplan && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <h5 className="text-lg font-semibold mb-2">Realisatieplan:</h5>
+                              <div className="text-gray-700 prose prose-sm max-w-none">
+                                <p>{variation.realisatieplan}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Show NEW realisatieplan fields with H5 styling */}
+                          {variation.realisatieplanLeveranciers && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Leveranciers:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanLeveranciers)} /></div></div>}
+                          {variation.realisatieplanContractvormen && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Contractvormen:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanContractvormen)} /></div></div>}
+                          {variation.realisatieplanKrachtenveld && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Krachtenveld:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanKrachtenveld)} /></div></div>}
+                          {variation.realisatieplanVoorsEnTegens && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Voors en Tegens:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanVoorsEnTegens)} /></div></div>}
+                          {variation.realisatieplanAandachtspunten && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Aandachtspunten:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanAandachtspunten)} /></div></div>}
+                          {variation.realisatieplanChecklist && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Checklist:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanChecklist)} /></div></div>}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  !isLoading && !error && <p className="text-gray-500">Geen mobiliteitsoplossingen geselecteerd.</p>
+                  !isLoading && !error && <p className="text-gray-500">Geen details beschikbaar.</p>
                 )}
               </div>
               
-              {/* Gekozen governance model section - Now its own card */}
-              {selectedGovernanceModel && (
+              {/* Gekozen governance model section */}
+              {selectedGovernanceModelData && (
                 <div className="bg-white rounded-lg p-8 shadow-even">
                   <h3 className="text-xl font-semibold mb-4">Gekozen governance model</h3>
-                  {governanceModels ? (
-                    (() => {
-                      const model = governanceModels.find(model => model.id === selectedGovernanceModel);
-                      return model ? (
-                        <div className="border-b pb-4 last:border-b-0 last:pb-0">
-                          <h4 className="font-medium text-lg mb-2">{model.title}</h4>
-                          {model.summary ? (
-                            <p className="mb-3 text-gray-700">{model.summary}</p>
-                          ) : model.samenvatting ? (
-                            <p className="mb-3 text-gray-700">{model.samenvatting}</p>
-                          ) : model.description ? (
-                            <p className="mb-3 text-gray-700">{model.description}</p>
-                          ) : null}
+                  <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <h4 className="font-medium text-lg mb-2">{selectedGovernanceModelData.title}</h4>
+                    {/* Display summary/description from the fetched model */}
+                    <p className="mb-3 text-gray-700">{selectedGovernanceModelData.summary || selectedGovernanceModelData.description || 'Geen beschrijving'}</p>
+                    
+                    {/* --- START: Show explanation per selected VARIANT --- */}
+                    {selectedVariationsData.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                        {selectedVariationsData.map(variation => {
+                          const fieldName = governanceTitleToFieldName(selectedGovernanceModelData.title);
+                          if (!fieldName) return null;
                           
-                          {/* --- START: Show explanation per selected solution --- */}
-                          {selectedSolutionsData.length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                              {selectedSolutionsData.map(solution => {
-                                const fieldName = governanceTitleToFieldName(model.title);
-                                if (!fieldName) return null;
-                                
-                                const text = (solution as any)[fieldName];
-                                if (!text) return null;
+                          const text = (variation as any)[fieldName]; 
+                          if (!text) return null;
 
-                                return (
-                                  <div key={solution.id} className="pl-2">
-                                    <p className="text-sm font-medium text-gray-600 mb-1">
-                                      Relevantie voor "{solution.title}":
-                                    </p>
-                                    <div className="prose prose-sm max-w-none pl-4 text-gray-700">
-                                      <MarkdownContent content={text} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                          // Apply helper to variation title here as well
+                          const displayVariantTitleForGov = stripSolutionPrefixFromVariantTitle(variation.title);
+
+                          return (
+                            <div key={variation.id} className="pl-2">
+                              <p className="text-sm font-medium text-gray-600 mb-1">
+                                Relevantie voor variant "{displayVariantTitleForGov}":
+                              </p>
+                              <div className="prose prose-sm max-w-none pl-4 text-gray-700">
+                                <MarkdownContent content={processMarkdownText(text)} />
+                              </div>
                             </div>
-                          )}
-                          {/* --- END: Show explanation per selected solution --- */}
-                          
-                          {/* PDF Download Button */}
-                          <div className="mt-3">
-                            <PdfDownloadButtonContentful
-                              mobilityServiceId={model.id}
-                              fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
-                              contentType="governanceModel"
-                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-gray-500">Governance model informatie kon niet worden geladen.</p>
-                      );
-                    })()
-                  ) : (
-                    <p className="text-gray-500">Geen governance model geselecteerd.</p>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* --- END: Show explanation per selected VARIANT --- */}
+                    
+                    {/* PDF Download Button for Governance Model? */}
+                    {/* ... */}
+                  </div>
                 </div>
               )}
             </>
           ) : (
-             // Fallback if no solutions selected - keep this outside the main sections
+             // Fallback if no variations were selected/fetched
              !isLoading && !error && (
                <div className="bg-white rounded-lg p-8 shadow-even">
-                 <p className="text-gray-500">Geen geselecteerde opties.</p>
+                 <p className="text-gray-500">Selecteer eerst oplossingen en varianten in de vorige stappen.</p>
                </div>
               )
           )}
@@ -523,16 +505,17 @@ export default function SummaryPage() {
                     businessParkInfo={businessParkInfo} 
                     currentGovernanceModelTitle={currentGovernanceModelTitle}
                     selectedReasonTitles={selectedReasonTitles} 
-                    selectedSolutionsData={selectedSolutionsData}
+                    selectedSolutionsData={Object.values(selectedSolutionsData)}
                     selectedVariants={selectedVariants}
-                    selectedGovernanceModelId={selectedGovernanceModel} 
-                    selectedImplementationPlanTitle={selectedImplementationPlanTitle}
+                    selectedGovernanceModelId={selectedGovernanceModelId} 
+                    selectedImplementationPlanTitle={''}
                     governanceModels={governanceModels || []} 
                     governanceTitleToFieldName={governanceTitleToFieldName}
                     extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
                     reasons={reasons || []}
                     selectedReasons={selectedReasons}
                     snakeToCamel={snakeToCamel}
+                    selectedVariationsData={selectedVariationsData}
                   />
                 )}
                 fileName={`Samenvatting_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}

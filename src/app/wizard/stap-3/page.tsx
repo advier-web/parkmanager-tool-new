@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-domain-models';
+import { useGovernanceModels } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { GovernanceCard } from '../../../components/governance-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useDialog } from '../../../contexts/dialog-context';
-import { GovernanceModel } from '../../../domain/models';
+import { GovernanceModel, ImplementationVariation } from '../../../domain/models';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
+import { getImplementationVariationById } from '@/services/contentful-service';
 
 export default function GovernanceModelsPage() {
   const { data: governanceModels, isLoading: governanceLoading, error: governanceError } = useGovernanceModels();
-  const { data: solutions, isLoading: solutionsLoading } = useMobilitySolutions();
   const { 
     selectedSolutions, 
+    selectedVariants,
     selectedGovernanceModel, 
     setSelectedGovernanceModel,
     currentGovernanceModelId
@@ -27,96 +28,100 @@ export default function GovernanceModelsPage() {
   const [conditionalRecommendedModels, setConditionalRecommendedModels] = useState<string[]>([]);
   const [unsuitableModels, setUnsuitableModels] = useState<string[]>([]);
   
-  // Get selected solution titles for display
-  const selectedSolutionTitles = solutions
-    ? solutions
-        .filter(solution => selectedSolutions.includes(solution.id))
-        .map(solution => solution.title)
-    : [];
-    
-  // Get the current selected mobility solution (eerste oplossing gebruiken voor rechtsvorm data)
-  const activeMobilitySolution = solutions && selectedSolutions.length > 0
-    ? solutions.find(solution => solution.id === selectedSolutions[0])
-    : null;
-    
-  // Log de actieve mobiliteitsoplossing
-  console.log('[WIZARD STAP 3] Active mobility solution:', activeMobilitySolution);
+  // State to hold the specifically selected variations data
+  const [relevantVariations, setRelevantVariations] = useState<ImplementationVariation[]>([]);
+  const [isLoadingVariations, setIsLoadingVariations] = useState(true);
   
-  // Haal rechtsvorm velden op uit de active mobility solution
-  const rechtsvormen = activeMobilitySolution
-    ? {
-        geenRechtsvorm: (activeMobilitySolution as any).geenRechtsvorm,
-        vereniging: (activeMobilitySolution as any).vereniging,
-        stichting: (activeMobilitySolution as any).stichting,
-        ondernemersBiz: (activeMobilitySolution as any).ondernemersBiz,
-        vastgoedBiz: (activeMobilitySolution as any).vastgoedBiz,
-        gemengdeBiz: (activeMobilitySolution as any).gemengdeBiz,
-        cooperatieUa: (activeMobilitySolution as any).cooperatieUa,
-        bv: (activeMobilitySolution as any).bv,
-        ondernemersfonds: (activeMobilitySolution as any).ondernemersfonds
+  // Fetch selected variations based on store
+  useEffect(() => {
+    async function fetchVariations() {
+      // Check if there are selected variants to fetch
+      const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
+      
+      if (variantIdsToFetch.length === 0) {
+        setIsLoadingVariations(false);
+        setRelevantVariations([]);
+        console.log("[Stap 3] No variants selected, skipping fetch.");
+        return;
       }
-    : null;
-    
-  // Log de rechtsvorm velden
-  console.log('[WIZARD STAP 3] Rechtsvormen data:', rechtsvormen);
+
+      setIsLoadingVariations(true);
+      console.log("[Stap 3] Fetching details for selected variation IDs:", variantIdsToFetch);
+      
+      // Check if variantIdsToFetch contains valid IDs before proceeding
+      if (!variantIdsToFetch || variantIdsToFetch.length === 0 || variantIdsToFetch.some(id => !id)) {
+          console.error("[Stap 3] Invalid or empty variant IDs detected:", variantIdsToFetch);
+          setRelevantVariations([]);
+          setIsLoadingVariations(false);
+          return; // Stop fetching if IDs are invalid
+      }
+
+      try {
+        // Create an array of promises to fetch each selected variation
+        const fetchPromises = variantIdsToFetch.map(variationId => 
+          getImplementationVariationById(variationId)
+        );
+        
+        // Wait for all promises to resolve
+        const variationsResults = await Promise.all(fetchPromises);
+        
+        // Filter out any null results (if a variation wasn't found) 
+        // and ensure type correctness
+        const fetchedVariations = variationsResults.filter((v: ImplementationVariation | null): v is ImplementationVariation => v !== null);
+        
+        console.log("[Stap 3] Successfully fetched variations data:", fetchedVariations);
+        setRelevantVariations(fetchedVariations);
+
+      } catch (err) {
+        console.error("Error fetching variations for Stap 3:", err);
+        setRelevantVariations([]); // Clear on error
+      } finally {
+        setIsLoadingVariations(false);
+      }
+    }
+    fetchVariations();
+  }, [selectedVariants]); // Depend only on selectedVariants map
   
   // Check if a governance model is selected
   const hasSelectedModel = selectedGovernanceModel !== null;
   
-  // Find recommended governance models based on selected solutions
+  // Categorize governance models based on selected variations
   useEffect(() => {
-    if (solutions && governanceModels) {
+    // Removed console warning as the logic *uses* relevantVariations now
+    // console.warn("[Stap 3] Governance model categorization logic needs update...");
+    if (governanceModels && relevantVariations.length > 0) {
       const recommendedIds: string[] = [];
       const conditionalIds: string[] = [];
       const unsuitableIds: string[] = [];
       
-      // For each selected solution, find the associated governance models
-      selectedSolutions.forEach(solutionId => {
-        const solution = solutions.find(s => s.id === solutionId);
-        
-        if (!solution) return;
-        
+      // Iterate over the fetched selected variations to categorize models
+      relevantVariations.forEach(variation => {
         // Process standard recommended models
-        if ((solution as any).governanceModels) {
-          const modelRefs = (solution as any).governanceModels;
-          
-          if (Array.isArray(modelRefs)) {
-            modelRefs.forEach(ref => {
-              // Contentful references might be in format { sys: { id: 'xxx' } }
-              const modelId = ref.sys?.id || ref;
-              if (modelId && !recommendedIds.includes(modelId)) {
-                recommendedIds.push(modelId);
-              }
-            });
-          }
+        if (variation.governanceModels) {
+          variation.governanceModels.forEach(ref => {
+            const modelId = ref.sys?.id;
+            if (modelId && !recommendedIds.includes(modelId)) {
+              recommendedIds.push(modelId);
+            }
+          });
         }
-        
         // Process conditional recommended models (mits)
-        if ((solution as any).governanceModelsMits) {
-          const modelRefs = (solution as any).governanceModelsMits;
-          
-          if (Array.isArray(modelRefs)) {
-            modelRefs.forEach(ref => {
-              const modelId = ref.sys?.id || ref;
-              if (modelId && !conditionalIds.includes(modelId) && !recommendedIds.includes(modelId)) {
-                conditionalIds.push(modelId);
-              }
-            });
-          }
+        if (variation.governanceModelsMits) {
+           variation.governanceModelsMits.forEach(ref => {
+            const modelId = ref.sys?.id;
+            if (modelId && !conditionalIds.includes(modelId) && !recommendedIds.includes(modelId)) {
+              conditionalIds.push(modelId);
+            }
+          });
         }
-        
         // Process unsuitable models
-        if ((solution as any).governanceModelsNietgeschikt) {
-          const modelRefs = (solution as any).governanceModelsNietgeschikt;
-          
-          if (Array.isArray(modelRefs)) {
-            modelRefs.forEach(ref => {
-              const modelId = ref.sys?.id || ref;
-              if (modelId && !unsuitableIds.includes(modelId) && !recommendedIds.includes(modelId) && !conditionalIds.includes(modelId)) {
-                unsuitableIds.push(modelId);
-              }
-            });
-          }
+        if (variation.governanceModelsNietgeschikt) {
+           variation.governanceModelsNietgeschikt.forEach(ref => {
+            const modelId = ref.sys?.id;
+            if (modelId && !unsuitableIds.includes(modelId) && !recommendedIds.includes(modelId) && !conditionalIds.includes(modelId)) {
+              unsuitableIds.push(modelId);
+            }
+          });
         }
       });
       
@@ -124,12 +129,18 @@ export default function GovernanceModelsPage() {
       setConditionalRecommendedModels(conditionalIds);
       setUnsuitableModels(unsuitableIds);
       
-      // Debug logging
-      console.log('[WIZARD STAP 3] Recommended models:', recommendedIds);
-      console.log('[WIZARD STAP 3] Conditional models:', conditionalIds);
-      console.log('[WIZARD STAP 3] Unsuitable models:', unsuitableIds);
+      console.log('[WIZARD STAP 3] Recommended models (from variations):', recommendedIds);
+      console.log('[WIZARD STAP 3] Conditional models (from variations):', conditionalIds);
+      console.log('[WIZARD STAP 3] Unsuitable models (from variations):', unsuitableIds);
+    } else {
+      // Reset if no relevant variations are loaded
+       setRecommendedModels([]);
+       setConditionalRecommendedModels([]);
+       setUnsuitableModels([]);
     }
-  }, [solutions, governanceModels, selectedSolutions]);
+    // Add selectedVariants to dependencies, as categorization indirectly depends on it
+    // (because relevantVariations depends on it, and this effect depends on relevantVariations)
+  }, [relevantVariations, governanceModels, selectedVariants]); 
   
   // Find the current model from the governance models array
   const currentModel = governanceModels?.find(model => model.id === currentGovernanceModelId) || null;
@@ -183,14 +194,17 @@ export default function GovernanceModelsPage() {
   };
   
   // Determine if we're currently loading
-  const isLoading = governanceLoading || solutionsLoading;
+  const isLoading = governanceLoading || isLoadingVariations;
   
+  // Create a stable key based on selected variants to force re-render of cards
+  const variantsKey = JSON.stringify(selectedVariants);
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Add Choices Summary above Info */}
         <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
-          <WizardChoicesSummary />
+          <WizardChoicesSummary variationsData={relevantVariations} />
           <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
@@ -262,13 +276,15 @@ export default function GovernanceModelsPage() {
               </div>
               
               <GovernanceCard
-                key={currentModel.id}
-                model={rechtsvormen ? { ...currentModel, ...rechtsvormen } : currentModel}
+                key={`${currentModel.id}-${variantsKey}`}
+                model={currentModel}
                 isSelected={selectedGovernanceModel === currentModel.id}
                 onSelect={handleSelectModel}
                 isRecommended={currentModelIsRecommended}
                 isCurrent={true}
                 onMoreInfo={handleShowMoreInfo}
+                relevantVariations={relevantVariations}
+                selectedVariants={selectedVariants}
               />
             </div>
           )}
@@ -283,12 +299,14 @@ export default function GovernanceModelsPage() {
               <div className="space-y-6">
                 {getOtherRecommendedModels().map(model => (
                   <GovernanceCard
-                    key={model.id}
-                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    key={`${model.id}-${variantsKey}`}
+                    model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={true}
                     onMoreInfo={handleShowMoreInfo}
+                    relevantVariations={relevantVariations}
+                    selectedVariants={selectedVariants}
                   />
                 ))}
               </div>
@@ -307,13 +325,15 @@ export default function GovernanceModelsPage() {
               <div className="space-y-6">
                 {getConditionalRecommendedModels().map(model => (
                   <GovernanceCard
-                    key={model.id}
-                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    key={`${model.id}-${variantsKey}`}
+                    model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={false}
                     isConditionalRecommended={true}
                     onMoreInfo={handleShowMoreInfo}
+                    relevantVariations={relevantVariations}
+                    selectedVariants={selectedVariants}
                   />
                 ))}
               </div>
@@ -332,12 +352,14 @@ export default function GovernanceModelsPage() {
               <div className="space-y-6">
                 {getUnsuitableModels().map(model => (
                   <GovernanceCard
-                    key={model.id}
-                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    key={`${model.id}-${variantsKey}`}
+                    model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={false}
                     onMoreInfo={handleShowMoreInfo}
+                    relevantVariations={relevantVariations}
+                    selectedVariants={selectedVariants}
                   />
                 ))}
               </div>
@@ -354,12 +376,14 @@ export default function GovernanceModelsPage() {
               <div className="space-y-6">
                 {getOtherModels().map(model => (
                   <GovernanceCard
-                    key={model.id}
-                    model={rechtsvormen ? { ...model, ...rechtsvormen } : model}
+                    key={`${model.id}-${variantsKey}`}
+                    model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
                     isRecommended={false}
                     onMoreInfo={handleShowMoreInfo}
+                    relevantVariations={relevantVariations}
+                    selectedVariants={selectedVariants}
                   />
                 ))}
               </div>

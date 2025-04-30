@@ -78,6 +78,11 @@ export function MarkdownContent({
           ul: ({ node, ...props }) => (
             <ul {...props} className={disableListStyles ? "pl-0" : "list-disc pl-5 mb-6 mt-4 [&>li]:mt-0"} />
           ),
+          // Styling for ordered lists
+          ol: ({ node, ...props }) => (
+            <ol {...props} className={disableListStyles ? "pl-0" : "list-decimal pl-5 mb-6 mt-4 [&>li]:mt-0"} />
+          ),
+          // Ensure list items don't add extra margin bottom from potential paragraphs inside
           li: ({ node, ...props }) => (
             <li {...props} className="mb-0 [&>p]:mb-0 [&>p]:mt-0" />
           ),

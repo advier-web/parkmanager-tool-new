@@ -17,109 +17,12 @@ import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 // Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
 let reasonIdToIdentifierMap: Record<string, string> = {};
 
-// Helper function om score te vinden voor een identifier (case-insensitief)
+// Helper function to find score based on reason identifier
 const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
-  // Standaard debug waarde voor belangrijke oplossingen
-  const debugEnabled = false; // solution.title && (solution.title.includes('Vanpool') || solution.title.includes('fiets'));
-  
-  if (debugEnabled) {
-    console.log(`\n--- findScoreForIdentifier voor ${solution.title} - ${identifier} ---`);
-  }
-  
-  // 1. Directe match
-  const directValue = solution[identifier as keyof MobilitySolution];
-  if (typeof directValue === 'number') {
-    if (debugEnabled) console.log(`✅ Directe match gevonden voor '${identifier}': ${directValue}`);
-    return directValue;
-  } else if (debugEnabled) {
-    console.log(`❌ Geen directe match voor '${identifier}'`);
-  }
-  
-  // 2. Case-insensitive match
-  const matchingKey = Object.keys(solution).find(key => 
-    key.toLowerCase() === identifier.toLowerCase()
-  );
-  
-  if (matchingKey) {
-    const value = solution[matchingKey as keyof MobilitySolution];
-    if (typeof value === 'number') {
-      if (debugEnabled) console.log(`✅ Case-insensitive match gevonden voor '${identifier}' via '${matchingKey}': ${value}`);
-      return value;
-    }
-  } else if (debugEnabled) {
-    console.log(`❌ Geen case-insensitive match voor '${identifier}'`);
-  }
-  
-  // 3. Normalized match (spaces to underscores)
-  const normalizedIdentifier = identifier
-    .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/-/g, '_');
-  
-  if (debugEnabled) console.log(`Genormaliseerde identifier: '${normalizedIdentifier}'`);
-  
-  const normalizedValue = solution[normalizedIdentifier as keyof MobilitySolution];
-  if (typeof normalizedValue === 'number') {
-    if (debugEnabled) console.log(`✅ Genormaliseerde match gevonden voor '${normalizedIdentifier}': ${normalizedValue}`);
-    return normalizedValue;
-  } else if (debugEnabled) {
-    console.log(`❌ Geen genormaliseerde match voor '${normalizedIdentifier}'`);
-  }
-  
-  // 4. Bekend mappings voor ingebouwde inconsistenties
-  const mappings: Record<string, string[]> = {
-    'gezondheid': ['gezondheid', 'Gezondheid', 'health'],
-    'personeelszorg_en_behoud': ['personeelszorg_en_behoud', 'Personeelszorg en -behoud', 'personeel'],
-    'parkeer_bereikbaarheidsproblemen': [
-      'parkeer_bereikbaarheidsproblemen', 
-      'Parkeer- en bereikbaarheidsprobleem',
-      'Parkeer- en bereikbaarheidsproblemen',
-      'parkeer_en_bereikbaarheidsproblemen',
-      'Parkeer en bereikbaarheidsprobleem',
-      'parkeerprobleem',
-      'bereikbaarheidsprobleem'
-    ]
-  };
-  
-  if (identifier && mappings[identifier.toLowerCase()]) {
-    if (debugEnabled) console.log(`Probeert mappings voor '${identifier.toLowerCase()}': ${mappings[identifier.toLowerCase()].join(', ')}`);
-    
-    // Probeer alle mogelijke varianten
-    for (const variant of mappings[identifier.toLowerCase()]) {
-      const value = solution[variant as keyof MobilitySolution];
-      if (typeof value === 'number') {
-        if (debugEnabled) console.log(`✅ Match gevonden via mapping: '${variant}' = ${value}`);
-        return value;
-      } else if (debugEnabled) {
-        console.log(`❌ Geen waarde gevonden voor mapping '${variant}'`);
-      }
-    }
-  } else if (debugEnabled) {
-    console.log(`❌ Geen mappings gevonden voor '${identifier.toLowerCase()}'`);
-  }
-  
-  // 5. Zoek deels overeenkomende velden (voor parkeerproblemen, gezondheid, etc.)
-  const potentialMatches = Object.keys(solution).filter(key => {
-    // Controleert of de key de identifier bevat, of andersom
-    return key.toLowerCase().includes(identifier.toLowerCase()) || 
-           identifier.toLowerCase().includes(key.toLowerCase());
-  });
-  
-  if (potentialMatches.length > 0 && debugEnabled) {
-    console.log(`🔍 Potentiële partial matches gevonden: ${potentialMatches.join(', ')}`);
-  }
-  
-  for (const match of potentialMatches) {
-    const value = solution[match as keyof MobilitySolution];
-    if (typeof value === 'number') {
-      if (debugEnabled) console.log(`✅ Partial match gevonden: '${match}' = ${value}`);
-      return value;
-    }
-  }
-  
-  // Geen match gevonden
-  if (debugEnabled) console.log(`❌ Geen match gevonden voor '${identifier}', retourneer 0`);
-  return 0;
+  if (!identifier) return 0;
+  // Explicitly cast solution to any to access dynamic properties safely
+  const solutionFields = solution as any;
+  return typeof solutionFields[identifier] === 'number' ? solutionFields[identifier] : 0;
 };
 
 // Main component for mobility solutions page
@@ -193,38 +96,30 @@ export default function MobilitySolutionsPage() {
   // Calculate score based on selected reasons and their weights
   const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
     let score = 0;
-    // Ensure reasons is not null before filtering
     const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
 
     reasonDetails.forEach(reason => {
-      // Assume criteriaScores exists, add explicit type for cs
-      const criteriaScore = solution.criteriaScores?.find((cs: { reasonId: string; score: number }) => cs.reasonId === reason.id);
-      if (criteriaScore) {
-        // Assume weight exists or default to 1
-        score += criteriaScore.score * (reason.weight || 1);
+      if (reason.identifier) {
+        const reasonScore = findScoreForIdentifier(solution, reason.identifier);
+        score += reasonScore * (reason.weight || 1);
       }
     });
 
-    // Add traffic type match score
     score += getTrafficTypeMatchScore(solution);
-
     return score;
   };
 
   // Calculate individual scores for each reason
   const getReasonScores = (solution: MobilitySolution, filters: string[]): { [reasonId: string]: number } => {
     const scores: { [reasonId: string]: number } = {};
-    // Ensure reasons is not null before filtering
     const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
 
     reasonDetails.forEach(reason => {
-      // Assume criteriaScores exists, add explicit type for cs
-      const criteriaScore = solution.criteriaScores?.find((cs: { reasonId: string; score: number }) => cs.reasonId === reason.id);
-      if (criteriaScore) {
-        // Assume weight exists or default to 1
-        scores[reason.id] = criteriaScore.score * (reason.weight || 1);
+      if (reason.identifier) {
+        const reasonScore = findScoreForIdentifier(solution, reason.identifier);
+        scores[reason.id] = reasonScore * (reason.weight || 1);
       } else {
-        scores[reason.id] = 0; // Assign 0 if no score found for the reason
+        scores[reason.id] = 0;
       }
     });
     return scores;

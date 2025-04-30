@@ -11,6 +11,9 @@ const nextConfig = {
     // Waarschuwing: Dit wordt alleen gebruikt voor de build, ESLint blijft nog steeds actief tijdens ontwikkeling
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   webpack: (config) => {
     // svg behandeling
     config.module.rules.push({

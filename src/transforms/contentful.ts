@@ -1,24 +1,40 @@
-import { Entry } from 'contentful';
+import { Entry, Asset, AssetFile } from 'contentful';
 import {
-  IBusinessParkReason,
-  IGovernanceModel,
-  IImplementationPlan,
-  IImplementationPhase,
-  IImplementationTask,
-  IMobilitySolution
+  IbusinessParkReason,
+  IgovernanceModel,
+  ImobilityService,
+  Iimplementationvariations,
+  ImobilityServiceFields
 } from '../types/contentful-types.generated';
 import {
   BusinessParkReason,
   GovernanceModel,
-  ImplementationPlan,
-  ImplementationPhase,
-  ImplementationTask,
   MobilitySolution,
-  TrafficType
+  TrafficType,
+  ImplementationVariation
 } from '../domain/models';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
-import { BLOCKS, INLINES, MARKS } from '@contentful/rich-text-types';
-import { Asset, EntrySkeletonType, ChainModifiers, UnresolvedLink, ResourceLink, AssetFile } from 'contentful';
+import { BLOCKS, INLINES, MARKS, Document as ContentfulDocument } from '@contentful/rich-text-types';
+import { EntrySkeletonType, ChainModifiers, UnresolvedLink, ResourceLink } from 'contentful';
+
+/**
+ * Helper function to safely convert Rich Text to HTML
+ */
+function safeDocumentToHtmlString(doc: any): string | undefined {
+  if (doc && typeof doc === 'object' && doc.nodeType === BLOCKS.DOCUMENT) {
+    try {
+      return documentToHtmlString(doc as ContentfulDocument);
+    } catch (error) {
+      console.error("Error converting Rich Text to HTML:", error);
+      return undefined; // Return undefined or a fallback string on error
+    }
+  }
+  // If it's already a string, return it (consider if this is valid for your use case)
+  // if (typeof doc === 'string') {
+  //   return doc;
+  // }
+  return undefined;
+}
 
 /**
  * Helper function to parse the typeVervoer field from Contentful
@@ -76,7 +92,7 @@ function parseTypeVervoer(typeVervoerField: any): TrafficType[] {
  * Transform a Contentful BusinessParkReason entry to a domain BusinessParkReason
  */
 export function transformBusinessParkReason(
-  entry: Entry<IBusinessParkReason>
+  entry: Entry<IbusinessParkReason>
 ): BusinessParkReason {
   // Veiliger benadering met type assertions
   const fields = entry.fields as any;
@@ -95,34 +111,24 @@ export function transformBusinessParkReason(
 }
 
 /**
- * Transform a Contentful MobilitySolution entry to a domain MobilitySolution
+ * Transform a Contentful ImplementationVariation entry to a domain ImplementationVariation
  */
-export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
-  const fields = entry.fields;
+export function transformImplementationVariation(entry: Entry<Iimplementationvariations>): ImplementationVariation {
+  const fields = entry.fields as Iimplementationvariations["fields"]; 
+  console.log(`Transforming ImplementationVariation entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
 
-  // Log de velden voor debuggen - log alleen keys om circular structure error te voorkomen
-  console.log(`Transforming MobilitySolution entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
+  const title = typeof fields.title === 'string' ? fields.title : 'Unnamed Variation';
 
-  const solution: MobilitySolution = {
+  return {
     id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
-    subtitle: typeof fields.subtitle === 'string' ? fields.subtitle : undefined,
-    description: typeof fields.description === 'string' ? fields.description : undefined,
-    samenvattingLang: typeof fields.samenvattingLang === 'string' ? fields.samenvattingLang : undefined,
-    benefits: Array.isArray(fields.benefits) ? fields.benefits.filter((b): b is string => typeof b === 'string') : [],
-    challenges: Array.isArray(fields.challenges) ? fields.challenges.filter((c): c is string => typeof c === 'string') : [],
-    implementationTime: typeof fields.implementationTime === 'string' ? fields.implementationTime : undefined,
-    costs: typeof fields.costs === 'string' ? fields.costs : undefined,
-    category: typeof fields.category === 'string' ? fields.category : 'Onbekend',
-    icon: typeof fields.icon === 'string' ? fields.icon : undefined,
-    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    paspoort: typeof fields.paspoort === 'string' ? fields.paspoort : undefined,
+    title: title,
+    samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined, 
     investering: typeof fields.investering === 'string' ? fields.investering : undefined,
-    collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
-    uitvoeringsmogelijkheden: typeof fields.uitvoeringsmogelijkheden === 'string' ? fields.uitvoeringsmogelijkheden : undefined,
+    realisatieplan: typeof fields.realisatieplan === 'string' ? fields.realisatieplan : undefined,
     governanceModels: getRefIdArray(fields.governanceModels),
     governanceModelsMits: getRefIdArray(fields.governanceModelsMits),
     governanceModelsNietgeschikt: getRefIdArray(fields.governanceModelsNietgeschikt),
+    geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
     vereniging: typeof fields.vereniging === 'string' ? fields.vereniging : undefined,
     stichting: typeof fields.stichting === 'string' ? fields.stichting : undefined,
     ondernemersBiz: typeof fields.ondernemersBiz === 'string' ? fields.ondernemersBiz : undefined,
@@ -131,36 +137,67 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
     cooperatieUa: typeof fields.cooperatieUa === 'string' ? fields.cooperatieUa : undefined,
     bv: typeof fields.bv === 'string' ? fields.bv : undefined,
     ondernemersfonds: typeof fields.ondernemersfonds === 'string' ? fields.ondernemersfonds : undefined,
-    geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
+    realisatieplanLeveranciers: typeof fields.realisatieplanLeveranciers === 'string' ? fields.realisatieplanLeveranciers : undefined,
+    realisatieplanContractvormen: typeof fields.realisatieplanContractvormen === 'string' ? fields.realisatieplanContractvormen : undefined,
+    realisatieplanKrachtenveld: typeof fields.realisatieplanKrachtenveld === 'string' ? fields.realisatieplanKrachtenveld : undefined,
+    realisatieplanVoorsEnTegens: typeof fields.realisatieplanVoorsEnTegens === 'string' ? fields.realisatieplanVoorsEnTegens : undefined,
+    realisatieplanAandachtspunten: typeof fields.realisatieplanAandachtspunten === 'string' ? fields.realisatieplanAandachtspunten : undefined,
+    realisatieplanChecklist: typeof fields.realisatieplanChecklist === 'string' ? fields.realisatieplanChecklist : undefined,
+  };
+}
+
+/**
+ * Transform a Contentful MobilitySolution entry to a domain MobilitySolution
+ * NOTE: This function transforms ONLY the fields available in ImobilityServiceFields
+ * AND ignores governance/rechtsvorm fields as per the new structure.
+ * ImplementationVariations must be fetched and attached separately.
+ */
+export function transformMobilitySolution(entry: Entry<ImobilityService>): MobilitySolution {
+  // Explicitly type fields to avoid 'never' inference issues
+  const fields = entry.fields as ImobilityService["fields"]; 
+  console.log(`Transforming MobilitySolution entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
+
+  const solution: MobilitySolution = {
+    id: entry.sys.id,
+    title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
+    description: typeof fields.description === 'string' ? fields.description : undefined,
+    samenvattingLang: typeof fields.samenvattingLang === 'string' ? fields.samenvattingLang : undefined,
+    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
+    uitvoering: typeof fields.uitvoering === 'string' ? fields.uitvoering : undefined,
+    paspoort: typeof fields.paspoort === 'string' ? fields.paspoort : undefined,
+    investering: typeof fields.investering === 'string' ? fields.investering : undefined,
+    collectiefVsIndiviueel: typeof fields.collectiefVsIndiviueel === 'string' ? fields.collectiefVsIndiviueel : undefined,
+    uitvoeringsmogelijkheden: typeof fields.uitvoeringsmogelijkheden === 'string' ? fields.uitvoeringsmogelijkheden : undefined,
+    inputBusinesscase: typeof fields.inputBusinesscase === 'string' ? fields.inputBusinesscase : undefined,
+
+    // Toelichting fields (check generated types and assign safely)
     parkeerBereikbaarheidsproblemenToelichting: typeof fields.parkeerBereikbaarheidsproblemenToelichting === 'string' ? fields.parkeerBereikbaarheidsproblemenToelichting : undefined,
     bereikbaarheidsproblemenToelichting: typeof fields.bereikbaarheidsproblemenToelichting === 'string' ? fields.bereikbaarheidsproblemenToelichting : undefined,
-    waardeVastgoedToelichting: typeof fields.waardeVastgoedToelichting === 'string' ? fields.waardeVastgoedToelichting : undefined,
     personeelszorgEnBehoudToelichting: typeof fields.personeelszorgEnBehoudToelichting === 'string' ? fields.personeelszorgEnBehoudToelichting : undefined,
-    vervoerkostenToelichting: typeof fields.vervoerkostenToelichting === 'string' ? fields.vervoerkostenToelichting : undefined,
     gezondheidToelichting: typeof fields.gezondheidToelichting === 'string' ? fields.gezondheidToelichting : undefined,
-    gastvrijheidToelichting: typeof fields.gastvrijheidToelichting === 'string' ? fields.gastvrijheidToelichting : undefined,
     imagoToelichting: typeof fields.imagoToelichting === 'string' ? fields.imagoToelichting : undefined,
     milieuverordeningToelichting: typeof fields.milieuverordeningToelichting === 'string' ? fields.milieuverordeningToelichting : undefined,
-    bedrijfsverhuizingToelichting: typeof fields.bedrijfsverhuizingToelichting === 'string' ? fields.bedrijfsverhuizingToelichting : undefined,
-    energiebalansToelichting: typeof fields.energiebalansToelichting === 'string' ? fields.energiebalansToelichting : undefined,
-    pdfLink: getSafeAssetUrl(fields.pdfLink),
-    // Scores mappen met helper functie
-    parkeer_bereikbaarheidsproblemen: findScoreFieldValue(fields, ['parkeer_bereikbaarheidsproblemen']),
-    gezondheid: findScoreFieldValue(fields, ['gezondheid']),
-    personeelszorg_en_behoud: findScoreFieldValue(fields, ['personeelszorg_en_behoud']),
-    imago: findScoreFieldValue(fields, ['imago']),
-    milieuverordening: findScoreFieldValue(fields, ['milieuverordening']),
-    waarde_vastgoed: findScoreFieldValue(fields, ['waarde_vastgoed', 'waardeVastgoed']), // Add known alternative name
-    vervoerkosten: findScoreFieldValue(fields, ['vervoerkosten']),
-    gastvrijheid: findScoreFieldValue(fields, ['gastvrijheid']),
-    bedrijfsverhuizing: findScoreFieldValue(fields, ['bedrijfsverhuizing']),
-    energiebalans: findScoreFieldValue(fields, ['energiebalans']),
-    // Type vervoer mappen
-    typeVervoer: parseTypeVervoer(fields.typeVervoer),
-    // Map implementatievarianten (assuming it's an array of strings in Contentful)
-    implementatievarianten: Array.isArray(fields.implementatievarianten) 
-      ? fields.implementatievarianten.filter((v): v is string => typeof v === 'string') 
+
+    // List of variant names
+    implementatievarianten: Array.isArray(fields.implementatievarianten)
+      ? fields.implementatievarianten.filter((v): v is string => typeof v === 'string')
       : undefined,
+
+    implementationVariations: undefined,
+
+    // Score fields (check generated types and assign safely)
+    parkeer_bereikbaarheidsproblemen: typeof fields.parkeer_bereikbaarheidsproblemen === 'number' ? fields.parkeer_bereikbaarheidsproblemen : undefined,
+    gezondheid: typeof fields.gezondheid === 'number' ? fields.gezondheid : undefined,
+    personeelszorg_en_behoud: typeof fields.personeelszorg_en_behoud === 'number' ? fields.personeelszorg_en_behoud : undefined,
+    imago: typeof fields.imago === 'number' ? fields.imago : undefined,
+    milieuverordening: typeof fields.milieuverordening === 'number' ? fields.milieuverordening : undefined,
+
+    typeVervoer: parseTypeVervoer(fields.typeVervoer),
+
+    category: 'Onbekend',
+    // Add missing properties required by MobilitySolution type, initialize as empty arrays
+    benefits: [], 
+    challenges: [],
   };
 
   return solution;
@@ -169,99 +206,31 @@ export function transformMobilitySolution(entry: Entry<any>): MobilitySolution {
 /**
  * Transform a Contentful GovernanceModel entry to a domain GovernanceModel
  */
-export function transformGovernanceModel(entry: Entry<any>): GovernanceModel {
-  const fields = entry.fields;
-  // Log alleen keys om circular structure error te voorkomen
+export function transformGovernanceModel(entry: Entry<IgovernanceModel>): GovernanceModel {
+  // Explicitly type fields
+  const fields = entry.fields as IgovernanceModel["fields"]; 
   console.log(`Transforming GovernanceModel entry ${entry.sys.id}. Available fields:`, Object.keys(fields).join(', '));
 
+  // Check IgovernanceModelFields carefully
   return {
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
-    description: typeof fields.description === 'string' ? fields.description : '',
-    summary: typeof fields.summary === 'string' ? fields.summary : undefined,
-    advantages: Array.isArray(fields.advantages) ? fields.advantages.filter((a): a is string => typeof a === 'string') : [],
-    disadvantages: Array.isArray(fields.disadvantages) ? fields.disadvantages.filter((d): d is string => typeof d === 'string') : [],
-    applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios.filter((s): s is string => typeof s === 'string') : [],
-    organizationalStructure: typeof fields.organizationalStructure === 'string' ? fields.organizationalStructure : undefined,
-    legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
-    stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders.filter((s): s is string => typeof s === 'string') : [],
-    samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
-    aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
-    benodigdhedenOprichting: fields.benodigdhedenOprichting,
-    doorlooptijdLang: typeof fields.doorlooptijdLang === 'string' ? fields.doorlooptijdLang : undefined,
-    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    links: fields.links,
+    // Assume description is Rich Text
+    description: safeDocumentToHtmlString(fields.description),
+    // Treat samenvatting as plain text based on Contentful setup
+    summary: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined, 
+    advantages: Array.isArray(fields.voordelen) ? fields.voordelen : [], // Assuming voordelen is string[]
+    disadvantages: Array.isArray(fields.nadelen) ? fields.nadelen : [], // Assuming nadelen is string[]
+    // Remove redundant samenvatting mapping
+    aansprakelijkheid: safeDocumentToHtmlString(fields.aansprakelijkheid),
+    benodigdhedenOprichting: safeDocumentToHtmlString(fields.benodigdhedenOprichting),
+    doorlooptijdLang: safeDocumentToHtmlString(fields.doorlooptijdLang),
+    implementatie: safeDocumentToHtmlString(fields.implementatie),
+    links: safeDocumentToHtmlString(fields.links),
     voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten.map(getSafeAssetUrl).filter((url): url is string => !!url) : [],
-    geenRechtsvorm: typeof fields.geenRechtsvorm === 'string' ? fields.geenRechtsvorm : undefined,
-    vereniging: typeof fields.vereniging === 'string' ? fields.vereniging : undefined,
-    stichting: typeof fields.stichting === 'string' ? fields.stichting : undefined,
-    ondernemersBiz: typeof fields.ondernemersBiz === 'string' ? fields.ondernemersBiz : undefined,
-    vastgoedBiz: typeof fields.vastgoedBiz === 'string' ? fields.vastgoedBiz : undefined,
-    gemengdeBiz: typeof fields.gemengdeBiz === 'string' ? fields.gemengdeBiz : undefined,
-    cooperatieUa: typeof fields.cooperatieUa === 'string' ? fields.cooperatieUa : undefined,
-    bv: typeof fields.bv === 'string' ? fields.bv : undefined,
-    ondernemersfonds: typeof fields.ondernemersfonds === 'string' ? fields.ondernemersfonds : undefined,
-    rechtsvormBeschrijving: typeof fields.rechtsvormBeschrijving === 'string' ? fields.rechtsvormBeschrijving : undefined,
-  };
-}
-
-/**
- * Transform a Contentful ImplementationTask entry to a domain ImplementationTask
- */
-export function transformImplementationTask(
-  entry: Entry<IImplementationTask>
-): ImplementationTask {
-  // Veiliger benadering met type assertions
-  const fields = entry.fields as any;
-  
-  return {
-    id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : '',
-    description: typeof fields.description === 'string' ? fields.description : '',
-    responsible: Array.isArray(fields.responsible) ? fields.responsible : [],
-    duration: typeof fields.duration === 'string' ? fields.duration : ''
-  };
-}
-
-/**
- * Transform a Contentful ImplementationPhase entry to a domain ImplementationPhase
- * Note: This requires resolved tasks
- */
-export function transformImplementationPhase(
-  entry: Entry<IImplementationPhase>,
-  tasks: ImplementationTask[] = []
-): ImplementationPhase {
-  // Veiliger benadering met type assertions
-  const fields = entry.fields as any;
-  
-  return {
-    id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : '',
-    description: typeof fields.description === 'string' ? fields.description : '',
-    tasks,
-    duration: typeof fields.duration === 'string' ? fields.duration : ''
-  };
-}
-
-/**
- * Transform a Contentful ImplementationPlan entry to a domain ImplementationPlan
- * Note: This requires resolved phases
- */
-export function transformImplementationPlan(
-  entry: Entry<IImplementationPlan>,
-  phases: ImplementationPhase[] = []
-): ImplementationPlan {
-  // Veiliger benadering met type assertions
-  const fields = entry.fields as any;
-  
-  return {
-    id: entry.sys.id,
-    title: typeof fields.title === 'string' ? fields.title : '',
-    description: typeof fields.description === 'string' ? fields.description : '',
-    phases,
-    estimatedDuration: typeof fields.estimatedDuration === 'string' ? fields.estimatedDuration : '',
-    requiredResources: Array.isArray(fields.requiredResources) ? fields.requiredResources : [],
-    keySuccessFactors: Array.isArray(fields.keySuccessFactors) ? fields.keySuccessFactors : []
+    // Add missing properties required by GovernanceModel type, initialize as empty arrays
+    applicableScenarios: [], 
+    stakeholders: [], 
   };
 }
 

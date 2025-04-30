@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { useWizardStore } from '@/lib/store';
 import { useBusinessParkReasons, useGovernanceModels, useMobilitySolutions } from '@/hooks/use-domain-models';
 import { useMemo } from 'react';
+import { ImplementationVariation } from '@/domain/models';
+import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 // Helper to get step number from pathname
 const getStepFromPathname = (pathname: string): number => {
@@ -18,7 +20,12 @@ const getStepFromPathname = (pathname: string): number => {
   return 0;
 };
 
-export function WizardChoicesSummary() {
+// Add variationsData prop
+interface WizardChoicesSummaryProps {
+  variationsData?: ImplementationVariation[];
+}
+
+export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryProps) {
   const pathname = usePathname();
   // Handle potential null pathname
   const currentStep = pathname ? getStepFromPathname(pathname) : 0; 
@@ -122,11 +129,16 @@ export function WizardChoicesSummary() {
             <div className="space-y-2 text-sm border-t pt-4 mt-4">
               <p className="font-medium text-gray-700">Implementatievariant:</p>
               <ul className="list-disc pl-5 text-gray-600 space-y-1">
-                {solutions // Use the full solutions data to get titles
-                  ?.filter(s => selectedSolutions.includes(s.id) && selectedVariants[s.id]) // Filter selected solutions that have a variant chosen
-                  .map(s => (
-                    <li key={s.id}>{selectedVariants[s.id]}</li>
-                  ))}
+                {solutions
+                  ?.filter(s => selectedSolutions.includes(s.id) && selectedVariants[s.id])
+                  .map(s => {
+                    const variantId = selectedVariants[s.id];
+                    const variation = variationsData?.find(v => v.id === variantId);
+                    const displayTitle = variation ? stripSolutionPrefixFromVariantTitle(variation.title) : variantId;
+                    return (
+                      <li key={s.id}>{displayTitle}</li>
+                    );
+                  })}
               </ul>
             </div>
           )}

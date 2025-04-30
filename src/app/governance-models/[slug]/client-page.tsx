@@ -52,7 +52,6 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
   
   // Haal doorlooptijd data op
   const doorlooptijd = model.doorlooptijdLang || 
-                      model.doorlooptijd || 
                       (model as any).doorlooptijdLang || 
                       (contentfulFields.doorlooptijdLang) || 
                       '';

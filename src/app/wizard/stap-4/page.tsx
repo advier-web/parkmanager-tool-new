@@ -1,6 +1,6 @@
 'use client';
 
-import { useGovernanceModels, useMobilitySolutions } from '../../../hooks/use-domain-models';
+import { useGovernanceModels } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '../../../lib/store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { BiTimeFive, BiLinkExternal, BiFile, BiCheckShield, BiListCheck, BiTask, BiInfoCircle, BiDollar } from 'react-icons/bi';
@@ -9,7 +9,9 @@ import { useEffect, useState } from 'react';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { Accordion } from '../../../components/accordion';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
-import { extractImplementationText, extractPassportTextWithVariant } from '../../../utils/wizard-helpers';
+import { GovernanceModel, ImplementationVariation } from '@/domain/models';
+import { getImplementationVariationById } from '@/services/contentful-service';
+import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 // Deze component is nu overbodig door de gedeelde component, maar we laten hem bestaan voor backward compatibility
 const MarkdownContentLegacy = ({ content }: { content: string }) => {
@@ -22,6 +24,23 @@ const SHOW_DEBUG = false;
 // Function to properly extract and render content based on Contentful's rich text
 const renderRichContent = (contentfulData: any) => {
   console.log('Rendering contentful data type:', typeof contentfulData, contentfulData);
+  
+  // Handle strings directly first
+  if (typeof contentfulData === 'string') {
+    // If it looks like a URL, render as a link
+    if (contentfulData.match(/^https?:\/\//)) {
+         return (
+            <a href={contentfulData} 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               className="text-blue-600 hover:underline">
+              {contentfulData}
+            </a>
+         );
+    } 
+    // Otherwise, render as simple text/markdown
+    return <MarkdownContent content={processMarkdownText(contentfulData)} />;
+  }
   
   // If it's null or undefined, show a message
   if (contentfulData === null || contentfulData === undefined) {
@@ -101,11 +120,6 @@ const renderRichContent = (contentfulData: any) => {
     }
   }
   
-  // If it's a string, just render it as markdown
-  if (typeof contentfulData === 'string') {
-    return <MarkdownContent content={processMarkdownText(contentfulData)} />;
-  }
-  
   // If it's an array of strings (like bullet points)
   if (Array.isArray(contentfulData) && typeof contentfulData[0] === 'string') {
     // Converteer de array naar markdown list items and gebruik dan de MarkdownContent component
@@ -180,7 +194,6 @@ function isNonEmptyArray(field: any): boolean {
 
 export default function ImplementationPlanPage() {
   const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
-  const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
   
   const { 
     selectedGovernanceModel,
@@ -188,6 +201,37 @@ export default function ImplementationPlanPage() {
     currentGovernanceModelId,
     selectedVariants
   } = useWizardStore();
+  
+  // State to hold the specifically selected variations data
+  const [relevantVariations, setRelevantVariations] = useState<ImplementationVariation[]>([]);
+  const [isLoadingVariations, setIsLoadingVariations] = useState(true);
+  
+  // Fetch selected variations based on store
+  useEffect(() => {
+    async function fetchVariations() {
+      const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
+      if (variantIdsToFetch.length === 0) {
+        setIsLoadingVariations(false);
+        setRelevantVariations([]);
+        return;
+      }
+      setIsLoadingVariations(true);
+      try {
+        const fetchPromises = variantIdsToFetch.map(variationId => 
+          getImplementationVariationById(variationId)
+        );
+        const variationsResults = await Promise.all(fetchPromises);
+        const fetchedVariations = variationsResults.filter((v): v is ImplementationVariation => v !== null);
+        setRelevantVariations(fetchedVariations);
+      } catch (err) {
+        console.error("Error fetching variations for Stap 4:", err);
+        setRelevantVariations([]);
+      } finally {
+        setIsLoadingVariations(false);
+      }
+    }
+    fetchVariations();
+  }, [selectedVariants]);
   
   // Get selected governance model data
   const selectedGovernanceModelData = governanceModels && selectedGovernanceModel
@@ -206,15 +250,21 @@ export default function ImplementationPlanPage() {
       console.log('voorbeeldContracten:', selectedGovernanceModelData.voorbeeldContracten);
       console.log('Is same as current model:', isSameAsCurrentModel);
     }
-  }, [selectedGovernanceModelData, isSameAsCurrentModel]);
+    if(relevantVariations.length > 0) {
+        console.log('Relevant Variations Data for Stap 4:', relevantVariations);
+    }
+  }, [selectedGovernanceModelData, isSameAsCurrentModel, relevantVariations]);
   
-  // Get selected solutions data
-  const selectedSolutionsData = mobilitySolutions
-    ? mobilitySolutions.filter(solution => selectedSolutions.includes(solution.id))
-    : [];
-    
-  const isLoading = isLoadingModels || isLoadingSolutions;
-  const error = modelsError || solutionsError;
+  const isLoading = isLoadingModels || isLoadingVariations;
+  const error = modelsError;
+  
+  // Filter the relevant variations based on *currently selected* solutions
+  const filteredVariationsToShow = relevantVariations.filter(variation => {
+    // Find the solutionId associated with this variationId in the store
+    const solutionId = Object.keys(selectedVariants).find(key => selectedVariants[key] === variation.id);
+    // Check if that solutionId is in the selectedSolutions array from the store
+    return solutionId ? selectedSolutions.includes(solutionId) : false;
+  });
   
   // Function to safely render links
   const renderLink = (link: any, index: number) => {
@@ -223,10 +273,19 @@ export default function ImplementationPlanPage() {
     
     console.log('Processing link:', link);
 
+    // Check if it's a plain string first
     if (typeof link === 'string') {
-      url = link;
-      text = link;
-    } else if (link && typeof link === 'object') {
+      url = link; 
+      // Attempt to make simple URLs clickable, otherwise display as text
+      if (link.match(/^https?:\/\//)) { 
+        text = link; 
+      } else {
+        // If it's not a URL, render as plain text within the li
+        return <li key={index}>{link}</li>;
+      }
+    } 
+    // Only check for object properties if it's an object
+    else if (link && typeof link === 'object') { 
       // Case 1: Standard Contentful entry with fields
       if (link.fields) {
         text = link.fields.title || link.fields.name || 'Link';
@@ -285,9 +344,12 @@ export default function ImplementationPlanPage() {
     
     console.log('Rendering benodigdheid item:', item);
 
+    // Check if it's a plain string first
     if (typeof item === 'string') {
       text = item;
-    } else if (item && typeof item === 'object') {
+    } 
+    // Only check for object properties if it's an object
+    else if (item && typeof item === 'object') {
       if (item.fields) {
         text = item.fields.title || item.fields.name || item.fields.value || 
           `[Object met velden: ${Object.keys(item.fields).join(', ')}]`;
@@ -312,7 +374,7 @@ export default function ImplementationPlanPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column - Add Choices Summary above Info */}
         <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
-          <WizardChoicesSummary />
+          <WizardChoicesSummary variationsData={relevantVariations} />
           <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
              <div>
                <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
@@ -518,11 +580,11 @@ export default function ImplementationPlanPage() {
                     </div>
                     
                     {/* Doorlooptijd */}
-                    {(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd) && (
+                    {(selectedGovernanceModelData.doorlooptijdLang /*|| selectedGovernanceModelData.doorlooptijd*/) && (
                       <div className="border-b border-gray-200 pb-6 mb-6">
                         <h4 className="text-lg font-semibold">Doorlooptijd</h4>
                         <div className="mt-2">
-                          {renderRichContent(selectedGovernanceModelData.doorlooptijdLang || selectedGovernanceModelData.doorlooptijd)}
+                          {renderRichContent(selectedGovernanceModelData.doorlooptijdLang /*|| selectedGovernanceModelData.doorlooptijd*/)}
                         </div>
                       </div>
                     )}
@@ -593,19 +655,26 @@ export default function ImplementationPlanPage() {
                           // Speciale styling voor documenten
                           Array.isArray(selectedGovernanceModelData.voorbeeldContracten) ? (
                             <ul className="list-disc pl-5">
-                              {selectedGovernanceModelData.voorbeeldContracten.map((contract, index) => {
-                                // Check if it's a file asset
-                                if (contract && contract.fields && contract.fields.file) {
-                                  const url = contract.fields.file.url.startsWith('//') 
-                                    ? `https:${contract.fields.file.url}` 
-                                    : contract.fields.file.url;
-                                  
-                                  const title = contract.fields.title || contract.fields.description || `Contract ${index + 1}`;
+                              {selectedGovernanceModelData.voorbeeldContracten.map((contractUrl, index) => {
+                                // Assume contractUrl is a string (URL)
+                                if (typeof contractUrl === 'string' && contractUrl.startsWith('http')) {
+                                  // Try to create a meaningful title from the URL
+                                  let title = `Contract ${index + 1}`;
+                                  try {
+                                    const urlParts = new URL(contractUrl).pathname.split('/');
+                                    const fileName = urlParts[urlParts.length - 1];
+                                    if (fileName) {
+                                      // Decode URI component and remove extension if present
+                                      title = decodeURIComponent(fileName).replace(/\.[^/.]+$/, ""); 
+                                    }
+                                  } catch (e) {
+                                    console.error("Error parsing contract URL:", e);
+                                  }
                                   
                                   return (
                                     <li key={index}>
                                       <a 
-                                        href={url} 
+                                        href={contractUrl} 
                                         target="_blank" 
                                         rel="noopener noreferrer" 
                                         className="text-blue-600 hover:underline font-medium flex items-center"
@@ -614,8 +683,12 @@ export default function ImplementationPlanPage() {
                                       </a>
                                     </li>
                                   );
+                                } else if (typeof contractUrl === 'string') {
+                                   // If it's a string but not a URL, render as plain text
+                                   return <li key={index}>{contractUrl}</li>;
                                 } else {
-                                  return <li key={index}>{renderRichContent(contract)}</li>;
+                                  // Fallback for unexpected data types
+                                  return <li key={index}>Ongeldig contract formaat</li>;
                                 }
                               })}
                             </ul>
@@ -633,78 +706,64 @@ export default function ImplementationPlanPage() {
             </div>
           )}
           
-          {/* RE-ADD Implementation plan for mobility solutions section */}
-          {!isLoading && !error && selectedSolutionsData.length > 0 && (
+          {/* Implementation plan for mobility solutions section - Use filteredVariationsToShow */}
+          {!isLoading && !error && filteredVariationsToShow.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-              {selectedSolutionsData.map(solution => {
-                const availableVariants = solution.implementatievarianten || [];
-                const hasDefinedVariants = availableVariants.length > 0;
-                const implementationText = solution.implementatie || '';
-                const selectedVariantName = selectedVariants[solution.id] || null;
-
-                // Determine the text to display using the helper function
-                let textToShow: string;
-                if (!hasDefinedVariants) {
-                   textToShow = implementationText; // Show full text if no variants exist
-                } else if (!selectedVariantName) {
-                    // If no variant was selected in Stap 2b, show a message
-                    textToShow = `*Selecteer a.u.b. eerst een implementatievariant in de vorige stap om de specifieke details te zien.*`;
-                } else {
-                    textToShow = extractImplementationText(implementationText, selectedVariantName);
-                }
-
-                // --- NEW: Process Investment Text ---
-                const investmentTextRaw = solution.investering; // Assuming 'investering' field exists on solution
-                // Restore the use of the helper function
-                const investmentTextToShow = investmentTextRaw
-                  ? extractPassportTextWithVariant(investmentTextRaw, selectedVariantName)
-                  : '';
-                // --- END NEW ---
-
+              {/* Iterate over the FILTERED array */}
+              {filteredVariationsToShow.map(variation => {
+                // Apply helper to title for display
+                const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
                 return (
                   <Accordion 
-                    key={solution.id}
-                    title={`Details ${solution.title}`}
-                    defaultOpen={false} // Start closed again
+                    key={variation.id}
+                    title={`Details ${displayTitle}`} // Use stripped title
+                    defaultOpen={false}
                     icon={<BiTask className="text-blue-600 text-xl" />}
                   >
-                    <div className="text-gray-700 space-y-6"> {/* Added space-y-6 for separation */}
-                      {/* Implementatie Section (existing) */}
-                      <div> 
-                        <div className="flex items-center mb-2">
-                          <BiTask className="text-blue-600 text-xl mr-2" />
-                          <h5 className="font-semibold">
-                            {/* Dynamic heading based on variant selection */}
-                            {hasDefinedVariants && selectedVariantName
-                              ? `Implementatie bij variant: ${selectedVariantName}`
-                              : 'Implementatie'}
-                          </h5>
-                        </div>
-                        <div className="pl-7 prose prose-sm max-w-none">
-                          {implementationText ? 
-                            <MarkdownContent content={processMarkdownText(textToShow)} /> :
-                            <p className="text-gray-500 italic">Geen implementatiedetails beschikbaar</p>
-                          }
-                        </div>
-                      </div>
-
-                      {/* --- NEW: Investering Section --- */}
-                      {investmentTextToShow && ( // Only render if there is text to show
-                        <div className="border-t pt-4"> {/* Added border for visual separation */}
+                    <div className="text-gray-700 space-y-6">
+                      {/* Realisatieplan Section */}
+                      {variation.realisatieplan && (
+                        <div>
                           <div className="flex items-center mb-2">
-                            <BiDollar className="text-green-600 text-xl mr-2" /> {/* Using BiDollar icon */}
-                            <h5 className="font-semibold">
-                              Investering
-                              {hasDefinedVariants && selectedVariantName ? ` (Variant: ${selectedVariantName})` : ''}
-                            </h5>
+                            <BiTask className="text-blue-600 text-xl mr-2" />
+                            <h5 className="font-semibold">Realisatieplan</h5>
                           </div>
                           <div className="pl-7 prose prose-sm max-w-none">
-                            <MarkdownContent content={processMarkdownText(investmentTextToShow)} /> 
+                            {renderRichContent(variation.realisatieplan)}
                           </div>
                         </div>
                       )}
-                      {/* --- END NEW --- */}
+                      {!variation.realisatieplan && (
+                        <div>
+                          <div className="flex items-center mb-2">
+                            <BiTask className="text-blue-600 text-xl mr-2" />
+                            <h5 className="font-semibold">Realisatieplan</h5>
+                          </div>
+                          <p className="pl-7 text-gray-500 italic">Geen specifiek realisatieplan beschikbaar voor deze variant.</p>
+                        </div>
+                      )}
 
+                      {/* Investering Section */}
+                      {variation.investering && (
+                        <div className="border-t pt-4">
+                          <div className="flex items-center mb-2">
+                            <BiDollar className="text-green-600 text-xl mr-2" />
+                            <h5 className="font-semibold">Investering</h5>
+                          </div>
+                          <div className="pl-7 prose prose-sm max-w-none">
+                            {renderRichContent(variation.investering)}
+                          </div>
+                        </div>
+                      )}
+                      {!variation.investering && (
+                        <div className="border-t pt-4">
+                          <div className="flex items-center mb-2">
+                            <BiDollar className="text-green-600 text-xl mr-2" />
+                            <h5 className="font-semibold">Investering</h5>
+                          </div>
+                          <p className="pl-7 text-gray-500 italic">Geen specifieke investeringsinformatie beschikbaar voor deze variant.</p>
+                        </div>
+                      )}
                     </div>
                   </Accordion>
                 );

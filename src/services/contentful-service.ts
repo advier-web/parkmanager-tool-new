@@ -1,8 +1,13 @@
-import { Entry, EntryCollection } from 'contentful';
+import { Entry, EntryCollection, EntrySkeletonType } from 'contentful';
 import { getContentfulClient, handleContentfulError, ContentfulError } from '../lib/contentful/client';
-import { IBusinessParkReason, IMobilitySolution, IGovernanceModel } from '../types/contentful-types.generated';
-import { BusinessParkReason, MobilitySolution, GovernanceModel } from '../domain/models';
-import { transformBusinessParkReason, transformMobilitySolution, transformGovernanceModel } from '../transforms/contentful';
+import {
+  IBusinessParkReason,
+  IMobilityService,
+  IGovernanceModel,
+  IImplementationvariations
+} from '../types/contentful-types.generated';
+import { BusinessParkReason, MobilitySolution, GovernanceModel, ImplementationVariation } from '../domain/models';
+import { transformBusinessParkReason, transformMobilitySolution, transformGovernanceModel, transformImplementationVariation } from '../transforms/contentful';
 
 /**
  * Service voor het ophalen van data uit Contentful
@@ -119,7 +124,7 @@ export async function getMobilitySolutionsFromContentful(
         skip: options.skip || 0,
       };
       
-      const response = await client.getEntries(queryParams);
+      const response = await client.getEntries<IMobilityService>(queryParams);
       console.log(`[CONTENTFUL] Found ${response.items.length} entries with content type ${contentTypeId}`);
       
       if (response.items.length > 0) {
@@ -148,8 +153,9 @@ export async function getMobilitySolutionsFromContentful(
           }
         }
         
-        // Manually map to domain model since types might not match exactly
-        return response.items.map(item => transformMobilitySolution(item as unknown as Entry<IMobilitySolution>));
+        // Use the transformMobilitySolution function
+        // Note: ImplementationVariations will be undefined here
+        return response.items.map(transformMobilitySolution);
       }
     }
     
@@ -175,7 +181,7 @@ export async function getMobilitySolutionByIdFromContentful(
     const client = getContentfulClient(options.preview);
     
     // Gebruik de Contentful SDK om een specifieke entry op te halen
-    const entry = await client.getEntry<IMobilitySolution>(id);
+    const entry = await client.getEntry<IMobilityService>(id);
     
     return transformMobilitySolution(entry);
   } catch (error) {
@@ -186,6 +192,36 @@ export async function getMobilitySolutionByIdFromContentful(
     
     // Anders, propageer de error
     console.error(`Error fetching mobility solution with id ${id}:`, error);
+    throw handleContentfulError(error);
+  }
+}
+
+/**
+ * Haal een specifieke mobility solution op uit Contentful via ID
+ */
+export async function getMobilitySolutionById(
+  id: string,
+  options: ContentfulQueryOptions = {}
+): Promise<MobilitySolution | null> {
+  try {
+    const client = getContentfulClient(options.preview);
+    
+    // Gebruik de Contentful SDK om een specifieke entry op te halen
+    // We gebruiken het IMobilityService type, aangezien dat overeenkomt met de transformer
+    const entry = await client.getEntry<IMobilityService>(id);
+    
+    // Transformeer naar het domain model
+    return transformMobilitySolution(entry);
+
+  } catch (error) {
+    // Als de entry niet bestaat, geef null terug
+    if (error instanceof ContentfulError && error.type === 'NotFound') {
+      console.warn(`[CONTENTFUL] Mobility solution with id ${id} not found.`);
+      return null;
+    }
+    
+    // Anders, propageer de error
+    console.error(`[CONTENTFUL] Error fetching mobility solution with id ${id}:`, error);
     throw handleContentfulError(error);
   }
 }
@@ -225,7 +261,7 @@ export async function getGovernanceModelsFromContentful(
         skip: options.skip || 0,
       };
       
-      const response = await client.getEntries(queryParams);
+      const response = await client.getEntries<IGovernanceModel>(queryParams);
       console.log(`Found ${response.items.length} entries with content type ${contentTypeId}`);
       
       if (response.items.length > 0) {
@@ -239,42 +275,7 @@ export async function getGovernanceModelsFromContentful(
         }
         
         // Manually map to domain model since types might not match exactly
-        return response.items.map(item => {
-          const fields = (item.fields as any) || {};
-          
-          // Debug log the fields
-          console.log(`Fields for governance model ${fields.title || 'unnamed'} - keys:`, Object.keys(fields));
-          
-          // Map to native and alternative field names
-          return {
-            id: item.sys.id,
-            title: fields.title || fields.name || 'Unnamed Model',
-            description: fields.description || '',
-            summary: fields.summary || fields.samenvatting || '',
-            advantages: fields.advantages || fields.voordelen || [],
-            disadvantages: fields.disadvantages || fields.nadelen || [],
-            applicableScenarios: fields.applicableScenarios || [],
-            organizationalStructure: fields.organizationalStructure || undefined,
-            legalForm: fields.legalForm || undefined,
-            stakeholders: fields.stakeholders || undefined,
-            
-            // Implementation plan fields
-            samenvatting: fields.samenvatting || '',
-            aansprakelijkheid: fields.aansprakelijkheid || '',
-            benodigdhedenOprichting: fields.benodigdhedenOprichting || [],
-            doorlooptijd: fields.doorlooptijd || '',
-            implementatie: fields.implementatie || '',
-            links: fields.links || [],
-            voorbeeldContracten: fields.voorbeeldContracten || [],
-            
-            // Also store original fields for direct access
-            voordelen: fields.voordelen,
-            nadelen: fields.nadelen,
-            
-            // Preserve all original fields from Contentful
-            fields
-          };
-        });
+        return response.items.map(transformGovernanceModel);
       }
     }
     
@@ -355,149 +356,146 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
   const client = getContentfulClient(options.preview);
   
   try {
-    const entry = await client.getEntry(id, {
-      include: 2 // Include 2 levels of linked entries (voor governanceModels)
-    });
-    
-    if (!entry || !entry.fields) {
-      throw new Error(`Geen mobility solution gevonden met ID: ${id}`);
-    }
-    
-    // Haal eerst de gekoppelde governance modellen op
-    const governanceModels = entry.fields.governanceModels 
-      ? await Promise.all(
-          (entry.fields.governanceModels as any[])
-            .filter(item => item.sys?.id)
-            .map(async (item) => {
-              const model = await client.getEntry(item.sys.id);
-              return {
-                sys: { id: model.sys.id }, // Gebruik het correcte formaat voor governanceModels
-                title: String(model.fields.title || ''),
-                description: String(model.fields.description || '')
-              };
-            })
-        )
-      : [];
-      
-    // Haal de governanceModelsMits op
-    const governanceModelsMits = entry.fields.governanceModelsMits 
-      ? await Promise.all(
-          (entry.fields.governanceModelsMits as any[])
-            .filter(item => item.sys?.id)
-            .map(async (item) => {
-              const model = await client.getEntry(item.sys.id);
-              return {
-                sys: { id: model.sys.id },
-                title: String(model.fields.title || ''),
-                description: String(model.fields.description || '')
-              };
-            })
-        )
-      : [];
-      
-    // Haal de governanceModelsNietgeschikt op
-    const governanceModelsNietgeschikt = entry.fields.governanceModelsNietgeschikt 
-      ? await Promise.all(
-          (entry.fields.governanceModelsNietgeschikt as any[])
-            .filter(item => item.sys?.id)
-            .map(async (item) => {
-              const model = await client.getEntry(item.sys.id);
-              return {
-                sys: { id: model.sys.id },
-                title: String(model.fields.title || ''),
-                description: String(model.fields.description || '')
-              };
-            })
-        )
-      : [];
-
-    // Log de rechtsvorm velden voor debugging
-    console.log('[CONTENTFUL] Rechtsvorm fields in mobility solution entry:', {
-      geenRechtsvorm: entry.fields.geenRechtsvorm || 'not found',
-      vereniging: entry.fields.vereniging || 'not found',
-      stichting: entry.fields.stichting || 'not found',
-      ondernemersBiz: entry.fields.ondernemersBiz || 'not found',
-      vastgoedBiz: entry.fields.vastgoedBiz || 'not found',
-      gemengdeBiz: entry.fields.gemengdeBiz || 'not found',
-      cooperatieUa: entry.fields.cooperatieUa || 'not found',
-      bv: entry.fields.bv || 'not found',
-      ondernemersfonds: entry.fields.ondernemersfonds || 'not found'
-    });
-
-    // Extract all rechtsvorm fields as strings (with safe fallbacks)
+    const entry = await client.getEntry<IMobilityService>(id, { include: 10 });
+    const fields = entry.fields;
+  
+    // Helper to safely get string field, return empty string if not string
     const getStringField = (fieldName: string): string => {
-      const field = entry.fields[fieldName];
-      if (!field) return '';
-      
-      if (typeof field === 'string') return field;
-      if (typeof field === 'object' && field !== null) {
-        // Handle rich text fields or complex objects
-        try {
-          // Check if it has a toString method
-          if (typeof field.toString === 'function') {
-            return field.toString();
-          }
-          // Otherwise stringify it
-          return JSON.stringify(field);
-        } catch (e) {
-          return String(field);
-        }
-      }
-      return String(field);
+      const value = (fields as any)[fieldName];
+      return typeof value === 'string' ? value : '';
     };
-
-    // Transformeer de entry naar het juiste formaat voor PDF
+    
+    // Helper to safely get number field, return 0 if not number
+    const getNumberField = (fieldName: string): number => {
+      const value = (fields as any)[fieldName];
+      return typeof value === 'number' ? value : 0;
+    };
+    
+    // Helper to safely get string array field, return empty array if not array
+    const getStringArrayField = (fieldName: string): string[] => {
+      const value = (fields as any)[fieldName];
+      return Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
+    };
+  
+    // Transform Contentful data to MobilitySolution domain model
     const solution: MobilitySolution = {
       id: entry.sys.id,
       title: getStringField('title'),
+      subtitle: getStringField('subtitle'),
       description: getStringField('description'),
       samenvattingLang: getStringField('samenvattingLang'),
-      benefits: Array.isArray(entry.fields.benefits) ? entry.fields.benefits.map(String) : [],
-      challenges: Array.isArray(entry.fields.challenges) ? entry.fields.challenges.map(String) : [],
+      implementatie: getStringField('implementatie'),
+      uitvoering: getStringField('uitvoering'),
+      paspoort: getStringField('paspoort'),
+      investering: getStringField('investering'),
+      collectiefVsIndiviueel: getStringField('collectiefVsIndiviueel'),
+      uitvoeringsmogelijkheden: getStringField('uitvoeringsmogelijkheden'),
+      inputBusinesscase: getStringField('inputBusinesscase'),
       implementationTime: getStringField('implementationTime'),
+      costs: getStringField('costs'),
       category: getStringField('category'),
       icon: getStringField('icon'),
+      pdfLink: getStringField('pdfLink'),
+      benefits: getStringArrayField('benefits'),
+      challenges: getStringArrayField('challenges'),
+      implementatievarianten: getStringArrayField('implementatievarianten'), // Assuming this is a simple array of strings now
       
-      // Implementation plan field
-      implementatie: getStringField('implementatie'),
+      // Score fields
+      parkeer_bereikbaarheidsproblemen: getNumberField('parkeer_bereikbaarheidsproblemen'),
+      gezondheid: getNumberField('gezondheid'),
+      personeelszorg_en_behoud: getNumberField('personeelszorg_en_behoud'),
+      imago: getNumberField('imago'),
+      milieuverordening: getNumberField('milieuverordening'),
+      waarde_vastgoed: getNumberField('waarde_vastgoed'),
+      vervoerkosten: getNumberField('vervoerkosten'),
+      gastvrijheid: getNumberField('gastvrijheid'),
+      bedrijfsverhuizing: getNumberField('bedrijfsverhuizing'),
+      energiebalans: getNumberField('energiebalans'),
       
-      // Nieuwe velden van Contentful
-      paspoort: getStringField('paspoort'),
-      collectiefVsIndiviueel: getStringField('collectiefVsIndiviueel'),
-      costs: getStringField('costs'),
-      governanceModels,
-      governanceModelsMits,
-      governanceModelsNietgeschikt,
+      typeVervoer: parseTypeVervoer(fields.typeVervoer),
       
-      // Rechtsvorm velden - zorg dat deze allemaal aanwezig zijn
-      geenRechtsvorm: getStringField('geenRechtsvorm'),
-      vereniging: getStringField('vereniging'),
-      stichting: getStringField('stichting'),
-      ondernemersBiz: getStringField('ondernemersBiz'),
-      vastgoedBiz: getStringField('vastgoedBiz'),
-      gemengdeBiz: getStringField('gemengdeBiz'),
-      cooperatieUa: getStringField('cooperatieUa'),
-      bv: getStringField('bv'),
-      ondernemersfonds: getStringField('ondernemersfonds'),
+      // Toelichtingen
+      parkeerBereikbaarheidsproblemenToelichting: getStringField('parkeerBereikbaarheidsproblemenToelichting'),
+      bereikbaarheidsproblemenToelichting: getStringField('bereikbaarheidsproblemenToelichting'),
+      waardeVastgoedToelichting: getStringField('waardeVastgoedToelichting'),
+      personeelszorgEnBehoudToelichting: getStringField('personeelszorgEnBehoudToelichting'),
+      vervoerkostenToelichting: getStringField('vervoerkostenToelichting'),
+      gezondheidToelichting: getStringField('gezondheidToelichting'),
+      gastvrijheidToelichting: getStringField('gastvrijheidToelichting'),
+      imagoToelichting: getStringField('imagoToelichting'),
+      milieuverordeningToelichting: getStringField('milieuverordeningToelichting'),
+      bedrijfsverhuizingToelichting: getStringField('bedrijfsverhuizingToelichting'),
+      energiebalansToelichting: getStringField('energiebalansToelichting'),
       
-      // Verwijderde bijdrage velden
-      // gemeenteBijdrage: getStringField('gemeenteBijdrage'),
-      // provincieBijdrage: getStringField('provincieBijdrage'),
-      // reizigerBijdrage: getStringField('reizigerBijdrage'),
-      // vastgoedBijdrage: getStringField('vastgoedBijdrage'), // Ook verwijderd/commented in interface
-      // bedrijvenVervoervraag: getStringField('bedrijvenVervoervraag'), // Ook verwijderd/commented in interface
-      
-      // Rating fields
-      parkeer_bereikbaarheidsproblemen: Number(entry.fields.parkeer_bereikbaarheidsproblemen || 0),
-      gezondheid: Number(entry.fields.gezondheid || 0),
-      personeelszorg_en_behoud: Number(entry.fields.personeelszorg_en_behoud || 0),
-      imago: Number(entry.fields.imago || 0),
-      milieuverordening: Number(entry.fields.milieuverordening || 0),
+      // Implementation Variations need to be fetched and transformed separately if needed for PDF
+      implementationVariations: [], // Initialize as empty, fetch/transform if required
     };
-
     return solution;
   } catch (error) {
     console.error('Error fetching mobility solution for PDF:', error);
     throw error;
+  }
+}
+
+/**
+ * Haal alle implementatievarianten op voor een specifieke mobiliteitsoplossing
+ */
+export async function getImplementationVariationsForSolution(
+  solutionId: string,
+  options: ContentfulQueryOptions = {}
+): Promise<ImplementationVariation[]> {
+  try {
+    const client = getContentfulClient(options.preview);
+    console.log(`[SERVICE] Called getImplementationVariationsForSolution for solution ID: ${solutionId}`);
+
+    const queryParams: any = {
+      content_type: 'implementationvariations',
+      'fields.mobiliteitsdienstVariant.sys.id': solutionId, // Filter op de link naar de solution
+      limit: options.limit || 50, // Limiet voor varianten per oplossing
+      skip: options.skip || 0,
+    };
+
+    const response = await client.getEntries<IImplementationvariations>(queryParams);
+    console.log(`[SERVICE] Contentful query for variations returned ${response.items.length} items.`);
+    console.log(`[CONTENTFUL] Found ${response.items.length} implementation variations for solution ${solutionId}`);
+
+    // Transformeer de entries naar domain models
+    if (response.items.length === 0) {
+      console.log(`[SERVICE] No variations found, returning empty array.`);
+    }
+    return response.items.map(transformImplementationVariation);
+
+  } catch (error) {
+    console.error(`[CONTENTFUL] Error fetching implementation variations for solution ${solutionId}:`, error);
+    throw handleContentfulError(error);
+  }
+}
+
+/**
+ * Haal een specifieke implementation variation op via ID
+ */
+export async function getImplementationVariationById(
+  id: string,
+  options: ContentfulQueryOptions = {}
+): Promise<ImplementationVariation | null> {
+  try {
+    const client = getContentfulClient(options.preview);
+
+    // Gebruik Contentful SDK om specifieke entry op te halen
+    const entry = await client.getEntry<IImplementationvariations>(id);
+
+    // Transformeer naar domain model
+    return transformImplementationVariation(entry);
+
+  } catch (error) {
+    // Als entry niet bestaat, geef null terug
+    if (error instanceof ContentfulError && error.type === 'NotFound') {
+      console.warn(`[CONTENTFUL] Implementation variation with id ${id} not found.`);
+      return null;
+    }
+
+    // Anders, propageer de error
+    console.error(`[CONTENTFUL] Error fetching implementation variation with id ${id}:`, error);
+    throw handleContentfulError(error);
   }
 } 

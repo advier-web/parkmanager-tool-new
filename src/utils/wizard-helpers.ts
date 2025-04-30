@@ -169,3 +169,55 @@ export const extractVariantNamesInOrder = (
 
   return names;
 }; 
+
+// Helper function to convert snake_case to camelCase
+export const snakeToCamel = (str: string): string => 
+  str.toLowerCase().replace(/([-_\s][a-z])/g, group => 
+    group
+      .toUpperCase()
+      .replace('-', '')
+      .replace('_', '')
+      .replace(' ', '')
+  );
+
+/**
+ * Helper function to convert Governance Model title to field name used on ImplementationVariation
+ */
+export const governanceTitleToFieldName = (title: string | undefined): string | null => {
+  if (!title) return null;
+  const lowerTitle = title.toLowerCase();
+  // Specific mappings based on known titles and field names on ImplementationVariation
+  if (lowerTitle.includes('coöperatie') && lowerTitle.includes('u.a.')) return 'cooperatieUa';
+  if (lowerTitle.includes('stichting')) return 'stichting';
+  if (lowerTitle.includes('ondernemers biz')) return 'ondernemersBiz'; 
+  if (lowerTitle.includes('vastgoed biz')) return 'vastgoedBiz';
+  if (lowerTitle.includes('gemengde biz')) return 'gemengdeBiz';
+  if (lowerTitle.includes('b.v.') || lowerTitle.includes(' bv ')) return 'bv'; 
+  if (lowerTitle.includes('ondernemersfonds')) return 'ondernemersfonds';
+  if (lowerTitle.includes('geen rechtsvorm')) return 'geenRechtsvorm';
+  if (lowerTitle.includes('vereniging')) return 'vereniging';
+  // Add more mappings if needed
+  console.warn(`[governanceTitleToFieldName] No specific field name mapping found for title: ${title}`);
+  // Fallback: try simple camelCase conversion (might not match exactly)
+  return snakeToCamel(title.replace(/\./g, '')); 
+};
+
+/**
+ * Removes the solution prefix (e.g., "Solution Title - ") from a variant title.
+ */
+export const stripSolutionPrefixFromVariantTitle = (fullVariantTitle: string | undefined): string => {
+  if (!fullVariantTitle) return '';
+  const separatorIndex = fullVariantTitle.indexOf(' - ');
+  if (separatorIndex !== -1) {
+    return fullVariantTitle.substring(separatorIndex + 3); // Get text after " - "
+  }
+  return fullVariantTitle; // Return original if separator not found
+};
+
+// Ensure extractImplementationSummaryFromVariant is defined only once
+// (Assuming the first definition is the correct one to keep)
+/* Remove the second definition if it exists here 
+export const extractImplementationSummaryFromVariant = (variant: ImplementationVariation | null | undefined): string => { 
+  // ... second implementation ... 
+}; 
+*/

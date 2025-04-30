@@ -4,6 +4,7 @@
  */
 
 import { Asset } from 'contentful';
+import { Document as ContentfulDocument } from '@contentful/rich-text-types'; 
 
 // Import the type we defined in store.ts
 import { SelectedVariantMap } from '../lib/store';
@@ -21,70 +22,67 @@ export interface BusinessParkReason {
   weight?: number; // Add optional weight property
 }
 
-// Mobiliteitsoplossingen
+/**
+ * Represents a specific implementation variation of a mobility solution.
+ */
+export interface ImplementationVariation {
+  id: string;
+  title: string;
+  samenvatting?: string | undefined; // Changed type back to string
+  investering?: string; // Transformed from Rich Text
+  realisatieplan?: string; // Transformed from Rich Text
+  governanceModels: Array<{ sys: { id: string } }>;
+  governanceModelsMits: Array<{ sys: { id: string } }>;
+  governanceModelsNietgeschikt: Array<{ sys: { id: string } }>;
+  geenRechtsvorm?: string; // Transformed from Rich Text
+  vereniging?: string; // Transformed from Rich Text
+  stichting?: string; // Transformed from Rich Text
+  ondernemersBiz?: string; // Transformed from Rich Text
+  vastgoedBiz?: string; // Transformed from Rich Text
+  gemengdeBiz?: string; // Transformed from Rich Text
+  cooperatieUa?: string; // Transformed from Rich Text
+  bv?: string; // Transformed from Rich Text
+  ondernemersfonds?: string; // Transformed from Rich Text
+  // New Realisatieplan fields
+  realisatieplanLeveranciers?: string; // Assuming plain text
+  realisatieplanContractvormen?: string; // Assuming plain text
+  realisatieplanKrachtenveld?: string; // Assuming plain text
+  realisatieplanVoorsEnTegens?: string; // Assuming plain text
+  realisatieplanAandachtspunten?: string; // Assuming plain text
+  realisatieplanChecklist?: string; // Assuming plain text
+}
+
+/**
+ * Represents a mobility solution with potential implementation variations.
+ */
 export interface MobilitySolution {
   id: string;
   title: string;
   subtitle?: string;
-  description?: string;
-  samenvattingLang?: string;
-  benefits?: string[];
-  challenges?: string[];
-  implementationTime?: string; // e.g., "kort", "middellang", "lang"
-  costs?: string; // e.g., "laag", "middel", "hoog"
+  description?: string; // HTML string from Contentful Rich Text
+  samenvattingLang?: string; // HTML string from Contentful Rich Text
+  implementatie?: string; // HTML string from Contentful Rich Text
+  uitvoering?: string; // ADDED: New field for uitvoering
+  paspoort?: string; // HTML string from Contentful Rich Text
+  investering?: string; // Generic investment info, specific is in variation
+  collectiefVsIndiviueel?: string; // HTML string
+  uitvoeringsmogelijkheden?: string; // HTML string (Consider if this moves to variation?)
+  inputBusinesscase?: string; // HTML string
+
+  implementationTime?: string;
+  costs?: string; // Generic costs info, specific is in variation
   category: string;
   icon?: string;
-  
-  // Implementation plan field
-  implementatie?: string;
-  
-  // Investment field (new)
-  investering?: string;
-  
-  // Nieuwe velden van Contentful
-  paspoort?: string;
-  collectiefVsIndiviueel?: string;
-  uitvoeringsmogelijkheden?: string;
-  governanceModels?: Array<{sys: {id: string}} | string>;
-  governanceModelsMits?: Array<{sys: {id: string}} | string>;
-  governanceModelsNietgeschikt?: Array<{sys: {id: string}} | string>;
-  
-  // Rechtsvorm velden
-  geenRechtsvorm?: string;
-  vereniging?: string;
-  stichting?: string;
-  ondernemersBiz?: string;
-  vastgoedBiz?: string;
-  gemengdeBiz?: string;
-  cooperatieUa?: string;
-  bv?: string;
-  ondernemersfonds?: string;
-  
-  // Toelichting velden van Contentful
-  parkeerBereikbaarheidsproblemenToelichting?: string;
-  bereikbaarheidsproblemenToelichting?: string;
-  waardeVastgoedToelichting?: string;
-  personeelszorgEnBehoudToelichting?: string;
-  vervoerkostenToelichting?: string;
-  gezondheidToelichting?: string;
-  gastvrijheidToelichting?: string;
-  imagoToelichting?: string;
-  milieuverordeningToelichting?: string;
-  bedrijfsverhuizingToelichting?: string;
-  energiebalansToelichting?: string;
-  
-  // Extra velden
-  pdfLink?: string;
-  
-  // Verwijderde velden:
-  // gemeenteBijdrage?: string; 
-  // effecten?: string;
-  // provincieBijdrage?: string;
-  // reizigerBijdrage?: string;
-  // vastgoedBijdrage?: string; // Behoud deze voor nu
- // bedrijvenVervoervraag?: string; // Behoud deze voor nu
+  benefits: string[];
+  challenges: string[];
+  implementatievarianten?: string[]; // List of variant names/types?
 
-  // Score velden (teruggezet)
+  // Link to specific variations
+  implementationVariations?: ImplementationVariation[]; // Array of detailed variations
+
+  pdfLink?: string;
+
+  // Ratings / Scores
   parkeer_bereikbaarheidsproblemen?: number;
   gezondheid?: number;
   personeelszorg_en_behoud?: number;
@@ -96,56 +94,58 @@ export interface MobilitySolution {
   bedrijfsverhuizing?: number;
   energiebalans?: number;
 
-  // Type vervoer (teruggezet)
+  // Traffic types
   typeVervoer?: TrafficType[];
-  
-  // Dynamische implementatie varianten
-  implementatievarianten?: string[];
 
-  voordelen?: string[]; // Used by Contentful
-  nadelen?: string[]; // Used by Contentful
-  criteriaScores?: { reasonId: string; score: number; }[]; // Add optional criteria scores
+  // Toelichtingen (Explanations) - keep these if they are generic
+  parkeerBereikbaarheidsproblemenToelichting?: string;
+  bereikbaarheidsproblemenToelichting?: string; // Assuming this relates to the base solution
+  waardeVastgoedToelichting?: string;
+  personeelszorgEnBehoudToelichting?: string;
+  vervoerkostenToelichting?: string;
+  gezondheidToelichting?: string;
+  gastvrijheidToelichting?: string;
+  imagoToelichting?: string;
+  milieuverordeningToelichting?: string;
+  bedrijfsverhuizingToelichting?: string;
+  energiebalansToelichting?: string;
 
-  // Allow any other potential properties from Contentful/JSON
-  [key: string]: any;
+  // Fields removed as they moved to ImplementationVariation:
+  // governanceModels: Array<{ sys: { id: string } }>;
+  // governanceModelsMits: Array<{ sys: { id: string } }>;
+  // governanceModelsNietgeschikt: Array<{ sys: { id: string } }>;
+  // geenRechtsvorm?: string;
+  // vereniging?: string;
+  // stichting?: string;
+  // ondernemersBiz?: string;
+  // vastgoedBiz?: string;
+  // gemengdeBiz?: string;
+  // cooperatieUa?: string;
+  // bv?: string;
+  // ondernemersfonds?: string;
+  // rechtsvormBeschrijving?: string;
 }
 
 // Governance modellen
 export interface GovernanceModel {
   id: string;
   title: string;
-  description: string;
-  summary?: string;
+  description?: string; // Can be Rich Text -> HTML
+  summary?: string; // Can be Rich Text -> HTML
   advantages: string[];
   disadvantages: string[];
   applicableScenarios: string[];
   organizationalStructure?: string;
   legalForm?: string;
-  stakeholders?: string[];
-  
-  // Implementation plan fields
-  samenvatting?: string;
-  aansprakelijkheid?: string;
-  benodigdhedenOprichting?: any; // Can be rich text, string, or string array
-  doorlooptijd?: string; // Deprecated: wordt vervangen door doorlooptijdLang
-  doorlooptijdLang?: string; // Nieuwe veldnaam van Contentful
-  implementatie?: string;
-  links?: any; // Can be rich text, string, or array
-  voorbeeldContracten?: any[]; // Can be file assets or links
-  
-  // Rechtsvormen velden
-  geenRechtsvorm?: string;
-  vereniging?: string;
-  stichting?: string;
-  ondernemersBiz?: string;
-  vastgoedBiz?: string;
-  gemengdeBiz?: string;
-  cooperatieUa?: string;
-  bv?: string;
-  ondernemersfonds?: string;
-  
-  // Extra velden
-  rechtsvormBeschrijving?: string;
+  stakeholders: string[];
+  samenvatting?: string; // Can be Rich Text -> HTML
+  aansprakelijkheid?: string; // Can be Rich Text -> HTML
+  benodigdhedenOprichting?: any; // Keep as any or refine if structure is known
+  doorlooptijdLang?: string; // Can be Rich Text -> HTML
+  implementatie?: string; // Can be Rich Text -> HTML
+  links?: any; // Keep as any or refine
+  voorbeeldContracten: string[]; // Array of URLs
+  // rechtsvormBeschrijving?: string; // Assuming this specific description field is also moved/obsolete
 }
 
 // Implementatieplan

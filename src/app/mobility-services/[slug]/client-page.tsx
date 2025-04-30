@@ -1,83 +1,25 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MobilitySolution, GovernanceModel } from '@/domain/models';
+import { MobilitySolution, GovernanceModel, ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
-import { useGovernanceModels } from '@/hooks/use-domain-models';
 import { SiteHeader } from '@/components/site-header';
 import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { SimpleAccordion } from '@/components/simple-accordion';
-import { BiEuro } from 'react-icons/bi';
-import { Accordion } from '@/components/accordion';
-import { BiChevronUp, BiChevronDown } from 'react-icons/bi';
 import { Button } from '@/components/ui/button';
+import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
+  variations: ImplementationVariation[];
 }
 
-export default function MobilityServiceClientPage({ solution }: MobilityServiceClientPageProps) {
-  const { data: governanceModels, isLoading } = useGovernanceModels();
-  const [recommendedModels, setRecommendedModels] = useState<GovernanceModel[]>([]);
-  const [conditionalModels, setConditionalModels] = useState<GovernanceModel[]>([]);
-  const [unsuitableModels, setUnsuitableModels] = useState<GovernanceModel[]>([]);
-
+export default function MobilityServiceClientPage({ solution, variations }: MobilityServiceClientPageProps) {
+  // Log received variations to check structure
   useEffect(() => {
-    if (solution && governanceModels) {
-      // Functie om governance model ID's te extraheren
-      const extractModelIds = (refs: Array<{sys: {id: string}} | string> | undefined) => {
-        if (!Array.isArray(refs) || refs.length === 0) return [];
-        return refs.map(ref => {
-          if (typeof ref === 'string') return ref;
-          if (ref && typeof ref === 'object' && ref.sys && ref.sys.id) return ref.sys.id;
-          return null;
-        }).filter(Boolean) as string[];
-      };
-
-      // Extract IDs
-      const recommendedIds = extractModelIds(solution.governanceModels);
-      const conditionalIds = extractModelIds(solution.governanceModelsMits);
-      const unsuitableIds = extractModelIds(solution.governanceModelsNietgeschikt);
-
-      // Filter de governance modellen op basis van de ID's
-      setRecommendedModels(governanceModels.filter(model => recommendedIds.includes(model.id)));
-      setConditionalModels(governanceModels.filter(model => conditionalIds.includes(model.id)));
-      setUnsuitableModels(governanceModels.filter(model => unsuitableIds.includes(model.id)));
-    }
-  }, [solution, governanceModels]);
-
-  // --- ADD: Parse Uitvoeringsmogelijkheden into Accordion structure ---
-  const uitvoeringsmogelijkhedenAccordions = useMemo(() => {
-    if (!solution?.uitvoeringsmogelijkheden) return [];
-
-    const markdown = solution.uitvoeringsmogelijkheden;
-    const variants: { title: string; content: string }[] = [];
-    // Corrected Regex: Find :::variant[Title] block, capture Title and Content until next :::variant or end
-    const regex = /:::variant\[([^\]]+)\]([\s\S]*?)(?=:::variant|$)/g;
-    
-    let match;
-    let lastIndex = 0;
-    while ((match = regex.exec(markdown)) !== null) {
-      const title = match[1]?.trim();
-      // Content is captured until the lookahead stops, so no need to remove trailing :::
-      let content = match[2]?.trim();
-      
-      if (title) {
-        variants.push({ title, content: content || '' });
-      }
-      lastIndex = regex.lastIndex; // Keep track for potential text after last variant
-    }
-
-    // Optional: Capture text after the last variant block if needed
-    // const remainingText = markdown.substring(lastIndex).trim();
-    // if (remainingText) { ... handle remaining text ... }
-
-    return variants;
-  }, [solution?.uitvoeringsmogelijkheden]);
-  // --- END: Parse --- 
+    console.log("Variations received in client page:", JSON.stringify(variations, null, 2));
+  }, [variations]);
 
   if (!solution) {
     return (
@@ -94,37 +36,6 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
       </>
     );
   }
-
-  // Helper functie om de juiste rechtsvorm tekst op te halen voor een governance model
-  const getRechtsvormText = (model: GovernanceModel) => {
-    if (!solution) return '';
-    
-    // Eerst controleren of er een expliciete legalForm in het model staat
-    if (model.legalForm) {
-      const legalForm = model.legalForm.toLowerCase();
-      if (legalForm.includes('vereniging')) return solution.vereniging;
-      if (legalForm.includes('stichting')) return solution.stichting;
-      if (legalForm.includes('ondernemers biz') || legalForm.includes('ondernemersbiz')) return solution.ondernemersBiz;
-      if (legalForm.includes('vastgoed biz') || legalForm.includes('vastgoedbiz')) return solution.vastgoedBiz;
-      if (legalForm.includes('gemengde biz') || legalForm.includes('gemengdebiz')) return solution.gemengdeBiz;
-      if (legalForm.includes('coöperatie') || legalForm.includes('cooperatie')) return solution.cooperatieUa;
-      if (legalForm.includes('bv') || legalForm.includes('besloten vennootschap')) return solution.bv;
-      if (legalForm.includes('ondernemersfonds')) return solution.ondernemersfonds;
-    }
-    
-    // Als er geen match is op legalForm, dan matchen op titel
-    const title = model.title.toLowerCase();
-    if (title.includes('vereniging')) return solution.vereniging;
-    if (title.includes('stichting')) return solution.stichting;
-    if (title.includes('ondernemers biz') || title.includes('ondernemersbiz')) return solution.ondernemersBiz;
-    if (title.includes('vastgoed biz') || title.includes('vastgoedbiz')) return solution.vastgoedBiz;
-    if (title.includes('gemengde biz') || title.includes('gemengdebiz')) return solution.gemengdeBiz;
-    if (title.includes('coöperatie') || title.includes('cooperatie')) return solution.cooperatieUa;
-    if (title.includes('bv') || title.includes('besloten vennootschap')) return solution.bv;
-    if (title.includes('ondernemersfonds')) return solution.ondernemersfonds;
-    
-    return solution.geenRechtsvorm;
-  };
 
   return (
     <>
@@ -167,41 +78,56 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
             </div>
           )}
 
-          {solution.uitvoeringsmogelijkheden && (
+          {/* --- NEW: Uitvoering Section --- */}
+          {solution.uitvoering && (
             <div className="mb-10 rounded-lg bg-white">
-              <h2 className="text-3xl font-semibold mb-3">Uitvoeringsmogelijkheden</h2>
-              <div className="space-y-2">
-                {uitvoeringsmogelijkhedenAccordions.map((variant, index) => {
-                  const [isOpen, setIsOpen] = useState(false);
-                  return (
-                     <div key={index} className="bg-teal-50 rounded-md p-4 border border-teal-100">
-                        <button
-                          className="w-full flex items-center justify-between text-left"
-                          onClick={() => setIsOpen(!isOpen)}
-                        >
-                          <h4 className="text-base font-semibold text-teal-800">{variant.title}</h4> 
-                          <span className="text-xl text-teal-700">
-                            {isOpen ? <BiChevronUp /> : <BiChevronDown />}
-                          </span>
-                        </button>
-                        <div
-                          className={`transition-all duration-300 ease-in-out overflow-hidden ${ 
-                            isOpen ? 'mt-3 max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                          }`}
-                        >
-                          <div className="text-gray-700 prose prose-sm max-w-none pt-2 border-t border-teal-200">
-                            <MarkdownContent content={processMarkdownText(variant.content)} />
-                          </div>
-                        </div>
-                    </div>
-                  );
-                })}
-                {uitvoeringsmogelijkhedenAccordions.length === 0 && (
-                  <p className="text-gray-500 italic">Geen specifieke uitvoeringsmogelijkheden gevonden in het verwachte formaat.</p>
-                )}
+              <h2 className="text-3xl font-semibold mb-6">Uitvoering</h2>
+              <div className="prose max-w-none">
+                 <MarkdownContent content={processMarkdownText(solution.uitvoering)} />
               </div>
             </div>
           )}
+          {/* --- END: Uitvoering Section --- */}
+
+          {/* --- NEW: Input Business Case Section --- */}
+          {solution.inputBusinesscase && (
+            <div className="mb-10 rounded-lg bg-white">
+              <h2 className="text-3xl font-semibold mb-6">Input voor uw businesscase</h2>
+              <div className="prose max-w-none">
+                 <MarkdownContent content={processMarkdownText(solution.inputBusinesscase)} />
+              </div>
+            </div>
+          )}
+          {/* --- END: Input Business Case Section --- */}
+
+          {/* --- RENAMED & MODIFIED: Implementatievarianten Section --- */}
+          <div className="mb-10 rounded-lg bg-white">
+            <h2 className="text-3xl font-semibold mb-6">Implementatievarianten</h2>
+            {variations && variations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {variations.map((variation, index) => {
+                  const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+                  
+                  return (
+                    <div key={index} className="border border-gray-200 rounded-lg p-6 shadow-sm bg-white">
+                      <h3 className="text-xl font-semibold mb-3 text-teal-700">{displayTitle}</h3>
+                      {/* Render samenvatting using MarkdownContent */}
+                      {variation.samenvatting ? (
+                        <div className="prose prose-sm max-w-none"> {/* Use prose for styling */}
+                          <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">Geen samenvatting beschikbaar.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic">Er zijn geen specifieke implementatievarianten gedefinieerd voor deze dienst.</p>
+            )}
+          </div>
+          {/* --- END: Implementatievarianten Section --- */}
 
           {solution.collectiefVsIndiviueel && (
             <div className="bg-white rounded-lg mb-10">
@@ -223,8 +149,6 @@ export default function MobilityServiceClientPage({ solution }: MobilityServiceC
           )}
           */}
           {/* --- END --- */}
-
-          {/* Governance Modellen Section REMOVED */}
 
           {/* --- NEW: Gedetailleerd Advies Section --- */}
           <div className="bg-white rounded-lg p-6 mb-10">
