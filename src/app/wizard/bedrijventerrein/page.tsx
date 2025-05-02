@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWizardStore } from '../../../lib/store';
+import { useWizardStore } from '@/store/wizard-store';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useGovernanceModels } from '../../../hooks/use-domain-models';
 import { TrafficType } from '../../../domain/models';
@@ -12,7 +12,7 @@ export default function BusinessParkInfoPage() {
     businessParkInfo, 
     setBusinessParkInfo, 
     currentGovernanceModelId,
-    setCurrentGovernanceModel 
+    setCurrentGovernanceModelId
   } = useWizardStore();
   
   const [formErrors, setFormErrors] = useState({
@@ -38,7 +38,7 @@ export default function BusinessParkInfoPage() {
   // Handle governance model selection
   const handleGovernanceModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
-    setCurrentGovernanceModel(value === '' ? null : value);
+    setCurrentGovernanceModelId(value === '' ? null : value);
     
     // Clear error
     if (formErrors.currentGovernanceModelId) {

@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useWizardStore } from '../../../lib/store';
-import { WizardNavigation } from '../../../components/wizard-navigation';
-import { useBusinessParkReasons, useGovernanceModels } from '../../../hooks/use-domain-models';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useWizardStore } from '@/store/wizard-store';
+import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useImplementationPlans } from '@/hooks/use-domain-models';
 import { isValidEmail } from '../../../utils/helper';
-import PdfDownloadButtonContentful from '../../../components/pdf-download-button-contentful';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import SummaryPdfDocument from '../../../components/summary-pdf-document';
 import { Button } from '@/components/ui/button';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { ImplementationVariation, GovernanceModel, MobilitySolution } from '@/domain/models';
+import { ImplementationVariation, GovernanceModel, MobilitySolution, BusinessParkReason } from '@/domain/models';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { getImplementationVariationById, getMobilitySolutionById, getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
+import { WizardNavigation } from '@/components/wizard-navigation';
 
 // Import helpers from utils
 import { 
@@ -30,11 +30,16 @@ export default function SummaryPage() {
     selectedReasons,
     selectedSolutions,
     selectedGovernanceModel: selectedGovernanceModelId,
-    selectedVariants
+    selectedVariants,
+    _hasHydrated
   } = useWizardStore();
   
-  const { data: reasons, isLoading: isLoadingReasons, error: reasonsError } = useBusinessParkReasons();
-  const { data: governanceModels, isLoading: isLoadingModels, error: modelsError } = useGovernanceModels();
+  // --- REMOVED DEBUG LOG --- 
+
+  const { data: reasons } = useBusinessParkReasons();
+  const { data: models } = useGovernanceModels();
+  const { data: solutions } = useMobilitySolutions();
+  const { data: plans } = useImplementationPlans();
   
   // State for fetched data
   const [selectedVariationsData, setSelectedVariationsData] = useState<ImplementationVariation[]>([]);
@@ -46,12 +51,20 @@ export default function SummaryPage() {
 
   // Fetch all necessary data based on selections
   useEffect(() => {
+    // Wait for hydration before fetching
+    if (!_hasHydrated) {
+       // REMOVED console.log('[Samenvatting fetchData] Waiting for hydration...');
+       return; 
+    }
+
     async function fetchData() {
       setIsLoading(true);
       setError(null);
       const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
       const solutionIds = selectedSolutions; // From store
       const govModelId = selectedGovernanceModelId; // From store
+
+      // --- REMOVED DEBUG LOGS --- 
 
       try {
         const variationPromises = variantIdsToFetch.map(id => getImplementationVariationById(id));
@@ -63,12 +76,16 @@ export default function SummaryPage() {
           Promise.all(solutionPromises),
           govModelPromise
         ]);
+        
+        // --- REMOVED DEBUG LOGS --- 
 
         const fetchedVariations = variationResults.filter((v): v is ImplementationVariation => v !== null);
         const fetchedSolutions = solutionResults.reduce((acc, sol) => {
           if (sol) acc[sol.id] = sol;
           return acc;
         }, {} as Record<string, MobilitySolution>);
+        
+        // --- REMOVED DEBUG LOGS --- 
 
         setSelectedVariationsData(fetchedVariations);
         setSelectedSolutionsData(fetchedSolutions);
@@ -85,7 +102,7 @@ export default function SummaryPage() {
     }
 
     fetchData();
-  }, [selectedVariants, selectedSolutions, selectedGovernanceModelId]);
+  }, [selectedVariants, selectedSolutions, selectedGovernanceModelId, _hasHydrated]);
 
   // Get selected item titles (use fetched data where possible)
   const selectedReasonTitles = reasons
@@ -99,8 +116,8 @@ export default function SummaryPage() {
   // selectedImplementationPlanTitle remains the same for now
   const selectedImplementationPlanTitle = ''; // Assuming not used or fetched elsewhere 
   
-  const currentGovernanceModelTitle = governanceModels && currentGovernanceModelId
-    ? governanceModels.find(model => model.id === currentGovernanceModelId)?.title || ''
+  const currentGovernanceModelTitle = models && currentGovernanceModelId
+    ? models.find((model: GovernanceModel) => model.id === currentGovernanceModelId)?.title || ''
     : '';
 
   // Add state for client-side rendering
@@ -156,7 +173,7 @@ export default function SummaryPage() {
                       selectedVariants={selectedVariants}
                       selectedGovernanceModelId={selectedGovernanceModelId} 
                       selectedImplementationPlanTitle={''}
-                      governanceModels={governanceModels || []} 
+                      governanceModels={models || []} 
                       governanceTitleToFieldName={governanceTitleToFieldName}
                       extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
                       reasons={reasons || []}
@@ -172,6 +189,11 @@ export default function SummaryPage() {
                     url,
                     loading,
                     error,
+                  }: {
+                    blob: Blob | null;
+                    url: string | null;
+                    loading: boolean;
+                    error: Error | null;
                   }) => (
                     <Button 
                       // Use default button style for primary appearance
@@ -386,11 +408,7 @@ export default function SummaryPage() {
                       const solution = solutionId ? selectedSolutionsData[solutionId] : null;
                       const solutionTitle = solution?.title || 'Onbekende Oplossing';
                       
-                      // --- DEBUG LOGS --- 
-                      console.log(`[Samenvatting] Processing Variation ID: ${variation.id}, Solution ID: ${solutionId}`);
-                      console.log(`[Samenvatting] Found Solution Object:`, solution);
-                      console.log(`[Samenvatting] Value of solution.samenvattingLang:`, solution?.samenvattingLang);
-                      // --- END DEBUG LOGS --- 
+                      // --- REMOVED DEBUG LOGS --- 
 
                       // Apply helper to variation title for display
                       const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
@@ -424,13 +442,13 @@ export default function SummaryPage() {
                             </div>
                           )}
 
-                          {/* Show NEW realisatieplan fields with H5 styling */}
-                          {variation.realisatieplanLeveranciers && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Leveranciers:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanLeveranciers)} /></div></div>}
-                          {variation.realisatieplanContractvormen && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Contractvormen:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanContractvormen)} /></div></div>}
-                          {variation.realisatieplanKrachtenveld && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Krachtenveld:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanKrachtenveld)} /></div></div>}
-                          {variation.realisatieplanVoorsEnTegens && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Voors en Tegens:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanVoorsEnTegens)} /></div></div>}
-                          {variation.realisatieplanAandachtspunten && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Aandachtspunten:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanAandachtspunten)} /></div></div>}
-                          {variation.realisatieplanChecklist && <div className="mt-4 pt-4 border-t border-gray-100"><h5 className="text-lg font-semibold mb-2">Checklist:</h5><div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(variation.realisatieplanChecklist)} /></div></div>}
+                          {/* Show NEW realisatieplan fields with H1 styling */}
+                          {variation.realisatieplanLeveranciers && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Leveranciers:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanLeveranciers)} /></div></div>}
+                          {variation.realisatieplanContractvormen && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Contractvormen:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanContractvormen)} /></div></div>}
+                          {variation.realisatieplanKrachtenveld && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Krachtenveld:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanKrachtenveld)} /></div></div>}
+                          {variation.realisatieplanVoorsEnTegens && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Voors en Tegens:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanVoorsEnTegens)} /></div></div>}
+                          {variation.realisatieplanAandachtspunten && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Aandachtspunten:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanAandachtspunten)} /></div></div>}
+                          {variation.realisatieplanChecklist && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Checklist:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanChecklist)} /></div></div>}
                         </div>
                       );
                     })}
@@ -509,7 +527,7 @@ export default function SummaryPage() {
                     selectedVariants={selectedVariants}
                     selectedGovernanceModelId={selectedGovernanceModelId} 
                     selectedImplementationPlanTitle={''}
-                    governanceModels={governanceModels || []} 
+                    governanceModels={models || []} 
                     governanceTitleToFieldName={governanceTitleToFieldName}
                     extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
                     reasons={reasons || []}
@@ -525,6 +543,11 @@ export default function SummaryPage() {
                   url,
                   loading,
                   error,
+                }: {
+                  blob: Blob | null;
+                  url: string | null;
+                  loading: boolean;
+                  error: Error | null;
                 }) => (
                   <Button 
                     variant="secondary"

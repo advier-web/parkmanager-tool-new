@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useMobilitySolutions, useBusinessParkReasons, useGovernanceModels } from '../../../hooks/use-domain-models';
-import { useWizardStore } from '../../../lib/store';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMobilitySolutions, useBusinessParkReasons, useGovernanceModels, useImplementationVariations } from '../../../hooks/use-domain-models';
+import { useWizardStore } from '@/store/wizard-store';
 import { SolutionCard } from '../../../components/solution-card';
-import { WizardNavigation } from '../../../components/wizard-navigation';
+import { WizardNavigation } from '@/components/wizard-navigation';
 import { FilterPanel } from '../../../components/filter-panel';
 import { groupBy } from '../../../utils/helper';
-import { MobilitySolution, GovernanceModel, TrafficType } from '../../../domain/models';
-import { useContentfulContentTypes } from '../../../hooks/use-contentful-models';
+import { MobilitySolution, GovernanceModel, TrafficType, ImplementationVariation } from '../../../domain/models';
 import { shouldUseContentful } from '../../../utils/env';
 import { useDialog } from '../../../contexts/dialog-context';
 import { useRouter } from 'next/navigation';
@@ -17,11 +16,15 @@ import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 // Deze map wordt dynamisch opgebouwd op basis van de geladen reasons
 let reasonIdToIdentifierMap: Record<string, string> = {};
 
+interface GroupedSolutions {
+  [category: string]: MobilitySolution[];
+}
+
 // Helper function to find score based on reason identifier
 const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
   if (!identifier) return 0;
   // Explicitly cast solution to any to access dynamic properties safely
-  const solutionFields = solution as any;
+  const solutionFields = solution as any; // Keep 'any' for dynamic access, consider defining a score interface if possible
   return typeof solutionFields[identifier] === 'number' ? solutionFields[identifier] : 0;
 };
 
@@ -29,13 +32,13 @@ const findScoreForIdentifier = (solution: MobilitySolution, identifier: string):
 export default function MobilitySolutionsPage() {
   // Use the debug hook to log content types if using Contentful
   if (shouldUseContentful()) {
-    useContentfulContentTypes();
+    // useContentfulContentTypes();
   }
   
   // State variables
+  const hasHydrated = useWizardStore(state => state._hasHydrated);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [groupedSolutions, setGroupedSolutions] = useState<Record<string, MobilitySolution[]>>({});
-  
+
   // Get store data
   const { 
     selectedReasons, 
@@ -52,10 +55,13 @@ export default function MobilitySolutionsPage() {
   const { data: mobilitySolutions, isLoading: isLoadingSolutions, error: solutionsError } = useMobilitySolutions();
   const { data: reasons, isLoading: isLoadingReasons, error: reasonsError } = useBusinessParkReasons();
   const { data: governanceModels, isLoading: isLoadingModels } = useGovernanceModels();
+  const { data: allVariations, isLoading: isLoadingVariations, error: variationsError } = useImplementationVariations();
   
   // Access the dialog context
   const { openSolutionDialog } = useDialog();
+  const router = useRouter();
   
+  // --- Effects --- 
   // Initialize activeFilters with selectedReasons from the store
   useEffect(() => {
     if (selectedReasons && selectedReasons.length > 0) {
@@ -76,44 +82,33 @@ export default function MobilitySolutionsPage() {
     }
   }, [reasons]);
   
-  // Handle showing solution details in dialog
-  const handleShowMoreInfo = (solution: MobilitySolution) => {
-    if (!governanceModels) return;
-    
-    // Pass ALL governance models to the dialog, not just the ones referenced in governanceModels
-    // The filtering will happen inside the dialog based on all three arrays:
-    // governanceModels, governanceModelsMits, and governanceModelsNietgeschikt
-    openSolutionDialog(solution, governanceModels);
-  };
+  // --- MEMOIZED VALUES & CALLBACKS --- 
+  const getTrafficTypeMatchScore = useCallback((solution: MobilitySolution): number => {
+    const currentTrafficTypes = businessParkInfo.trafficTypes || [];
+    if (currentTrafficTypes.length === 0 || !solution.typeVervoer) return 0;
+    const matches = solution.typeVervoer.filter(type => currentTrafficTypes.includes(type));
+    if (matches.length > 0 && matches.length === currentTrafficTypes.length) {
+        return 1000 + matches.length; // Bonus for matching all
+    }
+    return matches.length;
+  }, [businessParkInfo.trafficTypes]);
   
-  // Functie om bekend incorrecte scores handmatig te corrigeren
-  const applyScoreCorrections = (solution: MobilitySolution): MobilitySolution => {
-    // Maak een veilige kopie van de oplossing om de originele niet te wijzigen
-    const correctedSolution = { ...solution };
-    return correctedSolution;
-  };
-  
-  // Calculate score based on selected reasons and their weights
-  const calculateScoreForSolution = (solution: MobilitySolution, filters: string[]): number => {
+  const calculateScoreForSolution = useCallback((solution: MobilitySolution, filters: string[]): number => {
     let score = 0;
     const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
-
     reasonDetails.forEach(reason => {
       if (reason.identifier) {
         const reasonScore = findScoreForIdentifier(solution, reason.identifier);
         score += reasonScore * (reason.weight || 1);
       }
     });
-
     score += getTrafficTypeMatchScore(solution);
     return score;
-  };
+  }, [reasons, getTrafficTypeMatchScore]);
 
-  // Calculate individual scores for each reason
-  const getReasonScores = (solution: MobilitySolution, filters: string[]): { [reasonId: string]: number } => {
+  const getReasonScores = useCallback((solution: MobilitySolution, filters: string[]): { [reasonId: string]: number } => {
     const scores: { [reasonId: string]: number } = {};
     const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
-
     reasonDetails.forEach(reason => {
       if (reason.identifier) {
         const reasonScore = findScoreForIdentifier(solution, reason.identifier);
@@ -123,80 +118,86 @@ export default function MobilitySolutionsPage() {
       }
     });
     return scores;
-  };
+  }, [reasons]);
   
-  // Match score based on selected traffic types (use store value)
-  const getTrafficTypeMatchScore = (solution: MobilitySolution): number => {
-    const currentTrafficTypes = businessParkInfo.trafficTypes || [];
-    if (currentTrafficTypes.length === 0 || !solution.typeVervoer) return 0;
-    const matches = solution.typeVervoer.filter(type => currentTrafficTypes.includes(type));
-    if (matches.length > 0 && matches.length === currentTrafficTypes.length) {
-        return 1000 + matches.length; // Bonus for matching all
-    }
-    return matches.length;
-  };
-
-  // Sorting function
-  const sortSolutionsByScore = (solutions: MobilitySolution[], currentFilters: string[], currentTrafficTypes: TrafficType[]): MobilitySolution[] => {
+  const sortSolutionsByScore = useCallback((
+    solutions: MobilitySolution[], 
+    currentFilters: string[], 
+    currentTrafficTypes: TrafficType[]
+  ): { solution: MobilitySolution, score: number, trafficMatch: number, contributingReasons: { [reasonId: string]: number } }[] => {
     if (!solutions) return [];
     const scoredSolutions = solutions.map(solution => ({
       solution,
       score: calculateScoreForSolution(solution, currentFilters),
-      trafficMatch: getTrafficTypeMatchScore(solution)
+      trafficMatch: getTrafficTypeMatchScore(solution),
+      contributingReasons: getReasonScores(solution, currentFilters) // Calculate contributing reasons here
     }));
     scoredSolutions.sort((a, b) => {
       if (b.trafficMatch !== a.trafficMatch) return b.trafficMatch - a.trafficMatch;
       return b.score - a.score;
     });
-    return scoredSolutions.map(item => item.solution);
-  };
+    return scoredSolutions; // Return the full scored objects
+  }, [calculateScoreForSolution, getTrafficTypeMatchScore, getReasonScores]);
   
-  // Filtering and Sorting Logic using useMemo
   const processedSolutions = useMemo(() => {
-    if (!mobilitySolutions || !reasons) return { filtered: [], grouped: {} };
+    if (!mobilitySolutions || !reasons) {
+      return { filtered: [], grouped: {} };
+    }
 
-    let filtered = [...mobilitySolutions]; // Start with all solutions
+    let filteredSolutions = [...mobilitySolutions]; 
     const currentTrafficTypes = businessParkInfo.trafficTypes || [];
 
-    // Filter by Selected Reasons (Only if reasons are selected)
     let reasonsToScoreBy: string[] = activeFilters;
     if (activeFilters.length > 0) {
-      filtered = filtered.filter(sol => 
+      const initialCount = filteredSolutions.length;
+      filteredSolutions = filteredSolutions.filter(sol => 
         activeFilters.some(reasonId => {
           const identifier = reasonIdToIdentifierMap[reasonId];
-          return identifier && findScoreForIdentifier(sol, identifier) > 0;
+          const score = identifier ? findScoreForIdentifier(sol, identifier) : 0;
+          return identifier && score > 0;
         })
       );
     } else {
-      reasonsToScoreBy = []; // Don't score by reason if none selected
+      reasonsToScoreBy = [];
     }
 
-    // Sort Solutions
-    const sorted = sortSolutionsByScore(filtered, reasonsToScoreBy, currentTrafficTypes); 
+    // Sort Solutions - Now returns richer objects
+    const sortedAndScored = sortSolutionsByScore(filteredSolutions, reasonsToScoreBy, currentTrafficTypes); 
 
-    // Group by category
-    const grouped = groupBy(sorted, 'category');
-    return { filtered: sorted, grouped };
+    // Group by category using the solution within the scored object - Manual implementation
+    type ScoredSolutionItem = { solution: MobilitySolution, score: number, trafficMatch: number, contributingReasons: { [reasonId: string]: number } };
+    const grouped: Record<string, ScoredSolutionItem[]> = sortedAndScored.reduce((acc, item) => {
+      const category = item.solution.category || 'Onbekend'; // Get category, default to 'Onbekend'
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {} as Record<string, ScoredSolutionItem[]>);
 
-  }, [mobilitySolutions, reasons, businessParkInfo.trafficTypes, activeFilters]);
+    // Return the sorted list of richer objects and the grouped version
+    return { filtered: sortedAndScored, grouped };
+
+  }, [mobilitySolutions, reasons, businessParkInfo.trafficTypes, activeFilters, calculateScoreForSolution, getTrafficTypeMatchScore, getReasonScores, sortSolutionsByScore]); // Added dependencies
   
-  // Ranking Tag Logic (use store value)
-  const getSolutionRankingTag = (solution: MobilitySolution, activeFilters: string[]): { text: string, type: 'traffic' | 'reason' | 'both' | null } | null => {
-    const currentTrafficTypes = businessParkInfo.trafficTypes || []; // Get from store
-    const trafficMatchScore = getTrafficTypeMatchScore(solution);
-    const trafficMatch = trafficMatchScore > 0;
-    const reasonScore = reasons && activeFilters.length > 0 ? 
-      calculateScoreForSolution(solution, activeFilters) : 0;
-    const isRelevant = reasonScore > 0;
+  // --- EVENT HANDLERS & DERIVED STATE --- 
+  const handleShowMoreInfo = (solution: MobilitySolution) => {
+    if (!governanceModels) return;
+    
+    // Bepaal de relevante variaties voor deze specifieke solution
+    const relevantVariationsForDialog = allVariations?.filter(
+      (v: ImplementationVariation) => v.title?.startsWith(solution.title)
+    ) || [];
 
-    // Prioritize perfect traffic match tag
-    if (trafficMatchScore >= 1000) {
-        return { text: `Perfecte match op vervoer`, type: isRelevant ? 'both' : 'traffic' };
-    }
-    if (trafficMatch && isRelevant) return { text: "Relevant & Matcht Vervoer", type: 'both' };
-    if (trafficMatch) return { text: "Matcht Vervoer", type: 'traffic' };
-    if (isRelevant) return { text: "Relevant", type: 'reason' };
-    return null;
+    // Geef de relevante variaties nu mee aan openSolutionDialog
+    openSolutionDialog(solution, governanceModels, relevantVariationsForDialog);
+  };
+  
+  // Functie om bekend incorrecte scores handmatig te corrigeren
+  const applyScoreCorrections = (solution: MobilitySolution): MobilitySolution => {
+    // Maak een veilige kopie van de oplossing om de originele niet te wijzigen
+    const correctedSolution = { ...solution };
+    return correctedSolution;
   };
   
   // RE-ADD handleFilterChange 
@@ -220,128 +221,126 @@ export default function MobilitySolutionsPage() {
   // Check if any solutions are selected
   const hasSelectedSolutions = selectedSolutions.length > 0;
   
-  // Log selectedSolutions voor debug doeleinden
-  console.log("Geselecteerde oplossingen:", selectedSolutions);
-  console.log("Active traffic types:", businessParkInfo.trafficTypes);
-  console.log("Selected traffic types from step 0:", businessParkInfo.trafficTypes);
-  
-  const router = useRouter();
+  // --- EARLY RETURNS (AFTER HOOKS) --- 
+  if (isLoadingSolutions || isLoadingReasons || isLoadingModels || isLoadingVariations) {
+    return <div>Loading data...</div>;
+  }
+
+  if (solutionsError || reasonsError || variationsError) {
+    return <div>Error loading data. Please try again later.</div>;
+  }
   
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Column - Add Choices Summary above FilterPanel/Info */}
-        <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
-          <WizardChoicesSummary />
-          {/* Filter panel */}
-          {reasons && (
-            <div className="mb-6">
-              <FilterPanel
-                reasons={reasons}
-                selectedReasonIds={selectedReasons}
-                activeFilterIds={activeFilters}
-                onReasonFilterChange={handleFilterChange}
-                activeTrafficTypes={businessParkInfo.trafficTypes || []}
-                selectedTrafficTypes={businessParkInfo.trafficTypes || []}
-                onTrafficTypeFilterChange={handleTrafficTypeFilterChange}
-              />
-            </div>
-          )}
-          {/* Original Informational text */}
-          <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
-             <div>
-               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
-               <p className="text-gray-600 text-sm">
-                 Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante mobiliteitsoplossingen. 
-                 Selecteer de oplossingen die u wilt overwegen.
-               </p>
-             </div>
-             <div>
-               <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
-               <p className="text-gray-600 text-sm">
-                 Bekijk de details van elke oplossing door erop te klikken. 
-                 Selecteer de oplossingen die het beste aansluiten bij uw situatie.
-               </p>
-             </div>
-             <div className="border-t pt-4 mt-6">
-               <div className="flex items-center text-sm text-blue-600">
-                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-                 <span>Selecteer minimaal één oplossing om door te gaan</span>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Left Column - Add Choices Summary above FilterPanel/Info */}
+          <div className="md:col-span-1 space-y-8 md:sticky md:top-28">
+            <WizardChoicesSummary />
+            {/* Filter panel - Wait for hydration */}
+            {hasHydrated && reasons && (
+              <div className="mb-6">
+                <FilterPanel
+                  reasons={reasons}
+                  selectedReasonIds={selectedReasons}
+                  activeFilterIds={activeFilters}
+                  onReasonFilterChange={handleFilterChange}
+                  activeTrafficTypes={businessParkInfo.trafficTypes || []}
+                  selectedTrafficTypes={businessParkInfo.trafficTypes || []}
+                  onTrafficTypeFilterChange={handleTrafficTypeFilterChange}
+                />
+              </div>
+            )}
+            {!hasHydrated && (
+               <div className="mb-6 p-6 bg-white rounded-lg shadow-even">
+                 <p className="text-sm text-gray-500">Filters laden...</p>
+               </div>
+            )}
+            {/* Original Informational text */}
+            <div className="bg-white rounded-lg p-6 shadow-even space-y-6">
+               <div>
+                 <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
+                 <p className="text-gray-600 text-sm">
+                   Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante mobiliteitsoplossingen. 
+                   Selecteer de oplossingen die u wilt overwegen.
+                 </p>
+               </div>
+               <div>
+                 <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
+                 <p className="text-gray-600 text-sm">
+                   Bekijk de details van elke oplossing door erop te klikken. 
+                   Selecteer de oplossingen die het beste aansluiten bij uw situatie.
+                 </p>
+               </div>
+               <div className="border-t pt-4 mt-6">
+                 <div className="flex items-center text-sm text-blue-600">
+                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                   <span>Selecteer minimaal één oplossing om door te gaan</span>
+                 </div>
                </div>
              </div>
-           </div>
-        </div>
+          </div>
 
-        {/* Right Column - Content */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-2xl font-bold mb-4">Stap 2: Mobiliteitsoplossingen</h2>
-            <p className="mb-6">
-              Op basis van de door u geselecteerde redenen, kunt u hier de gewenste mobiliteitsoplossingen selecteren.
-              U kunt meerdere oplossingen kiezen.
-            </p>
-            
-            {isLoadingSolutions && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Mobiliteitsoplossingen worden geladen...</p>
-              </div>
-            )}
-            
-            {solutionsError && (
-              <div className="bg-red-50 p-4 rounded-md space-y-2">
-                <p className="text-red-600">Er is een fout opgetreden bij het laden van de mobiliteitsoplossingen.</p>
-                <p className="text-red-500 text-sm">
-                  De mobiliteitsoplossingen worden tijdelijk geladen vanuit mock data.
-                </p>
-              </div>
-            )}
-            
-            {/* Display solutions */}
-            <div className="space-y-8 mt-8">
-              {Object.entries(processedSolutions.grouped).length > 0 ? (
-                Object.entries(processedSolutions.grouped).map(([group, solutions]) => (
-                  <div key={group} className="mb-6">
-                    {/* Conditionally render the group title */}
-                    {group && group.toLowerCase() !== 'onbekend' && (
-                       <h3 className="text-xl font-semibold mb-3 text-blue-600">{group}</h3>
-                    )}
-                    <div className="grid grid-cols-1 gap-4">
-                      {solutions.map((solution) => (
-                        <SolutionCard
-                          key={solution.id}
-                          solution={solution}
-                          reasonScores={getReasonScores(solution, activeFilters)}
-                          score={calculateScoreForSolution(solution, activeFilters)}
-                          trafficTypeMatchScore={getTrafficTypeMatchScore(solution)}
-                          rankingTag={getSolutionRankingTag(solution, activeFilters)}
-                          onMoreInfo={() => handleShowMoreInfo(solution)}
-                          isSelected={selectedSolutions.includes(solution.id)}
-                          onToggleSelect={(solutionId: string) => toggleSolution(solution.id)}
-                          calculateScoreForSolution={(sol: MobilitySolution) => calculateScoreForSolution(sol, activeFilters)}
-                          getTrafficTypeMatchScore={getTrafficTypeMatchScore}
-                          selectedReasons={(reasons || []).filter(r => activeFilters.includes(r.id))}
-                          activeTrafficTypes={businessParkInfo.trafficTypes || []}
-                        />
-                      ))}
+          {/* Right Column - Content */}
+          <div className="md:col-span-3">
+            <div className="bg-white rounded-lg p-8 shadow-even">
+              <h2 className="text-2xl font-bold mb-4">Stap 2: Mobiliteitsoplossingen</h2>
+              <p className="mb-6">
+                Op basis van de door u geselecteerde redenen, kunt u hier de gewenste mobiliteitsoplossingen selecteren.
+                U kunt meerdere oplossingen kiezen.
+              </p>
+              
+              {/* Display solutions */}
+              <div className="space-y-8 mt-8">
+                {Object.entries(processedSolutions.grouped).length > 0 ? (
+                  Object.entries(processedSolutions.grouped).map(([group, solutions]) => (
+                    <div key={group} className="mb-6">
+                      {/* Conditionally render the group title */}
+                      {group && group.toLowerCase() !== 'onbekend' && (
+                         <h3 className="text-xl font-semibold mb-3 text-blue-600">{group}</h3>
+                      )}
+                      <div className="grid grid-cols-1 gap-4">
+                        {solutions.map((scoredSolution) => { // Iterate over scoredSolution objects
+                          const { solution, score, trafficMatch, contributingReasons } = scoredSolution; // Destructure
+                          const relevantVariationsForCard = allVariations?.filter(
+                            (v: ImplementationVariation) => v.title?.startsWith(solution.title)
+                          ) || [];
+                          return (
+                            <SolutionCard
+                              key={solution.id}
+                              solution={solution} // Pass the actual solution object
+                              isSelected={selectedSolutions.includes(solution.id)}
+                              onToggleSelect={() => toggleSolution(solution.id)}
+                              variationsData={relevantVariationsForCard}
+                              score={score} // Pass score directly
+                              trafficTypeMatchScore={trafficMatch} // Pass trafficMatch directly
+                              contributingReasons={contributingReasons} // Pass calculated contributingReasons
+                              reasonsData={reasons || []}
+                              activeTrafficTypes={businessParkInfo.trafficTypes || []}
+                              activeReasonFilters={activeFilters} 
+                              onMoreInfo={() => handleShowMoreInfo(solution)}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">Geen oplossingen gevonden die overeenkomen met uw selectie.</p>
-              )}
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-8">Geen oplossingen gevonden die overeenkomen met uw selectie.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
+        
+        <WizardNavigation
+          previousStep="/wizard/stap-1"
+          nextStep="/wizard/stap-2b"
+          isNextDisabled={!hasSelectedSolutions}
+        />
       </div>
-      
-      <WizardNavigation
-        previousStep="/wizard/stap-1"
-        nextStep="/wizard/stap-2b"
-        isNextDisabled={!hasSelectedSolutions}
-      />
-    </div>
+    </>
   );
 } 

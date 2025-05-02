@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useWizardStore } from '../lib/store';
+import { useRouter } from 'next/navigation';
 
 interface Step {
   id: number;
@@ -20,34 +21,102 @@ const STEPS: Step[] = [
   { id: 6, name: 'Samenvatting', path: '/wizard/samenvatting' },
 ];
 
+interface WizardProgressProps {
+  currentStep: number;
+  totalSteps: number;
+}
+
+interface StepProps {
+  stepNumber: number;
+  title: string;
+  isCompleted: boolean;
+  isActive: boolean;
+  isLast: boolean;
+  onClick: () => void;
+}
+
+const Step: React.FC<StepProps> = ({ stepNumber, title, isCompleted, isActive, isLast, onClick }) => {
+  const router = useRouter();
+
+  // Determine the component to render: Link for active or completed steps, div for future steps
+  const StepItem = ({ children }: { children: React.ReactNode }) => {
+    const baseClasses = `flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
+      isActive
+        ? 'bg-blue-600 text-white'
+        : isCompleted
+        ? 'bg-green-600 text-white cursor-pointer hover:bg-green-700' // Add pointer and hover for completed
+        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+    } ${isLast ? '' : 'mr-2'}`;
+    
+    // Make completed steps clickable links as well
+    if (isCompleted || isActive) { 
+      return (
+        <Link
+          href={STEPS[stepNumber].path}
+          className={baseClasses}
+          onClick={(e) => {
+            // Prevent default if logic is added, but allow navigation
+            onClick(); // Call the passed onClick handler
+          }}
+        >
+          {children}
+        </Link>
+      );
+    }
+    
+    // Render future steps as non-clickable divs
+    return (
+       <div className={baseClasses}>
+          {children}
+       </div>
+    );
+  };
+  
+  return (
+    <li key={stepNumber} className="flex items-center relative w-full">
+      <StepItem>
+        {stepNumber + 1}
+      </StepItem>
+      
+      {stepNumber < STEPS.length - 1 && (
+        <>
+          <div className="flex-1 h-1 bg-gray-200 mx-2">
+            <div
+              className={`h-1 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`}
+              style={{ width: '100%' }}
+            ></div>
+          </div>
+        </>
+      )}
+      
+      <span
+        className={`hidden sm:block absolute whitespace-nowrap text-xs font-medium ${
+          isActive
+            ? 'text-blue-600'
+            : isCompleted
+            ? 'text-green-600'
+            : 'text-gray-500'
+        }`}
+        style={{ 
+          top: 'calc(100% + 0.5rem)', 
+          left: '50%', 
+          transform: 'translateX(-50%)' 
+        }}
+      >
+        {title}
+      </span>
+    </li>
+  );
+};
+
 export function WizardProgress() {
   const pathname = usePathname();
   const { selectedSolutions } = useWizardStore();
+  const router = useRouter();
   
   // Find current step based on pathname
   const currentStep = STEPS.findIndex(step => pathname === step.path);
   const currentStepIndex = currentStep === -1 ? 0 : currentStep; // Default to first step if not found
-  
-  // Check if step navigation should be disabled
-  const isStepNavigationDisabled = (stepIndex: number): boolean => {
-    // Altijd vorige of huidige stappen toestaan
-    if (stepIndex <= currentStepIndex) return false;
-    
-    // Specifieke checks voor stappen na de huidige
-    if (currentStepIndex === 2 && stepIndex > 2 && selectedSolutions.length === 0) {
-      // Blokkeer navigatie naar stap 3 of hoger als er geen mobiliteitsoplossingen zijn geselecteerd
-      return true;
-    }
-    
-    // Sta altijd toe om van stap 0 naar stap 1 of van stap 1 naar stap 2 te gaan
-    if ((currentStepIndex === 0 && stepIndex === 1) || 
-        (currentStepIndex === 1 && stepIndex === 2)) {
-      return false;
-    }
-    
-    // Sta toe om naar de volgende stap te gaan, maar niet verder
-    return stepIndex > currentStepIndex + 1;
-  };
   
   return (
     <div className="py-6 mb-10">
@@ -55,74 +124,19 @@ export function WizardProgress() {
         {STEPS.map((step, index) => {
           const isActive = index === currentStepIndex;
           const isCompleted = index < currentStepIndex;
-          const isDisabled = isStepNavigationDisabled(index);
-          
-          // Bepaal het component dat moet worden weergegeven: Link of div
-          const StepItem = ({ children }: { children: React.ReactNode }) => {
-            const baseClasses = `flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium ${
-              isActive
-                ? 'bg-blue-600 text-white'
-                : isCompleted
-                ? 'bg-green-600 text-white'
-                : isDisabled
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-200 text-gray-600'
-            } ${index === STEPS.length - 1 ? '' : 'mr-2'}`;
-            
-            if (isDisabled) {
-              return (
-                <div className={baseClasses}>
-                  {isCompleted ? '✓' : step.id}
-                </div>
-              );
-            }
-            
-            return (
-              <Link
-                href={step.path}
-                className={baseClasses}
-              >
-                {isCompleted ? '✓' : step.id}
-              </Link>
-            );
-          };
           
           return (
-            <li key={step.id} className="flex items-center relative w-full">
-              <StepItem>
-                {isCompleted ? '✓' : step.id}
-              </StepItem>
-              
-              {index < STEPS.length - 1 && (
-                <>
-                  <div className="flex-1 h-1 bg-gray-200 mx-2">
-                    <div
-                      className={`h-1 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`}
-                      style={{ width: '100%' }}
-                    ></div>
-                  </div>
-                </>
-              )}
-              
-              <span
-                className={`hidden sm:block absolute whitespace-nowrap text-xs font-medium ${
-                  isActive
-                    ? 'text-blue-600'
-                    : isCompleted
-                    ? 'text-green-600'
-                    : isDisabled
-                    ? 'text-gray-400'
-                    : 'text-gray-500'
-                }`}
-                style={{ 
-                  top: 'calc(100% + 0.5rem)', 
-                  left: '50%', 
-                  transform: 'translateX(-50%)' 
-                }}
-              >
-                {step.name}
-              </span>
-            </li>
+            <Step
+              key={step.id}
+              stepNumber={index}
+              title={step.name}
+              isCompleted={isCompleted}
+              isActive={isActive}
+              isLast={index === STEPS.length - 1}
+              onClick={() => {
+                 router.push(step.path); 
+              }}
+            />
           );
         })}
       </ol>

@@ -1,8 +1,8 @@
 'use client'; // Required for @react-pdf/renderer client-side nature
 
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
-import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation } from '@/domain/models'; // Add ImplementationVariation
+import { Page, Text, View, Document, StyleSheet, Font as PdfFont } from '@react-pdf/renderer';
+import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation, BusinessParkReason } from '@/domain/models'; // Add ImplementationVariation
 import { SelectedVariantMap } from '@/lib/store';
 import { extractPassportTextWithVariant, stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers'; // Import new helper
 

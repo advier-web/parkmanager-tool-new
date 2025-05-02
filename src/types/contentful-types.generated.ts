@@ -238,6 +238,9 @@ export interface IMobilityServiceFields {
   /** implementatie */
   implementatie?: string | undefined;
 
+  /** Casebeschrijving */
+  casebeschrijving?: string | undefined;
+
   /** minimumInvestment */
   minimumInvestment?: number | undefined;
 

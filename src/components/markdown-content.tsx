@@ -1,5 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkHtml from 'remark-html';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 interface MarkdownContentProps {
   content: string;
@@ -31,9 +33,8 @@ export function MarkdownContent({
   return (
     <div className={`prose prose-blue max-w-none ${className}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkHtml]}
         components={{
-          // Styling voor headings
           h1: ({ node, ...props }) => (
             <h1 {...props} className="text-2xl font-bold mb-4 mt-6" />
           ),
@@ -52,20 +53,15 @@ export function MarkdownContent({
           h6: ({ node, ...props }) => (
             <h6 {...props} className="text-sm font-medium mb-2 mt-3" />
           ),
-          // Add proper spacing for paragraphs
           p: ({ node, ...props }) => {
-            // For simplicity, we'll apply a class that can be overridden by parent list item styling
             return <p {...props} className="mb-6" />;
           },
-          // Expliciete styling voor italic/emphasis tekst
           em: ({ node, ...props }) => (
             <em {...props} className="italic" />
           ),
-          // Expliciete styling voor bold/strong tekst
           strong: ({ node, ...props }) => (
             <strong {...props} className="font-bold" />
           ),
-          // Styling voor links
           a: ({ node, ...props }) => (
             <a 
               {...props} 
@@ -74,19 +70,15 @@ export function MarkdownContent({
               rel="noopener noreferrer"
             />
           ),
-          // Styling voor lijsten - schakel list-disc uit als we in een bestaande lijst zijn
           ul: ({ node, ...props }) => (
-            <ul {...props} className={disableListStyles ? "pl-0" : "list-disc pl-5 mb-6 mt-4 [&>li]:mt-0"} />
+            disableListStyles ? <ul className="list-none p-0 m-0" {...props} /> : <ul className="list-disc pl-5 mb-6 mt-4 [&>li]:mt-0" {...props} />
           ),
-          // Styling for ordered lists
           ol: ({ node, ...props }) => (
-            <ol {...props} className={disableListStyles ? "pl-0" : "list-decimal pl-5 mb-6 mt-4 [&>li]:mt-0"} />
+            disableListStyles ? <ol className="list-none p-0 m-0" {...props} /> : <ol className="list-decimal pl-5 mb-6 mt-4 [&>li]:mt-0" {...props} />
           ),
-          // Ensure list items don't add extra margin bottom from potential paragraphs inside
           li: ({ node, ...props }) => (
             <li {...props} className="mb-0 [&>p]:mb-0 [&>p]:mt-0" />
           ),
-          // Styling voor tabellen
           table: ({ node, ...props }) => (
             <div className="overflow-x-auto my-6">
               <table {...props} className="min-w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
@@ -285,4 +277,4 @@ function preprocessTables(text: string): string {
   processed = processed.replace(/\|-{3,}\|/g, '| --- |');
   
   return processed;
-} 
+}

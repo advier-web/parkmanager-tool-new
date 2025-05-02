@@ -44,7 +44,7 @@ interface WizardStore extends WizardState {
   
   // Stap 4: Implementatieplan
   setSelectedImplementationPlan: (planId: string | null) => void;
-  setSelectedVariant: (solutionId: string, variantName: string | null) => void;
+  setSelectedVariant: (solutionId: string, variant: string | null) => void;
   
   // Extra gegevens
   setBusinessParkDetails: (name: string, contactPerson: string, contactEmail: string) => void;
@@ -101,12 +101,16 @@ export const useWizardStore = create<WizardStore>()(
       
       // Stap 4: Implementatieplan
       setSelectedImplementationPlan: (planId) => set({ selectedImplementationPlan: planId }),
-      setSelectedVariant: (solutionId, variantName) => set((state) => ({
-        selectedVariants: { 
-          ...state.selectedVariants, 
-          [solutionId]: variantName 
-        }
-      })),
+      setSelectedVariant: (solutionId, variant) => set((state) => {
+        const updatedSelectedVariants = {
+          ...state.selectedVariants,
+          [solutionId]: variant
+        };
+        console.log('[Store] Updated selected variants:', updatedSelectedVariants);
+        return {
+          selectedVariants: updatedSelectedVariants
+        };
+      }),
       
       // Extra gegevens
       setBusinessParkDetails: (name, contactPerson, contactEmail) => set({

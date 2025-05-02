@@ -1,28 +1,16 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { useFetch } from './use-fetch';
 import { 
   getBusinessParkReasonsFromContentful, 
   getBusinessParkReasonByIdFromContentful,
   getMobilitySolutionsFromContentful,
-  getMobilitySolutionByIdFromContentful,
-  getContentfulContentTypes,
+  getMobilitySolutionById,
   getGovernanceModelsFromContentful,
   getGovernanceModelByIdFromContentful,
-  getWebsiteCollectiefVervoerFromContentful
+  getWebsiteCollectiefVervoerFromContentful,
+  getImplementationVariationsFromContentful
 } from '../services/contentful-service';
-import { BusinessParkReason, MobilitySolution, GovernanceModel, WebsiteCollectiefVervoer } from '../domain/models';
-
-/**
- * Debug hook to get content types from Contentful
- */
-export function useContentfulContentTypes(preview = false) {
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      getContentfulContentTypes(preview)
-        .catch(error => console.error('Failed to fetch content types:', error));
-    }
-  }, [preview]);
-}
+import { BusinessParkReason, MobilitySolution, GovernanceModel, WebsiteCollectiefVervoer, ImplementationVariation } from '../domain/models';
 
 /**
  * Hook om alle bedrijfsterrein-redenen op te halen via Contentful
@@ -59,7 +47,7 @@ export function useContentfulMobilitySolutions(preview = false) {
  */
 export function useContentfulMobilitySolution(id: string | null, preview = false) {
   return useFetch<MobilitySolution | null>(
-    () => id ? getMobilitySolutionByIdFromContentful(id, { preview }) : Promise.resolve(null),
+    () => id ? getMobilitySolutionById(id, { preview }) : Promise.resolve(null),
     [id, preview]
   );
 }
@@ -90,6 +78,16 @@ export function useContentfulGovernanceModel(id: string | null, preview = false)
 export function useContentfulWebsiteCollectiefVervoer(preview = false) {
   return useFetch<WebsiteCollectiefVervoer>(
     () => getWebsiteCollectiefVervoerFromContentful({ preview }),
+    [preview]
+  );
+}
+
+/**
+ * Hook om ALLE implementatievarianten op te halen via Contentful
+ */
+export function useContentfulImplementationVariations(preview = false) {
+  return useFetch<ImplementationVariation[]>(
+    () => getImplementationVariationsFromContentful({ preview }),
     [preview]
   );
 } 

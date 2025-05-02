@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useWizardStore } from '../../../lib/store';
-import { WizardNavigation } from '../../../components/wizard-navigation';
-import { useBusinessParkReasons } from '../../../hooks/use-domain-models';
-import { ReasonCard } from '../../../components/reason-card';
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useWizardStore } from '@/store/wizard-store';
+import { useBusinessParkReasons } from '@/hooks/use-domain-models';
+import { ReasonCard } from '@/components/reason-card';
+import { SiteHeader } from '@/components/site-header';
+import { WizardNavigation } from '@/components/wizard-navigation';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 
-export default function ReasonsPage() {
+export default function Step1Page() {
   const {
     selectedReasons,
     toggleReason

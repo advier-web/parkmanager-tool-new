@@ -1,52 +1,55 @@
 import MobilityServiceClientPage from './client-page';
-import { getMobilitySolutionsFromContentful, getImplementationVariationsForSolution } from '@/services/contentful-service';
-import { ImplementationVariation } from '@/domain/models';
+import { getMobilitySolutionsFromContentful, getMobilitySolutionById, getImplementationVariationsForSolution } from '@/services/contentful-service';
+import { ImplementationVariation, MobilitySolution } from '@/domain/models';
 
-export default async function MobilityServicePage(props: any) {
-  const { params } = props;
+// Addressing no-explicit-any for props
+interface PageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+// Helper function to generate slug (keep consistent)
+const generateSlug = (title: string): string => {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+};
+
+// We fetch data in the client component now for debugging
+export default async function MobilityServicePage({ params }: PageProps) {
+  const slug = params.slug;
   let variations: ImplementationVariation[] = [];
-  
+  let solution: MobilitySolution | null = null;
+
   try {
-    // Alle mobiliteitsoplossingen ophalen direct uit Contentful
-    const solutions = await getMobilitySolutionsFromContentful();
-    
-    console.log('Requested slug:', params.slug);
-    console.log('Available solutions from Contentful:', solutions.map(s => ({
-      id: s.id,
-      title: s.title,
-      generatedSlug: s.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-    })));
-    
-    // Zoek de oplossing met de gegeven slug
-    const solution = solutions.find((s) => {
-      // Genereer een slug van de titel: lowercase en spaties/speciale tekens vervangen door koppeltekens
-      const titleSlug = s.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const allSolutions = await getMobilitySolutionsFromContentful({ preview: false });
+    const solutionInfo = allSolutions.find(s => generateSlug(s.title) === slug);
+
+    if (solutionInfo) {
+      // console.log('Found solution ID from slug:', solutionInfo.id, solutionInfo.title);
+      solution = await getMobilitySolutionById(solutionInfo.id, { preview: false }); 
       
-      // Log de vergelijking voor debugging
-      // console.log(`Comparing: "${titleSlug}" with "${params.slug}"`, titleSlug === params.slug); // Debug log can be removed later
-      
-      return titleSlug === params.slug;
-    }) || null;
-    
-    if (solution) {
-      console.log('Found solution in Contentful:', solution.id, solution.title);
-      // If solution is found, fetch its implementation variations
-      try {
-        variations = await getImplementationVariationsForSolution(solution.id);
-        console.log(`Found ${variations.length} variations for solution ${solution.id}`);
-      } catch (variationError) {
-        console.error(`Error fetching variations for solution ${solution.id}:`, variationError);
-        // Keep variations as empty array if fetching fails
+      if (solution) {
+         try {
+           variations = await getImplementationVariationsForSolution(solution.id, { preview: false });
+           // console.log(`Found ${variations.length} variations for solution ${solution.id}`);
+         } catch (variationError) {
+           console.error(`Error fetching variations for solution ${solution.id}:`, variationError);
+         }
+      } else {
+         // console.log('Could not fetch full details for solution ID:', solutionInfo.id);
       }
     } else {
-      console.log('No solution found in Contentful for slug:', params.slug);
+      // console.log('No solution found matching slug:', slug);
     }
+
+    // Verwijder serialisatie logs
+    // console.log("[SERVER PAGE DEBUG - BEFORE SERIALIZE] Solution object:", ...);
+    // const solutionString = solution ? JSON.stringify(solution) : null;
+    // console.log("[SERVER PAGE DEBUG - SERIALIZE] Serialized solutionString:", ...);
     
-    // Pass both solution and variations to the client page
+    // Geef object direct door
     return <MobilityServiceClientPage solution={solution} variations={variations} />;
   } catch (error) {
-    console.error('Error fetching solution from Contentful for slug:', params.slug, error);
-    // Pass null/empty array in case of error
+    // console.error('Error fetching data for slug:', slug, error); // Keep error log if desired
     return <MobilityServiceClientPage solution={null} variations={[]} />;
   }
 } 

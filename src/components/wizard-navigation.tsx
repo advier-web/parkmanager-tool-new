@@ -6,12 +6,14 @@ interface WizardNavigationProps {
   previousStep?: string;
   nextStep?: string;
   isNextDisabled?: boolean;
+  onNextClick?: () => void;
 }
 
 export function WizardNavigation({ 
   previousStep, 
   nextStep, 
-  isNextDisabled = false 
+  isNextDisabled = false,
+  onNextClick
 }: WizardNavigationProps) {
   const router = useRouter();
 
@@ -19,23 +21,32 @@ export function WizardNavigation({
   console.log("[WizardNavigation] Props:", { previousStep, nextStep, isNextDisabled });
 
   const handlePrevious = () => {
+    console.log("[WizardNavigation] handlePrevious called. previousStep:", previousStep);
     if (previousStep) {
+      console.log("[WizardNavigation] Attempting router.push to previous:", previousStep);
       router.push(previousStep);
+    } else {
+      console.log("[WizardNavigation] No previous step defined, not navigating.");
     }
   };
 
   const handleNext = () => {
     console.log("[WizardNavigation] handleNext called, isNextDisabled:", isNextDisabled);
     
-    // Extra controle om dubbel te checken dat we niet kunnen navigeren als isNextDisabled true is
     if (isNextDisabled) {
       console.log("[WizardNavigation] Navigatie geblokkeerd omdat isNextDisabled true is");
-      return; // Stop verdere uitvoering
+      return;
+    }
+    
+    if (onNextClick) {
+      onNextClick();
     }
     
     if (nextStep) {
       console.log("[WizardNavigation] Navigeren naar:", nextStep);
-      router.push(nextStep);
+      setTimeout(() => {
+         router.push(nextStep);
+      }, 100);
     }
   };
 

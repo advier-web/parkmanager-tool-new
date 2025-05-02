@@ -3,8 +3,8 @@
  * These models represent the core business entities in our application
  */
 
-import { Asset } from 'contentful';
-import { Document as ContentfulDocument } from '@contentful/rich-text-types'; 
+import { Entry, Asset as ContentfulAsset } from 'contentful';
+import { Document as ContentfulDocumentType } from '@contentful/rich-text-types';
 
 // Import the type we defined in store.ts
 import { SelectedVariantMap } from '../lib/store';
@@ -28,6 +28,7 @@ export interface BusinessParkReason {
 export interface ImplementationVariation {
   id: string;
   title: string;
+  mobiliteitsdienstVariantId?: string; // <-- ADDED: ID of the linked MobilitySolution
   samenvatting?: string | undefined; // Changed type back to string
   investering?: string; // Transformed from Rich Text
   realisatieplan?: string; // Transformed from Rich Text
@@ -60,6 +61,7 @@ export interface MobilitySolution {
   title: string;
   subtitle?: string;
   description?: string; // HTML string from Contentful Rich Text
+  samenvattingKort?: string; // ADDED: Short summary, plain text or markdown
   samenvattingLang?: string; // HTML string from Contentful Rich Text
   implementatie?: string; // HTML string from Contentful Rich Text
   uitvoering?: string; // ADDED: New field for uitvoering
@@ -84,6 +86,7 @@ export interface MobilitySolution {
 
   // Ratings / Scores
   parkeer_bereikbaarheidsproblemen?: number;
+  bereikbaarheidsproblemen?: number;
   gezondheid?: number;
   personeelszorg_en_behoud?: number;
   imago?: number;

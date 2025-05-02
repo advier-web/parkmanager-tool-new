@@ -1,16 +1,18 @@
 'use client';
 
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { GovernanceModel } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
 import Link from 'next/link';
-import { LinkIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { LinkIcon } from '@heroicons/react/24/outline';
 import { SiteHeader } from '@/components/site-header';
 import { SimpleAccordion } from '@/components/simple-accordion';
 
 interface GovernanceModelClientPageProps {
-  model: GovernanceModel | null;
+  model: GovernanceModel | any | null;
 }
 
 export default function GovernanceModelClientPage({ model }: GovernanceModelClientPageProps) {
@@ -36,31 +38,31 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
   console.log('Rendering governance model:', model);
 
-  // Benader de velden voor verschillende databronnen
-  const contentfulFields = (model as any).fields || {};
+  const contentfulFields = model.fields as Record<string, any> || {};
   
-  // Haal voordelen/nadelen data op - probeer eerst normale velden en dan contentful specifieke velden
-  const voordelen = model.advantages || 
+  // Get advantages/disadvantages data - add types if possible
+  const voordelen: string[] = model.advantages || 
                     (model as any).voordelen || 
-                    (contentfulFields.voordelen) || 
+                    (contentfulFields.voordelen as string[]) || 
                     [];
                     
-  const nadelen = model.disadvantages || 
+  const nadelen: string[] = model.disadvantages || 
                  (model as any).nadelen || 
-                 (contentfulFields.nadelen) || 
+                 (contentfulFields.nadelen as string[]) || 
                  [];
   
-  // Haal doorlooptijd data op
-  const doorlooptijd = model.doorlooptijdLang || 
+  // Get lead time data
+  const doorlooptijd: string = model.doorlooptijdLang || 
                       (model as any).doorlooptijdLang || 
-                      (contentfulFields.doorlooptijdLang) || 
+                      (contentfulFields.doorlooptijdLang as string) || 
                       '';
   
-  // Haal links data op
-  const links = model.links || 
+  // Get links data - Link type can be complex (string, object with url/title, Contentful asset)
+  // Using 'unknown[] | string | null' to cover possibilities before checking type
+  const links: unknown[] | string | null = model.links || 
                (model as any).links || 
-               (contentfulFields.links) || 
-               [];
+               contentfulFields.links || 
+               null;
 
   return (
     <>
@@ -137,7 +139,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
               <MarkdownContent content={processMarkdownText(typeof model.benodigdhedenOprichting === 'string' 
                 ? model.benodigdhedenOprichting 
                 : Array.isArray(model.benodigdhedenOprichting) 
-                  ? model.benodigdhedenOprichting.map(item => typeof item === 'string' ? `- ${item}` : '').join('\n') 
+                  ? model.benodigdhedenOprichting.map((item: unknown) => typeof item === 'string' ? `- ${item}` : '').join('\n')
                   : ''
               )} />
             </div>
@@ -193,10 +195,13 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                         }
                       }
                       
-                      // Voor objecten met url/title properties
+                      // Object check
                       if (typeof link === 'object' && link !== null && 'url' in link) {
                         const url = link.url as string;
-                        const title = link.title as string || extractUrlTitle(url);
+                        // Check if title exists and is a string
+                        const title = (typeof (link as any).title === 'string') 
+                                        ? (link as any).title as string 
+                                        : extractUrlTitle(url); // Fallback to extracting from URL
                         
                         return (
                           <li key={index} className="flex items-center">

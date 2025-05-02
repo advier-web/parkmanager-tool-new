@@ -1,18 +1,18 @@
 export interface GovernanceModel {
   title: string;
-  description: string;
+  description: unknown;
   sys?: { id: string };
   id?: string;
   summary?: string;
-  advantages?: string[];
-  disadvantages?: string[];
+  advantages: unknown;
+  disadvantages: unknown;
   applicableScenarios?: string[];
   organizationalStructure?: string;
   legalForm?: string;
   stakeholders?: string[];
   samenvatting?: string;
   aansprakelijkheid?: string;
-  benodigdhedenOprichting?: any;
+  benodigdhedenOprichting?: unknown;
   doorlooptijd?: string;
   doorlooptijdLang?: string;
   implementatie?: string;
@@ -24,7 +24,7 @@ export interface MobilitySolution {
   title: string;
   slug: string;
   coverImage?: string;
-  paspoort?: string;
+  paspoort?: any;
   description?: string;
   collectiefVsIndiviueel?: string;
   // effecten?: string;
@@ -56,4 +56,10 @@ export interface MobilityType {
   description: string;
   samenvattingLang?: string;
   benefits: string[];
+}
+
+export interface ScoreCorrection {
+  solutionId: string;
+  reasonId: string;
+  newValue: number;
 } 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode } from 'react';
-import { MobilitySolution, GovernanceModel, BusinessParkReason } from '../domain/models';
+import { MobilitySolution, GovernanceModel, BusinessParkReason, ImplementationVariation } from '../domain/models';
 
 interface DialogContextType {
   isOpen: boolean;
@@ -10,7 +10,8 @@ interface DialogContextType {
   compatibleGovernanceModels: GovernanceModel[] | null;
   currentGovernanceModel: GovernanceModel | null;
   currentReason: BusinessParkReason | null;
-  openSolutionDialog: (solution: MobilitySolution, governanceModels: GovernanceModel[]) => void;
+  currentVariations: ImplementationVariation[] | null;
+  openSolutionDialog: (solution: MobilitySolution, governanceModels: GovernanceModel[], variations: ImplementationVariation[]) => void;
   openGovernanceDialog: (model: GovernanceModel) => void;
   openReasonDialog: (reason: BusinessParkReason) => void;
   closeDialog: () => void;
@@ -25,10 +26,12 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const [compatibleGovernanceModels, setCompatibleGovernanceModels] = useState<GovernanceModel[] | null>(null);
   const [currentGovernanceModel, setCurrentGovernanceModel] = useState<GovernanceModel | null>(null);
   const [currentReason, setCurrentReason] = useState<BusinessParkReason | null>(null);
+  const [currentVariations, setCurrentVariations] = useState<ImplementationVariation[] | null>(null);
 
-  const openSolutionDialog = (solution: MobilitySolution, governanceModels: GovernanceModel[]) => {
+  const openSolutionDialog = (solution: MobilitySolution, governanceModels: GovernanceModel[], variations: ImplementationVariation[]) => {
     setCurrentSolution(solution);
     setCompatibleGovernanceModels(governanceModels);
+    setCurrentVariations(variations);
     setCurrentGovernanceModel(null);
     setCurrentReason(null);
     setDialogType('solution');
@@ -66,6 +69,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         compatibleGovernanceModels,
         currentGovernanceModel,
         currentReason,
+        currentVariations,
         openSolutionDialog,
         openGovernanceDialog,
         openReasonDialog,

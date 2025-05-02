@@ -65,6 +65,35 @@ Dit document bevat het implementatieplan voor de nieuwe ParkManager Tool, met ee
 - [x] Final checks en kleinere bug fixes
 - [ ] Deployment naar productie
 
+### Fase 6: Housekeeping en Robuustheid Verbeteren (TODO)
+
+Deze fase richt zich op het opschonen van de codebase, het oplossen van resterende technische schulden en het verhogen van de algehele robuustheid en onderhoudbaarheid, volgend op de debug-sessie van 1 mei 2025.
+
+-   **[ ] Contentful Type Generatie Oplossen:**
+    -   Onderzoek waarom de gegenereerde types (bv. `IBusinessParkReason`, `IMobilityService`) niet voldoen aan `EntrySkeletonType` (missen `contentTypeId`).
+    -   Update `contentful-typescript-codegen` script of configuratie indien nodig.
+    -   Regenereer types en pas de code aan om de correcte, gegenereerde types te gebruiken (verwijder `any` workarounds in `contentful-service.ts` en `transforms/contentful.ts`).
+
+-   **[ ] Resterende Linter Errors Oplossen (`no-explicit-any`, `no-unused-vars`, etc.):**
+    -   Loop systematisch door de output van `npm run lint` (nadat de build checks zijn aangezet).
+    -   Vervang `any` door specifiekere types waar mogelijk.
+    -   Verwijder alle resterende ongebruikte variabelen, imports en functies.
+    -   Los overige linter waarschuwingen op (bv. `exhaustive-deps`, `prefer-const`).
+
+-   **[ ] Transformatie Logica Refactoren:**
+    -   Verplaats de inline transformatielogica voor `MobilitySolution` vanuit `contentful-service.ts` terug naar een aparte `transformMobilitySolution` functie in `transforms/contentful.ts`.
+    -   Test grondig of het serialisatieprobleem (het wegvallen van velden tussen server en client) hierdoor niet terugkomt.
+    -   Indien het probleem terugkomt, behoud de inline logica of implementeer de handmatige `JSON.stringify`/`parse` workaround als definitieve oplossing en documenteer dit.
+
+-   **[ ] Build Checks Heractiveren:**
+    -   Zet `ignoreDuringBuilds` en `ignoreBuildErrors` terug op `false` in `next.config.js`.
+    -   Zorg dat `npm run build` slaagt *met* de actieve checks.
+
+-   **[ ] Code Review en Verdere Optimalisaties:**
+    -   Loop kritisch door de codebase op zoek naar verdere verbeterpunten qua structuur, leesbaarheid en performance.
+    -   Controleer of alle data correct wordt weergegeven op alle pagina's.
+    -   Overweeg het toevoegen van meer unit- en integratietests.
+
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)

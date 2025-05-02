@@ -1,9 +1,9 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useWizardStore } from '@/lib/store';
-import { useBusinessParkReasons, useGovernanceModels, useMobilitySolutions } from '@/hooks/use-domain-models';
-import { useMemo } from 'react';
+import { useWizardStore } from '@/store/wizard-store';
+import { useBusinessParkReasons, useGovernanceModels, useMobilitySolutions, useImplementationVariations } from '@/hooks/use-domain-models';
+import { useMemo, useState, useEffect } from 'react';
 import { ImplementationVariation } from '@/domain/models';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
@@ -26,6 +26,14 @@ interface WizardChoicesSummaryProps {
 }
 
 export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryProps) {
+  // --- Client-side mount state ---
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  // --- End client-side mount state ---
+
+  const hasHydrated = useWizardStore(state => state._hasHydrated);
   const pathname = usePathname();
   // Handle potential null pathname
   const currentStep = pathname ? getStepFromPathname(pathname) : 0; 
@@ -42,6 +50,8 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
   const { data: reasons, isLoading: isLoadingReasons } = useBusinessParkReasons();
   const { data: solutions, isLoading: isLoadingSolutions } = useMobilitySolutions();
   const { data: governanceModels, isLoading: isLoadingModels } = useGovernanceModels();
+  // Fetch all variations within the component
+  const { data: allImplementationVariations, isLoading: isLoadingVariations } = useImplementationVariations();
 
   // --- Process selected data ---
   const currentGovernanceModelTitle = useMemo(() => {
@@ -69,15 +79,22 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
   }, [governanceModels, selectedGovernanceModelId, isLoadingModels]);
   
   // --- Loading State ---
-  // We only care about loading data relevant *up to* the previous step
+  // Add isLoadingVariations to the check
   const isLoadingRelevantData = 
+     !hasHydrated || // Wait for hydration first
      (currentStep > 0 && isLoadingModels) || 
      (currentStep > 1 && isLoadingReasons) || 
-     (currentStep > 2 && isLoadingSolutions); 
+     (currentStep > 2 && (isLoadingSolutions || isLoadingVariations)); // Add variation loading check for steps >= 3
 
-  // Don't render anything for step 0 or if essential data is loading
-  if (currentStep === 0) {
-    return null; 
+  // Don't render anything for step 0 or if not hydrated
+  if (currentStep === 0 || !hasHydrated) { 
+    // Render loading state until hydrated (and not step 0)
+    return (
+       <div className="bg-white rounded-lg p-6 shadow-even space-y-5 mb-8">
+         <h3 className="text-lg font-semibold border-b pb-2 mb-3">Uw keuzes</h3>
+         <p className="text-sm text-gray-500">Keuzes laden...</p>
+       </div>
+    );
   }
 
   return (
@@ -133,10 +150,12 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
                   ?.filter(s => selectedSolutions.includes(s.id) && selectedVariants[s.id])
                   .map(s => {
                     const variantId = selectedVariants[s.id];
-                    const variation = variationsData?.find(v => v.id === variantId);
-                    const displayTitle = variation ? stripSolutionPrefixFromVariantTitle(variation.title) : variantId;
+                    // Find variation details in the fetched list
+                    const variation = allImplementationVariations?.find(v => v.id === variantId);
+                    // REMOVED Debug Log
+                    const displayTitle = variation ? stripSolutionPrefixFromVariantTitle(variation.title) : variantId; // Fallback remains ID
                     return (
-                      <li key={s.id}>{displayTitle}</li>
+                      <li key={s.id}>{displayTitle || 'Niet gevonden'}</li> // Show title or fallback
                     );
                   })}
               </ul>

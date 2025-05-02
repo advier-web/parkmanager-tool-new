@@ -41,15 +41,18 @@ export function GovernanceCard({
         return null;
       }
       const text = (variation as any)[fieldName]; 
-      if (!text) return null;
+      if (!text || typeof text !== 'string') {
+         return null;
+      }
       const displayVariationTitle = stripSolutionPrefixFromVariantTitle(variation.title);
       return { variationTitle: displayVariationTitle, text };
     }).filter(item => item !== null) as { variationTitle: string; text: string }[] | undefined;
 
   return (
     <div
+      onClick={() => onSelect(model.id)}
       className={`
-        p-6 rounded-lg transition-all relative
+        p-6 rounded-lg transition-all relative cursor-pointer
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-md' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
@@ -67,9 +70,9 @@ export function GovernanceCard({
         )}
         
         {isConditionalRecommended && (
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md mr-1">
-            Aanbevolen, mits...
-          </span>
+          <div className="absolute top-2 right-2 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center">
+            Aanbevolen, mits
+          </div>
         )}
         
         {isCurrent && (
@@ -85,7 +88,7 @@ export function GovernanceCard({
             type="radio"
             className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer"
             checked={isSelected}
-            onChange={() => onSelect(model.id)}
+            onChange={() => { /* Main div handles select */ }}
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -97,7 +100,10 @@ export function GovernanceCard({
             {/* Select button for smaller screens */}
             <button
               type="button"
-              onClick={() => onSelect(model.id)}
+              onClick={(e) => { 
+                e.stopPropagation();
+                onSelect(model.id); 
+              }}
               className="md:hidden inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
             >
               {isSelected ? 'Geselecteerd' : 'Selecteren'}
@@ -114,8 +120,6 @@ export function GovernanceCard({
                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Relevantie voor geselecteerde implementatievariant:</h4>
                  {variantSpecificTexts.map(({ variationTitle, text }, index) => (
                   <div key={index} className="text-sm text-gray-700">
-                    {/* Don't display the variant title here anymore based on previous request */}
-                    {/* <p className="font-medium">Variant: "{variationTitle}"</p> */}
                     <div className="pl-2 prose prose-sm max-w-none"><MarkdownContent content={processMarkdownText(text)} /></div>
                   </div>
                  ))}
@@ -140,7 +144,10 @@ export function GovernanceCard({
             {/* Select button for larger screens */}
             <button
               type="button"
-              onClick={() => onSelect(model.id)}
+              onClick={(e) => { 
+                e.stopPropagation();
+                onSelect(model.id); 
+              }}
               className="hidden md:inline-flex items-center px-3 py-1.5 border border-blue-600 text-sm text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer"
             >
               {isSelected ? 'Geselecteerd' : 'Selecteren'}

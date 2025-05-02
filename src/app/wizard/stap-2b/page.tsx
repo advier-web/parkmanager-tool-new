@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useWizardStore } from '@/lib/store';
+import { useWizardStore } from '@/store/wizard-store';
 import { getImplementationVariationsForSolution, getMobilitySolutionById } from '@/services/contentful-service'; // Assuming getMobilitySolutionById exists
 import { ImplementationVariation, MobilitySolution } from '@/domain/models';
 import { WizardNavigation } from '@/components/wizard-navigation';
@@ -14,18 +14,19 @@ interface SolutionWithVariations {
 }
 
 export default function SelectImplementationVariantPage() {
-  console.log('[Stap 2b Page] Component mounting...'); // Log component mount
-  const { selectedSolutions, selectedVariants, setSelectedVariant } = useWizardStore();
+  const { selectedSolutions, selectedVariants, setSelectedVariant, _hasHydrated } = useWizardStore();
   const [data, setData] = useState<Record<string, SolutionWithVariations>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('[Stap 2b Page] useEffect triggered.'); // Log useEffect trigger
+    // Wait for hydration before fetching
+    if (!_hasHydrated) {
+       return; 
+    }
+
     async function fetchData() {
-      console.log('[Stap 2b Page] fetchData called. selectedSolutions:', selectedSolutions); // Log selectedSolutions
       if (selectedSolutions.length === 0) {
-        console.log('[Stap 2b Page] No solutions selected, skipping fetch.');
         setIsLoading(false);
         return;
       }
@@ -36,25 +37,20 @@ export default function SelectImplementationVariantPage() {
 
       try {
         for (const solutionId of selectedSolutions) {
-          console.log(`[Stap 2b] Attempting to fetch solution with ID: ${solutionId}`);
-          // Fetch solution details (optional, for context)
           const solution = await getMobilitySolutionById(solutionId);
-          // Fetch variations for this solution
           const variations = await getImplementationVariationsForSolution(solutionId);
           fetchedData[solutionId] = { solution, variations };
         }
         setData(fetchedData);
       } catch (err) {
-        console.error("Error fetching data for Stap 2b:", err);
         setError("Kon de implementatievarianten niet laden.");
       } finally {
-        console.log('[Stap 2b Page] fetchData finished.'); // Log fetch data end
         setIsLoading(false);
       }
     }
 
     fetchData();
-  }, [selectedSolutions]);
+  }, [selectedSolutions, _hasHydrated]);
 
   const handleSelectVariation = (solutionId: string, variationId: string) => {
     setSelectedVariant(solutionId, variationId);

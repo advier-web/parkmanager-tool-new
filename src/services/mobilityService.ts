@@ -1,6 +1,14 @@
 import { getMobilitySolutionForPdf as getContentfulMobilitySolution } from '@/services/contentful-service';
 import { MobilitySolution, GovernanceModel } from '../types/mobilityTypes';
 import { getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
+import { ImplementationVariation } from '../domain/models';
+
+interface FetchParams {
+  page?: number;
+  limit?: number;
+  filter?: string; // Example filter parameter
+  // Add other expected parameters here
+}
 
 // Verzamel mobiliteitsoplossing data voor een pdf
 export const getMobilitySolutionForPdf = async (mobilityServiceId: string): Promise<MobilitySolution> => {
@@ -233,5 +241,41 @@ export const getMockGovernanceModelForPdf = async (): Promise<GovernanceModel> =
     doorlooptijdLang: "De gemiddelde doorlooptijd voor het opzetten van een coöperatief model is 6-12 maanden.",
     implementatie: "Het implementatietraject verloopt in vier fasen: initiatie, formalisatie, operationalisatie, en evaluatie."
   };
+};
+
+// Function to get governance info, now expects ImplementationVariation
+const getGovernanceInfoForSolution = (variation: ImplementationVariation | undefined) => {
+  if (!variation) {
+    return { title: 'Geen variant informatie', content: '' };
+  }
+  // Check specific variation fields for governance info
+  if (variation.geenRechtsvorm) return { title: "Geen Rechtsvorm Nodig", content: variation.geenRechtsvorm };
+  if (variation.vereniging) return { title: "Vereniging", content: variation.vereniging };
+  if (variation.stichting) return { title: "Stichting", content: variation.stichting };
+  if (variation.ondernemersBiz) return { title: "Ondernemers BIZ", content: variation.ondernemersBiz };
+  if (variation.vastgoedBiz) return { title: "Vastgoed BIZ", content: variation.vastgoedBiz };
+  if (variation.gemengdeBiz) return { title: "Gemengde BIZ", content: variation.gemengdeBiz };
+  if (variation.cooperatieUa) return { title: "Coöperatie U.A.", content: variation.cooperatieUa };
+  if (variation.bv) return { title: "B.V.", content: variation.bv };
+  if (variation.ondernemersfonds) return { title: "Ondernemersfonds", content: variation.ondernemersfonds };
+
+  // Fallback or check linked governance models if direct text fields are empty
+  if (variation.governanceModels && variation.governanceModels.length > 0) {
+     // Logic to potentially fetch/display linked model names
+     return { title: "Gekoppelde Modellen", content: `Zie modellen: ${variation.governanceModels.map(ref => ref.sys.id).join(', ')}` };
+  }
+
+  return { title: 'Governance Informatie', content: 'Niet gespecificeerd voor deze variant.' };
+};
+
+export const mobilityService = {
+  async fetchSolutions(params: FetchParams = {}): Promise<MobilitySolution[]> {
+    // ... implementation using params.page, params.limit etc.
+    console.log("Fetching solutions with params:", params);
+    // Replace with actual API call
+    return Promise.resolve([]); 
+  },
+
+  // Other service methods...
 };
 

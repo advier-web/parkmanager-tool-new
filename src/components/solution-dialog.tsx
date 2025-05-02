@@ -1,28 +1,32 @@
 'use client';
 
+import React from 'react';
 import { useDialog } from '../contexts/dialog-context';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { MarkdownWithAccordions } from './markdown-with-accordions';
 import { useEffect } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { BiDollar } from 'react-icons/bi';
+import { GovernanceModel } from '@/domain/models';
+import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 export function SolutionDialog() {
-  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, closeDialog } = useDialog();
+  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, currentVariations, closeDialog } = useDialog();
 
   // Debug logs for troubleshooting
   useEffect(() => {
     if (dialogType === 'solution' && currentSolution) {
       console.log('Current Solution:', currentSolution);
       console.log('Compatible Governance Models:', compatibleGovernanceModels);
+      console.log('Current Variations:', currentVariations);
       
       // Debug all available compatible governance models
       if (Array.isArray(compatibleGovernanceModels)) {
         console.log('ALL COMPATIBLE MODELS:', compatibleGovernanceModels.map(model => ({ id: model.id, title: model.title })));
       }
     }
-  }, [dialogType, currentSolution, compatibleGovernanceModels]);
+  }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
   if (!isOpen) {
     return null;
@@ -66,15 +70,21 @@ export function SolutionDialog() {
 
   // Show solution information dialog
   if (dialogType === 'solution' && currentSolution) {
-    // Nieuwe velden uit Contentful toegevoegd
-    const paspoort = currentSolution.paspoort || '';
-    const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel || '';
-    // const effecten = currentSolution.effecten || ''; // Verwijderd uit Contentful
-    const investering = currentSolution.costs || '';
+    // Keep needed variables
+    const samenvattingLang = currentSolution.samenvattingLang;
+    const description = currentSolution.description;
+    const uitvoering = currentSolution.uitvoering;
+    const inputBusinesscase = currentSolution.inputBusinesscase;
+    const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel;
+
+    // Remove unused variables
+    // const paspoort = currentSolution.paspoort || '';
+    // const investering = currentSolution.costs || '';
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
         <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentSolution.title}</h2>
             <button
@@ -85,98 +95,84 @@ export function SolutionDialog() {
             </button>
           </div>
           
-          <div className="p-6">
-            {/* Paspoort (nieuw veld) */}
-            {paspoort && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold mb-2">Paspoort</h2>
-                <MarkdownWithAccordions content={paspoort} />
-                <div className="border-b border-gray-200 mt-6"></div>
+          {/* Content Area */}
+          <div className="p-6 space-y-6"> 
+
+            {/* Samenvatting Lang */}
+            {samenvattingLang && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Samenvatting</h2>
+                <MarkdownWithAccordions content={samenvattingLang} />
               </section>
             )}
-            
-            {/* Solution description */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
-              <MarkdownWithAccordions content={currentSolution.description || ''} />
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
-            
-            {/* Collectief vs Individueel (nieuw veld) */}
+
+            {/* Beschrijving */}
+            {description && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
+                <MarkdownWithAccordions content={description} />
+              </section>
+            )}
+
+            {/* Uitvoering */}
+            {uitvoering && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Uitvoering</h2>
+                <MarkdownWithAccordions content={uitvoering} />
+              </section>
+            )}
+
+            {/* Input Business Case */}
+            {inputBusinesscase && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Input voor Business Case</h2>
+                <MarkdownWithAccordions content={inputBusinesscase} />
+              </section>
+            )}
+
+            {/* Implementatievarianten - Render met details uit currentVariations */}
+            {currentVariations && currentVariations.length > 0 && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Implementatievarianten</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {currentVariations.map((variation, index) => { 
+                    const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+                    return (
+                     <div key={variation.id || index} className="border border-gray-200 rounded-lg p-6 shadow-sm bg-white">
+                       <h3 className="text-xl font-semibold mb-3 text-teal-700">{displayTitle}</h3>
+                       {variation.samenvatting ? (
+                         <div className="prose prose-sm max-w-none text-gray-600">
+                           <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
+                         </div>
+                       ) : (
+                         <p className="text-gray-500 italic text-sm">Geen samenvatting beschikbaar.</p>
+                       )}
+                     </div>
+                   );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Collectief vs Individueel */}
             {collectiefVsIndiviueel && (
-              <section className="mb-6">
+              <section>
                 <h2 className="text-xl font-bold mb-2">Collectief vs Individueel</h2>
                 <MarkdownWithAccordions content={collectiefVsIndiviueel} />
-                <div className="border-b border-gray-200 mt-6"></div>
               </section>
             )}
-            
-            {/* Investering (nieuw veld, uses costs) */}
-            {investering && (
-              <section className="mb-6">
-                <h2 className="text-xl font-bold mb-2">Investering</h2>
-                <MarkdownWithAccordions content={investering} />
-                <div className="border-b border-gray-200 mt-6"></div>
-              </section>
-            )}
-            
-            {/* --- NEW: Investering Section --- */}
-            {currentSolution?.investering && (() => {
-              const rawText = currentSolution.investering;
-              // Remove variant tags directly inline
-              const startTagRegex = /:::variant\[.*?\]\s*\n?/g;
-              const endTagRegex = /\s*\n?:::/g;
-              let cleanedText = rawText.replace(startTagRegex, '');
-              cleanedText = cleanedText.replace(endTagRegex, '').trim();
 
-              return (
-                <div className="mt-6 pt-4 border-t">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
-                    <BiDollar className="h-5 w-5 mr-2 text-green-600" />
-                    Investering
-                  </h3>
-                  <div className="prose prose-sm max-w-none text-gray-600">
-                    <MarkdownContent content={processMarkdownText(cleanedText)} />
-                  </div>
-                </div>
-              );
-            })()}
-            {/* --- END NEW --- */}
-            
-            {/* Compatible governance models */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Geschikte governance modellen</h2>
-              
-              {/* Render models helper function */}
-              {(() => {
-                // Check if we have the necessary data
-                if (!compatibleGovernanceModels || !Array.isArray(compatibleGovernanceModels) || compatibleGovernanceModels.length === 0) {
-                  return <p className="text-gray-500 italic my-4">Geen governance modellen beschikbaar.</p>;
-                }
-                
-                return (
-                  <ul className="divide-y divide-gray-200">
-                    {compatibleGovernanceModels.map((model, index) => {
-                      const beschrijving = model.summary || model.description || '';
-                      
-                      return (
-                        <li key={index} className="py-4">
-                          <h3 className="font-semibold text-gray-800 mb-1">{model.title}</h3>
-                          <div className="prose prose-sm max-w-none text-gray-600">
-                            {/* Toon de algemene beschrijving/summary */}
-                            <MarkdownContent content={processMarkdownText(beschrijving)} />
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                );
-              })()}
-              
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
+            {/* Uitgecommenteerde secties */}
+            {/*
+            {paspoort && (<section>...</section>)} // Paspoort is uit
+            {investering && (<section>...</section>)} // Investering (costs) is uit
+            {currentSolution?.investering && (...)} // Dubbele investering is uit
+            <section><h2>Geschikte governance modellen</h2>...</section> // Governance modellen is uit
+            */}
+
           </div>
           
+          {/* Footer */}
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
             <button
               onClick={closeDialog}
@@ -197,34 +193,20 @@ export function SolutionDialog() {
 
   // Show governance model information dialog
   if (dialogType === 'governance' && currentGovernanceModel) {
-    // Log model data for debugging
-    console.log('Governance model data - title:', currentGovernanceModel.title);
-    console.log('Governance model data - description:', currentGovernanceModel.description);
+    // REMOVED Debug logs for model data
     
-    // Try to access fields from both standard model structure and contentful-specific structure
-    const advantages = currentGovernanceModel.advantages || 
-                      (currentGovernanceModel as any).voordelen || 
-                      [];
+    // Use GovernanceModel type where possible, cast to any for potential Contentful fields
+    const typedModel = currentGovernanceModel as GovernanceModel;
+    const anyModel = currentGovernanceModel as any;
     
-    const disadvantages = currentGovernanceModel.disadvantages || 
-                         (currentGovernanceModel as any).nadelen || 
-                         [];
+    const advantages = typedModel.advantages || anyModel.voordelen || [];
+    const disadvantages = typedModel.disadvantages || anyModel.nadelen || [];
+    const benodigdheden = typedModel.benodigdhedenOprichting || anyModel.benodigdhedenOprichting || [];
+    const links = typedModel.links || anyModel.links || [];
+    const doorlooptijdLang = typedModel.doorlooptijdLang || anyModel.doorlooptijdLang || '';
+    const aansprakelijkheid = typedModel.aansprakelijkheid || anyModel.aansprakelijkheid || '';
     
-    // Special fields access
-    const benodigdheden = currentGovernanceModel.benodigdhedenOprichting || 
-                         (currentGovernanceModel as any).benodigdhedenOprichting ||
-                         [];
-                         
-    const links = currentGovernanceModel.links || 
-                 (currentGovernanceModel as any).links || 
-                 [];
-    
-    const doorlooptijdLang = currentGovernanceModel.doorlooptijdLang || 
-                        (currentGovernanceModel as any).doorlooptijdLang || 
-                        '';
-    
-    // If fields contains a direct contentful fields object, try to use it
-    const contentfulFields = (currentGovernanceModel as any).fields || {};
+    // const contentfulFields = (currentGovernanceModel as any).fields || {}; // Keep this approach for direct field access if needed
     
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
@@ -239,151 +221,67 @@ export function SolutionDialog() {
             </button>
           </div>
           
-          <div className="p-6">
-            {/* Governance model description */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
-              <MarkdownContent content={processMarkdownText(currentGovernanceModel.description || '')} />
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
-            
-            {/* Advantages and disadvantages */}
-            <section className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h2 className="text-xl font-bold mb-2">Voordelen</h2>
-                  {Array.isArray(advantages) && advantages.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                      {advantages.map((advantage, index) => renderListItem(advantage, index))}
-                    </ul>
-                  ) : contentfulFields.voordelen && Array.isArray(contentfulFields.voordelen) ? (
-                    <ul className="list-disc pl-5">
-                      {contentfulFields.voordelen.map((item: string, idx: number) => renderListItem(item, idx))}
-                    </ul>
-                  ) : contentfulFields.voordelen && typeof contentfulFields.voordelen === 'string' ? (
-                    <ul className="list-disc pl-5">
-                      <li><MarkdownContent content={processMarkdownText(contentfulFields.voordelen)} /></li>
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic">Geen voordelen beschikbaar</p>
-                  )}
-                </div>
-                
-                <div>
-                  <h2 className="text-xl font-bold mb-2">Nadelen</h2>
-                  {Array.isArray(disadvantages) && disadvantages.length > 0 ? (
-                    <ul className="list-disc pl-5">
-                      {disadvantages.map((disadvantage, index) => renderListItem(disadvantage, index))}
-                    </ul>
-                  ) : contentfulFields.nadelen && Array.isArray(contentfulFields.nadelen) ? (
-                    <ul className="list-disc pl-5">
-                      {contentfulFields.nadelen.map((item: string, idx: number) => renderListItem(item, idx))}
-                    </ul>
-                  ) : contentfulFields.nadelen && typeof contentfulFields.nadelen === 'string' ? (
-                    <ul className="list-disc pl-5">
-                      <li><MarkdownContent content={processMarkdownText(contentfulFields.nadelen)} /></li>
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic">Geen nadelen beschikbaar</p>
-                  )}
-                </div>
+          <div className="p-6 space-y-4 text-sm text-gray-700">
+            {/* Use the typed variables */} 
+            {typedModel.description && (
+              <div>
+                <h3 className="text-base font-semibold mb-1">Beschrijving</h3>
+                <MarkdownContent content={processMarkdownText(typedModel.description)} />
               </div>
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
-            
-            {/* Setup requirements */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Benodigdheden voor oprichting</h2>
-              <div className="text-gray-700">
-                {typeof benodigdheden === 'string' ? (
+            )}
+            {/* ADDED Aansprakelijkheid section */} 
+            {aansprakelijkheid && (
+              <div>
+                <h3 className="text-base font-semibold mb-1">Aansprakelijkheid</h3>
+                <MarkdownContent content={processMarkdownText(aansprakelijkheid)} />
+              </div>
+            )}
+            {/* Render advantages as Markdown if it's a string (or first element of array) */}
+            {advantages && advantages.length > 0 && (
+              <div>
+                <h3 className="text-base font-semibold mb-1">Voordelen</h3>
+                {typeof advantages[0] === 'string' ? (
+                  <MarkdownContent content={processMarkdownText(advantages[0])} />
+                ) : (
+                  /* Optional: Handle array case differently if needed later */ 
+                  <ul className="list-disc pl-5">
+                    {advantages.map(renderListItem)}
+                  </ul>
+                )}
+              </div>
+            )}
+             {/* Render disadvantages as Markdown if it's a string (or first element of array) */}
+            {disadvantages && disadvantages.length > 0 && (
+              <div>
+                <h3 className="text-base font-semibold mb-1">Nadelen</h3>
+                 {typeof disadvantages[0] === 'string' ? (
+                  <MarkdownContent content={processMarkdownText(disadvantages[0])} />
+                ) : (
+                   /* Optional: Handle array case differently if needed later */ 
+                  <ul className="list-disc pl-5">
+                    {disadvantages.map(renderListItem)}
+                  </ul>
+                )}
+              </div>
+            )}
+            {/* Render benodigdheden based on type */} 
+            {benodigdheden && (
+              <div>
+                <h3 className="text-base font-semibold mb-1">Benodigdheden Oprichting</h3>
+                {Array.isArray(benodigdheden) ? (
+                  <ul className="list-disc pl-5">
+                    {benodigdheden.map(renderListItem)}
+                  </ul>
+                ) : typeof benodigdheden === 'string' ? (
                   <MarkdownContent content={processMarkdownText(benodigdheden)} />
-                ) : Array.isArray(benodigdheden) && benodigdheden.length > 0 ? (
-                  <ul className="list-disc pl-5">
-                    {benodigdheden.map((item, index) => renderListItem(item, index))}
-                  </ul>
-                ) : contentfulFields.benodigdhedenOprichting && typeof contentfulFields.benodigdhedenOprichting === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(contentfulFields.benodigdhedenOprichting)} />
-                ) : contentfulFields.benodigdhedenOprichting && Array.isArray(contentfulFields.benodigdhedenOprichting) ? (
-                  <ul className="list-disc pl-5">
-                    {contentfulFields.benodigdhedenOprichting.map((item: string, idx: number) => renderListItem(item, idx))}
-                  </ul>
                 ) : (
-                  <p className="text-sm text-gray-500 italic">Geen benodigdheden beschikbaar</p>
+                  <p className="text-sm italic text-gray-500">Kon benodigdheden niet weergeven (onverwacht type).</p>
                 )}
               </div>
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
-            
-            {/* Timeline */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Doorlooptijd</h2>
-              <div className="text-gray-700">
-                {doorlooptijdLang || contentfulFields.doorlooptijdLang ? (
-                  <MarkdownContent content={processMarkdownText(doorlooptijdLang || contentfulFields.doorlooptijdLang)} />
-                ) : (
-                  <span className="text-gray-500 italic">Niet gespecificeerd</span>
-                )}
-              </div>
-              <div className="border-b border-gray-200 mt-6"></div>
-            </section>
-            
-            {/* Links */}
-            <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Links</h2>
-              <div className="text-gray-700">
-                {typeof links === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(links)} />
-                ) : Array.isArray(links) && links.length > 0 ? (
-                  <ul className="list-disc pl-5">
-                    {links.map((link, index) => {
-                      // Controleer of het een URL is en converteer indien nodig
-                      const isUrl = link.match(/https?:\/\/[^\s]+/);
-                      if (isUrl) {
-                        return (
-                          <li key={index}>
-                            <a 
-                              href={link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {link}
-                            </a>
-                          </li>
-                        );
-                      }
-                      return renderListItem(link, index);
-                    })}
-                  </ul>
-                ) : contentfulFields.links && typeof contentfulFields.links === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(contentfulFields.links)} />
-                ) : contentfulFields.links && Array.isArray(contentfulFields.links) ? (
-                  <ul className="list-disc pl-5">
-                    {contentfulFields.links.map((link: string, idx: number) => {
-                      // Controleer of het een URL is en converteer indien nodig
-                      const isUrl = link.match(/https?:\/\/[^\s]+/);
-                      if (isUrl) {
-                        return (
-                          <li key={idx}>
-                            <a 
-                              href={link} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {link}
-                            </a>
-                          </li>
-                        );
-                      }
-                      return renderListItem(link, idx);
-                    })}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">Geen links beschikbaar</p>
-                )}
-              </div>
-            </section>
+            )}
+            {/* REMOVED Links section */}
+            {/* REMOVED Doorlooptijd section */}
+            {/* ... Potentially render other fields from typedModel ... */}
           </div>
           
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">

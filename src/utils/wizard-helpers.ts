@@ -1,3 +1,6 @@
+import { BusinessParkReason, MobilitySolution, GovernanceModel, ImplementationVariation } from '../domain/models';
+import { SelectedVariantMap } from '../lib/store';
+
 // Helper function to extract relevant implementation text based on :::variant[Name]...::: syntax
 // Moved from stap-4/page.tsx
 export const extractImplementationText = (
@@ -214,10 +217,72 @@ export const stripSolutionPrefixFromVariantTitle = (fullVariantTitle: string | u
   return fullVariantTitle; // Return original if separator not found
 };
 
-// Ensure extractImplementationSummaryFromVariant is defined only once
-// (Assuming the first definition is the correct one to keep)
-/* Remove the second definition if it exists here 
-export const extractImplementationSummaryFromVariant = (variant: ImplementationVariation | null | undefined): string => { 
-  // ... second implementation ... 
-}; 
-*/
+// Helper function to find an implementation variation by ID
+export function findVariationById(variations: ImplementationVariation[] | undefined, id: string | null): ImplementationVariation | undefined {
+  if (!variations || !id) return undefined;
+  return variations.find(v => v.id === id);
+}
+
+// Function to determine if a model is recommended based on variation links
+export function isModelRecommended(modelId: string, variation: ImplementationVariation | undefined): boolean {
+  if (!variation || !variation.governanceModels) return false;
+  return variation.governanceModels.some(ref => ref.sys?.id === modelId);
+}
+
+// Function to determine if a model is conditionally recommended
+export function isModelConditionallyRecommended(modelId: string, variation: ImplementationVariation | undefined): boolean {
+  if (!variation || !variation.governanceModelsMits) return false;
+  // Ensure it's not already in the main recommended list
+  if (isModelRecommended(modelId, variation)) return false; 
+  return variation.governanceModelsMits.some(ref => ref.sys?.id === modelId);
+}
+
+// Function to determine if a model is unsuitable
+export function isModelUnsuitable(modelId: string, variation: ImplementationVariation | undefined): boolean {
+  if (!variation || !variation.governanceModelsNietgeschikt) return false;
+  // Ensure it's not in recommended or conditional lists
+  if (isModelRecommended(modelId, variation) || isModelConditionallyRecommended(modelId, variation)) return false;
+  return variation.governanceModelsNietgeschikt.some(ref => ref.sys?.id === modelId);
+}
+
+// Function to categorize governance models for a set of variations
+export function categorizeGovernanceModels(
+  allModels: GovernanceModel[],
+  variations: ImplementationVariation[]
+): {
+  recommended: GovernanceModel[];
+  conditional: GovernanceModel[];
+  unsuitable: GovernanceModel[];
+  other: GovernanceModel[];
+} {
+  const result = {
+    recommended: [] as GovernanceModel[],
+    conditional: [] as GovernanceModel[],
+    unsuitable: [] as GovernanceModel[],
+    other: [] as GovernanceModel[],
+  };
+
+  allModels.forEach(model => {
+    let isRecommended = false;
+    let isConditional = false;
+    let isUnsuitable = false;
+
+    variations.forEach(variation => {
+      if (isModelRecommended(model.id, variation)) isRecommended = true;
+      if (isModelConditionallyRecommended(model.id, variation)) isConditional = true;
+      if (isModelUnsuitable(model.id, variation)) isUnsuitable = true;
+    });
+
+    if (isRecommended) {
+      result.recommended.push(model);
+    } else if (isConditional) {
+      result.conditional.push(model);
+    } else if (isUnsuitable) {
+      result.unsuitable.push(model);
+    } else {
+      result.other.push(model);
+    }
+  });
+
+  return result;
+}

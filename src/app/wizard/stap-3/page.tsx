@@ -1,23 +1,28 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useGovernanceModels } from '../../../hooks/use-domain-models';
-import { useWizardStore } from '../../../lib/store';
+import { useWizardStore } from '@/store/wizard-store';
 import { GovernanceCard } from '../../../components/governance-card';
 import { WizardNavigation } from '../../../components/wizard-navigation';
 import { useDialog } from '../../../contexts/dialog-context';
 import { GovernanceModel, ImplementationVariation } from '../../../domain/models';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { getImplementationVariationById } from '@/services/contentful-service';
+import { SiteHeader } from '@/components/site-header';
 
-export default function GovernanceModelsPage() {
+export default function Step3Page() {
+  const router = useRouter();
   const { data: governanceModels, isLoading: governanceLoading, error: governanceError } = useGovernanceModels();
   const { 
     selectedSolutions, 
     selectedVariants,
     selectedGovernanceModel, 
     setSelectedGovernanceModel,
-    currentGovernanceModelId
+    currentGovernanceModelId,
+    _hasHydrated
   } = useWizardStore();
   
   // Access the dialog context
@@ -34,6 +39,11 @@ export default function GovernanceModelsPage() {
   
   // Fetch selected variations based on store
   useEffect(() => {
+    // Wait for hydration
+    if (!_hasHydrated) {
+       return;
+    }
+
     async function fetchVariations() {
       // Check if there are selected variants to fetch
       const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
@@ -41,12 +51,10 @@ export default function GovernanceModelsPage() {
       if (variantIdsToFetch.length === 0) {
         setIsLoadingVariations(false);
         setRelevantVariations([]);
-        console.log("[Stap 3] No variants selected, skipping fetch.");
         return;
       }
 
       setIsLoadingVariations(true);
-      console.log("[Stap 3] Fetching details for selected variation IDs:", variantIdsToFetch);
       
       // Check if variantIdsToFetch contains valid IDs before proceeding
       if (!variantIdsToFetch || variantIdsToFetch.length === 0 || variantIdsToFetch.some(id => !id)) {
@@ -69,7 +77,6 @@ export default function GovernanceModelsPage() {
         // and ensure type correctness
         const fetchedVariations = variationsResults.filter((v: ImplementationVariation | null): v is ImplementationVariation => v !== null);
         
-        console.log("[Stap 3] Successfully fetched variations data:", fetchedVariations);
         setRelevantVariations(fetchedVariations);
 
       } catch (err) {
@@ -80,15 +87,13 @@ export default function GovernanceModelsPage() {
       }
     }
     fetchVariations();
-  }, [selectedVariants]); // Depend only on selectedVariants map
+  }, [selectedVariants, _hasHydrated]); // Depend only on selectedVariants map
   
   // Check if a governance model is selected
   const hasSelectedModel = selectedGovernanceModel !== null;
   
   // Categorize governance models based on selected variations
   useEffect(() => {
-    // Removed console warning as the logic *uses* relevantVariations now
-    // console.warn("[Stap 3] Governance model categorization logic needs update...");
     if (governanceModels && relevantVariations.length > 0) {
       const recommendedIds: string[] = [];
       const conditionalIds: string[] = [];
@@ -128,10 +133,6 @@ export default function GovernanceModelsPage() {
       setRecommendedModels(recommendedIds);
       setConditionalRecommendedModels(conditionalIds);
       setUnsuitableModels(unsuitableIds);
-      
-      console.log('[WIZARD STAP 3] Recommended models (from variations):', recommendedIds);
-      console.log('[WIZARD STAP 3] Conditional models (from variations):', conditionalIds);
-      console.log('[WIZARD STAP 3] Unsuitable models (from variations):', unsuitableIds);
     } else {
       // Reset if no relevant variations are loaded
        setRecommendedModels([]);

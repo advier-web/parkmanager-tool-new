@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { TrafficType, AcquisitionType, BusinessParkInfo } from '@/domain/models';
+// import { TrafficType, AcquisitionType, BusinessParkInfo } from '@/domain/models'; // Removed unused TrafficType, AcquisitionType
+import { BusinessParkInfo, TrafficType } from '@/domain/models'; // Re-added TrafficType
 
 interface WizardState {
+  _hasHydrated: boolean;
   currentStep: number;
   selectedReasons: string[]; // IDs of selected BusinessParkReason
   selectedSolutions: string[]; // IDs of selected MobilitySolution
@@ -14,6 +16,7 @@ interface WizardState {
   businessParkInfo: BusinessParkInfo; // Re-add businessParkInfo state
 
   // Actions
+  setHasHydrated: (state: boolean) => void;
   setCurrentStep: (step: number) => void;
   setSelectedReasons: (reasons: string[]) => void;
   toggleReason: (reasonId: string) => void;
@@ -26,6 +29,9 @@ interface WizardState {
   // setTrafficTypes: (types: TrafficType[]) => void; // Verwijder losse action
   setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void; // Re-add action
   reset: () => void;
+  // Add missing actions from previous state
+  updateTrafficTypes: (types: TrafficType[]) => void;
+  resetWizard: () => void; // Alias for reset?
 }
 
 // Default initial state for BusinessParkInfo
@@ -39,6 +45,7 @@ const initialBusinessParkInfo: BusinessParkInfo = {
 export const useWizardStore = create<WizardState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       currentStep: 0,
       selectedReasons: [],
       selectedSolutions: [],
@@ -50,6 +57,9 @@ export const useWizardStore = create<WizardState>()(
       businessParkInfo: initialBusinessParkInfo, // Initialize with default object
 
       // --- Actions --- 
+      setHasHydrated: (state) => {
+        set({ _hasHydrated: state });
+      },
       setCurrentStep: (step) => set({ currentStep: step }),
       
       setSelectedReasons: (reasons) => set({ selectedReasons: reasons }),
@@ -64,11 +74,27 @@ export const useWizardStore = create<WizardState>()(
         const newSelectedSolutions = state.selectedSolutions.includes(solutionId)
           ? state.selectedSolutions.filter(id => id !== solutionId)
           : [...state.selectedSolutions, solutionId];
-        // Als een oplossing wordt verwijderd, verwijder ook de variant keuze
         const newSelectedVariants = { ...state.selectedVariants };
         if (!newSelectedSolutions.includes(solutionId)) {
           delete newSelectedVariants[solutionId];
         }
+        // --- REMOVED DEBUG LOG --- 
+        
+        // --- MANUAL LOCALSTORAGE SAVE (WORKAROUND) --- 
+        try {
+          const currentState = get();
+          const stateToSave = { 
+            ...currentState, 
+            selectedSolutions: newSelectedSolutions, // Include updated solutions
+            selectedVariants: newSelectedVariants // Include updated variants
+          };
+          localStorage.setItem('wizard-storage', JSON.stringify({ state: stateToSave, version: 0 }));
+          // REMOVED console.log('[toggleSolution] Manually saved state to localStorage.');
+        } catch (e) {
+          console.error('[toggleSolution] Error manually saving to localStorage:', e);
+        }
+        // --- END MANUAL LOCALSTORAGE SAVE --- 
+
         return { selectedSolutions: newSelectedSolutions, selectedVariants: newSelectedVariants };
       }),
       
@@ -79,21 +105,51 @@ export const useWizardStore = create<WizardState>()(
       // setAcquisitionType: (type) => set({ selectedAcquisitionType: type }), // Verwijderd
       
       // Nieuwe action om variant per solution op te slaan
-      setSelectedVariant: (solutionId, variant) => set((state) => ({
-        selectedVariants: {
-          ...state.selectedVariants,
-          [solutionId]: variant
+      setSelectedVariant: (solutionId, variant) => set((state) => { 
+        // --- REMOVED DEBUG LOG --- 
+        const newState = {
+          selectedVariants: {
+            ...state.selectedVariants,
+            [solutionId]: variant
+          }
+        };
+        // --- REMOVED DEBUG LOG --- 
+
+        // --- MANUAL LOCALSTORAGE SAVE (WORKAROUND) --- 
+        try {
+          const currentState = get();
+          const stateToSave = { 
+            ...currentState, 
+            selectedVariants: newState.selectedVariants // Merge the new variants map
+          };
+          localStorage.setItem('wizard-storage', JSON.stringify({ state: stateToSave, version: 0 }));
+          // REMOVED console.log('[setSelectedVariant] Manually saved state to localStorage.');
+        } catch (e) {
+          console.error('[setSelectedVariant] Error manually saving to localStorage:', e);
         }
-      })),
+        // --- END MANUAL LOCALSTORAGE SAVE --- 
+
+        return newState;
+      }),
 
       // Re-add setBusinessParkInfo action (merges partial updates)
-      setBusinessParkInfo: (info) => set((state) => ({ 
-        businessParkInfo: { ...state.businessParkInfo, ...info }
-      })),
+      setBusinessParkInfo: (info) => set((state) => { 
+        const newState = { 
+          businessParkInfo: { ...state.businessParkInfo, ...info }
+        };
+        // --- REMOVED DEBUG LOG --- 
+        return newState;
+      }),
 
       // setTrafficTypes: (types) => set({ trafficTypes: types }), // Verwijderd
 
+      // Add implementation for updateTrafficTypes
+      updateTrafficTypes: (types) => set((state) => ({
+        businessParkInfo: { ...state.businessParkInfo, trafficTypes: types }
+      })),
+
       reset: () => set({
+        _hasHydrated: get()._hasHydrated,
         currentStep: 0,
         selectedReasons: [],
         selectedSolutions: [],
@@ -103,10 +159,18 @@ export const useWizardStore = create<WizardState>()(
         // trafficTypes: [], // Verwijderd
         businessParkInfo: initialBusinessParkInfo, // Reset to initial state
       }),
+      // Add alias resetWizard pointing to reset
+      resetWizard: () => get().reset(), 
     }),
     {
       name: 'wizard-storage', 
-      storage: createJSONStorage(() => sessionStorage), 
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // REMOVED console.log('[Zustand] Hydration finished.');
+          state.setHasHydrated(true);
+        }
+      },
     }
   )
 ); 

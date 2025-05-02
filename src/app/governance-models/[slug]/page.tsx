@@ -1,9 +1,16 @@
 import { getGovernanceModelsFromContentful } from '@/services/contentful-service';
 import GovernanceModelClientPage from './client-page';
 import { Metadata } from 'next';
+import { GovernanceModel } from '@/domain/models';
+import { getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
+import { SiteHeader } from '@/components/site-header';
 
-export async function generateMetadata(props: any): Promise<Metadata> {
-  const { params } = props;
+interface PageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined }; // Include searchParams
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
     const models = await getGovernanceModelsFromContentful();
     const model = models.find((m) => {
@@ -28,8 +35,7 @@ export async function generateMetadata(props: any): Promise<Metadata> {
   }
 }
 
-export default async function GovernanceModelPage(props: any) {
-  const { params } = props;
+export default async function GovernanceModelPage({ params }: PageProps) {
   try {
     // Alle governance modellen ophalen direct uit Contentful
     const models = await getGovernanceModelsFromContentful();

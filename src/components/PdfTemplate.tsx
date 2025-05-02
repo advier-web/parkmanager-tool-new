@@ -83,6 +83,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#999',
     marginVertical: 10
+  },
+  paragraph: {
+    marginBottom: 5
+  },
+  bold: {
+    fontWeight: 'bold'
+  },
+  italic: {
+    fontStyle: 'italic'
+  },
+  listItem: {
+    flexDirection: 'row',
+    marginBottom: 3
   }
 });
 
