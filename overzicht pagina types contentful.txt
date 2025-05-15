@@ -1,16 +1,24 @@
 mobilityService velden voor PDF
 
 - title
-- paspoort
 - description
-- uitvoeringsmogelijkheden
+- uitvoering
+- uitdagingenEnAanleidingen
+- inputBusinesscase
 - collectiefVsIndiviueel
-- effecten
+- casebeschrijving
+
+Implementatievariant velden voor PDF 
+- title
+- samenvatting
 - investering
-- implementatie
-- governanceModels
-- governanceModelsMits
-- governanceModelsNietgeschikt
+- realisatieplan
+- realisatieplanLeveranciers
+- realisatieplanContractvormen
+- realisatieplanKrachtenveld
+- realisatieplanVoorsEnTegens
+- realisatieplanAandachtspunten
+- realisatieplanChecklist
 
 GovernanceModel velden voor PDF
 - title
@@ -22,6 +30,8 @@ GovernanceModel velden voor PDF
 - links
 - doorlooptijdLang
 - implementatie
+
+
 
 
 parkeerBereikbaarheidsproblemenToelichting

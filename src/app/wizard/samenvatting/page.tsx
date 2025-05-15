@@ -14,6 +14,9 @@ import { ImplementationVariation, GovernanceModel, MobilitySolution, BusinessPar
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { getImplementationVariationById, getMobilitySolutionById, getGovernanceModelByIdFromContentful } from '@/services/contentful-service';
 import { WizardNavigation } from '@/components/wizard-navigation';
+import MobilitySolutionFactsheetButton from '@/components/mobility-solution-factsheet-button';
+import ImplementationVariantFactsheetButton from '@/components/implementation-variant-factsheet-button';
+import GovernanceModelFactsheetButton from '@/components/governance-model-factsheet-button';
 
 // Import helpers from utils
 import { 
@@ -345,228 +348,145 @@ export default function SummaryPage() {
             {/* --- END Moved Selections --- */}
           </div>
 
-          {/* +++ START: New Section for Contribution Explanations +++ */}
-          {selectedReasons.length > 0 && reasons && Object.keys(selectedSolutionsData).length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even">
-              <h3 className="text-xl font-semibold mb-4 border-b border-gray-200 pb-2">Bijdrage Oplossingen aan Aanleidingen</h3>
-              <div className="space-y-6">
-                {selectedReasons.map(reasonId => {
-                  const reason = reasons.find(r => r.id === reasonId);
-                  if (!reason || !reason.identifier) return null;
-
-                  const reasonIdentifierCamel = snakeToCamel(reason.identifier);
-                  const fieldName = `${reasonIdentifierCamel}Toelichting`;
-                  
-                  // Find solutions contributing to this reason
-                  const contributingSolutions = Object.values(selectedSolutionsData).filter(sol => {
-                    const text = (sol as any)[fieldName];
-                    return text && typeof text === 'string' && text.trim() !== '';
-                  });
+          {/* Geselecteerde Oplossingen & Varianten */}
+          <div className="bg-white rounded-lg p-8 shadow-even">
+            <h2 className="text-xl font-semibold mb-6">Geselecteerde Oplossingen & Varianten</h2>
+            {isLoading && <p>Oplossingen en varianten laden...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+            {!isLoading && !error && Object.keys(selectedSolutionsData).length === 0 && (
+              <p>Geen oplossingen geselecteerd.</p>
+            )}
+            {!isLoading && !error && Object.keys(selectedSolutionsData).length > 0 && (
+              <>
+                {Object.values(selectedSolutionsData).map((solution) => {
+                  const solutionVariants = selectedVariationsData.filter(v => v.mobiliteitsdienstVariantId === solution.id);
+                  const selectedReasonsForCurrentSolution = reasons?.filter(r => 
+                    selectedReasons.includes(r.id) && r.identifier
+                  ) || [];
 
                   return (
-                    <div key={reasonId} className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
-                      <h4 className="font-medium text-lg mb-3">{reason.title}</h4>
-                      {contributingSolutions.length > 0 ? (
-                        <div className="space-y-3 pl-4">
-                          {contributingSolutions.map(solution => {
-                            const text = (solution as any)[fieldName];
-                            return (
-                              <div key={solution.id}>
-                                <p className="text-sm font-medium text-gray-600 mb-1">
-                                  {solution.title}:
-                                </p>
-                                <div className="prose prose-sm max-w-none pl-4 text-gray-700">
-                                  <MarkdownContent content={processMarkdownText(text)} />
-                                </div>
-                              </div>
-                            );
-                          })}
+                    <div key={solution.id} className="mb-8 pb-8 border-b last:border-b-0 last:mb-0 last:pb-0">
+                      <h3 className="text-2xl font-semibold mb-3 text-gray-800">{solution.title}</h3>
+                      {solution.samenvattingLang && (
+                        <div className="prose prose-sm max-w-none mb-4 text-gray-700">
+                          <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
                         </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 italic pl-4">Geen geselecteerde oplossingen gevonden die specifiek bijdragen aan deze aanleiding.</p>
+                      )}
+
+                      {selectedReasonsForCurrentSolution.length > 0 && (
+                        <div className="mt-6 pt-4 border-t border-gray-200"> {/* Removed mb-6 and pb-2 */}
+                          <h4 className="text-md font-semibold mb-3">Bijdrage aan geselecteerde aanleidingen:</h4>
+                          <div className="space-y-4"> {/* Spacing between each reason's block */}
+                            {selectedReasonsForCurrentSolution.map(reason => {
+                              const explanationFieldName = reason.identifier ? snakeToCamel(reason.identifier) + 'Toelichting' : '';
+                              const explanationText = explanationFieldName ? (solution as any)[explanationFieldName] : undefined;
+
+                              console.log(`[SummaryPage] Reason: ${reason.title}, Identifier: ${reason.identifier}, FieldName: ${explanationFieldName}, TextFound: ${explanationText ? 'YES' : 'NO'}`, explanationText);
+
+                              return (
+                                <div key={reason.id}>
+                                  <p className="text-sm font-medium text-gray-800 mb-1">{reason.title}:</p>
+                                  {explanationText ? (
+                                    <div className="prose prose-sm max-w-none text-gray-700 pl-4">
+                                      <MarkdownContent content={processMarkdownText(explanationText as string)} />
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-500 pl-4 italic">Geen specifieke toelichting beschikbaar.</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {/* MOBILITY SOLUTION BUTTON WRAPPER WITH BORDER - REVERTED TO MT-6 PT-6 */}
+                      <div className="mt-6 pt-6 border-t border-gray-200">
+                        <MobilitySolutionFactsheetButton 
+                          solution={solution} 
+                          className="mb-4" // Adjusted className
+                        />
+                      </div>
+
+                      {solutionVariants.map(variation => {
+                        const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+                        return (
+                          <div key={variation.id} className="mt-6 pt-6 border-t border-gray-200">
+                            <h4 className="text-lg font-semibold mb-2">Geselecteerde implementatievariant: {displayVariantTitle}</h4>
+                            {variation.samenvatting && (
+                              <div className="prose prose-sm max-w-none mb-3 text-gray-700">
+                                <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
+                              </div>
+                            )}
+                            {/* IMPLEMENTATION VARIANT BUTTON WRAPPER WITH BORDER */}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <ImplementationVariantFactsheetButton 
+                                variation={variation} 
+                                className="mt-2"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })} 
+                      {solutionVariants.length === 0 && (
+                        <p className="text-sm text-gray-600 mt-6 pt-6 border-t border-gray-200">Geen specifieke variant gekozen voor deze oplossing.</p>
                       )}
                     </div>
                   );
-                })}
-              </div>
-            </div>
-          )}
-          {/* +++ END: New Section for Contribution Explanations +++ */}
+                })} 
+              </>
+            )}
+          </div>
 
-          {/* Conditionally render subsequent sections only if variations are selected */}
-          {selectedVariationsData.length > 0 ? (
-            <> 
-              {/* Geselecteerde mobiliteitsoplossingen/varianten section */}
-              <div className="bg-white rounded-lg p-8 shadow-even">
-                <h3 className="text-xl font-semibold mb-4">Geselecteerde Oplossingen & Varianten</h3>
-                {isLoading && <p>Details laden...</p>}
-                {error && <p className="text-red-500">{error}</p>}
-                {!isLoading && !error && selectedVariationsData.length > 0 ? (
-                  <div className="space-y-6">
-                    {selectedVariationsData.map((variation) => {
-                      const solutionId = Object.keys(selectedVariants).find(key => selectedVariants[key] === variation.id);
-                      const solution = solutionId ? selectedSolutionsData[solutionId] : null;
-                      const solutionTitle = solution?.title || 'Onbekende Oplossing';
+          {/* Gekozen governance model section */}
+          {selectedGovernanceModelData && (
+            <div className="bg-white rounded-lg p-8 shadow-even">
+              <h3 className="text-xl font-semibold mb-4">Gekozen governance model</h3>
+              <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                <h4 className="font-medium text-lg mb-2">{selectedGovernanceModelData.title}</h4>
+                {/* Display summary/description from the fetched model */}
+                <p className="mb-3 text-gray-700">{selectedGovernanceModelData.summary || selectedGovernanceModelData.description || 'Geen beschrijving'}</p>
+                
+                {/* --- START: Show explanation per selected VARIANT --- */}
+                {selectedVariationsData.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                    {selectedVariationsData.map(variation => {
+                      const fieldName = governanceTitleToFieldName(selectedGovernanceModelData.title);
+                      if (!fieldName) return null;
                       
-                      // --- REMOVED DEBUG LOGS --- 
+                      const text = (variation as any)[fieldName]; 
+                      if (!text) return null;
 
-                      // Apply helper to variation title for display
-                      const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+                      // Apply helper to variation title here as well
+                      const displayVariantTitleForGov = stripSolutionPrefixFromVariantTitle(variation.title);
 
                       return (
-                        <div key={variation.id} className="border-b pb-6 last:border-b-0 last:pb-0">
-                          <h1 className="text-2xl font-bold mb-4">{solutionTitle}</h1>
-                          
-                          {/* Show solution.samenvattingLang FIRST */}
-                          {solution?.samenvattingLang && (
-                            <div className="mb-4 pb-4 border-b border-gray-100 text-gray-700 prose prose-sm max-w-none">
-                              <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
-                            </div>
-                          )}
-
-                          {/* Show variant.samenvatting */}
-                          {variation.samenvatting && (
-                            <div className="mb-4 text-gray-700 prose prose-sm max-w-none pt-4">
-                              <p className="text-md font-semibold text-gray-800 mb-1">{displayVariantTitle}:</p> 
-                              <p>{variation.samenvatting}</p>
-                            </div>
-                          )}
-                          
-                          {/* Show variant.realisatieplan */}
-                          {variation.realisatieplan && (
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                              <h5 className="text-lg font-semibold mb-2">Realisatieplan:</h5>
-                              <div className="text-gray-700 prose prose-sm max-w-none">
-                                <p>{variation.realisatieplan}</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Show NEW realisatieplan fields with H1 styling */}
-                          {variation.realisatieplanLeveranciers && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Leveranciers:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanLeveranciers)} /></div></div>}
-                          {variation.realisatieplanContractvormen && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Contractvormen:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanContractvormen)} /></div></div>}
-                          {variation.realisatieplanKrachtenveld && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Krachtenveld:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanKrachtenveld)} /></div></div>}
-                          {variation.realisatieplanVoorsEnTegens && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Voors en Tegens:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanVoorsEnTegens)} /></div></div>}
-                          {variation.realisatieplanAandachtspunten && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Aandachtspunten:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanAandachtspunten)} /></div></div>}
-                          {variation.realisatieplanChecklist && <div className="mt-6 pt-4 border-t border-gray-100"><h1 className="text-xl font-semibold mb-3">Checklist:</h1><div className="prose prose-sm max-w-none text-gray-700 pl-2"><MarkdownContent content={processMarkdownText(variation.realisatieplanChecklist)} /></div></div>}
+                        <div key={variation.id} className="pl-2">
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            Relevantie voor variant "{displayVariantTitleForGov}":
+                          </p>
+                          <div className="prose prose-sm max-w-none pl-4 text-gray-700">
+                            <MarkdownContent content={processMarkdownText(text)} />
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                ) : (
-                  !isLoading && !error && <p className="text-gray-500">Geen details beschikbaar.</p>
                 )}
-              </div>
-              
-              {/* Gekozen governance model section */}
-              {selectedGovernanceModelData && (
-                <div className="bg-white rounded-lg p-8 shadow-even">
-                  <h3 className="text-xl font-semibold mb-4">Gekozen governance model</h3>
-                  <div className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <h4 className="font-medium text-lg mb-2">{selectedGovernanceModelData.title}</h4>
-                    {/* Display summary/description from the fetched model */}
-                    <p className="mb-3 text-gray-700">{selectedGovernanceModelData.summary || selectedGovernanceModelData.description || 'Geen beschrijving'}</p>
-                    
-                    {/* --- START: Show explanation per selected VARIANT --- */}
-                    {selectedVariationsData.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                        {selectedVariationsData.map(variation => {
-                          const fieldName = governanceTitleToFieldName(selectedGovernanceModelData.title);
-                          if (!fieldName) return null;
-                          
-                          const text = (variation as any)[fieldName]; 
-                          if (!text) return null;
-
-                          // Apply helper to variation title here as well
-                          const displayVariantTitleForGov = stripSolutionPrefixFromVariantTitle(variation.title);
-
-                          return (
-                            <div key={variation.id} className="pl-2">
-                              <p className="text-sm font-medium text-gray-600 mb-1">
-                                Relevantie voor variant "{displayVariantTitleForGov}":
-                              </p>
-                              <div className="prose prose-sm max-w-none pl-4 text-gray-700">
-                                <MarkdownContent content={processMarkdownText(text)} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {/* --- END: Show explanation per selected VARIANT --- */}
-                    
-                    {/* PDF Download Button for Governance Model? */}
-                    {/* ... */}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-             // Fallback if no variations were selected/fetched
-             !isLoading && !error && (
-               <div className="bg-white rounded-lg p-8 shadow-even">
-                 <p className="text-gray-500">Selecteer eerst oplossingen en varianten in de vorige stappen.</p>
-               </div>
-              )
-          )}
-          
-          {/* PDF Download Button section remains at the bottom */}
-          <div className="bg-teal-600 text-white rounded-lg p-6">
-            <h4 className="text-lg font-semibold mb-3 text-white">Download Samenvatting</h4>
-            <p className="text-white text-sm mb-4">
-              Download een PDF met de op deze pagina getoonde samenvatting van uw gemaakte keuzes.
-            </p>
-            {isClient && (
-              <PDFDownloadLink
-                document={(
-                  <SummaryPdfDocument 
-                    businessParkInfo={businessParkInfo} 
-                    currentGovernanceModelTitle={currentGovernanceModelTitle}
-                    selectedReasonTitles={selectedReasonTitles} 
-                    selectedSolutionsData={Object.values(selectedSolutionsData)}
-                    selectedVariants={selectedVariants}
-                    selectedGovernanceModelId={selectedGovernanceModelId} 
-                    selectedImplementationPlanTitle={''}
-                    governanceModels={models || []} 
+                {/* --- END: Show explanation per selected VARIANT --- */}
+                
+                {/* PDF Download Button for Governance Model */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <GovernanceModelFactsheetButton 
+                    governanceModel={selectedGovernanceModelData}
+                    selectedVariations={selectedVariationsData}
                     governanceTitleToFieldName={governanceTitleToFieldName}
-                    extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
-                    reasons={reasons || []}
-                    selectedReasons={selectedReasons}
-                    snakeToCamel={snakeToCamel}
-                    selectedVariationsData={selectedVariationsData}
+                    stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                    className="w-full md:w-auto"
                   />
-                )}
-                fileName={`Samenvatting_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
-              >
-                {({
-                  blob,
-                  url,
-                  loading,
-                  error,
-                }: {
-                  blob: Blob | null;
-                  url: string | null;
-                  loading: boolean;
-                  error: Error | null;
-                }) => (
-                  <Button 
-                    variant="secondary"
-                    className="bg-white text-teal-600 hover:bg-gray-100 hover:text-teal-700"
-                    disabled={loading}
-                  >
-                    <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                    {loading ? 'PDF genereren...' : 'Download Samenvatting PDF'}
-                  </Button>
-                )}
-              </PDFDownloadLink>
-            )}
-            {!isClient && (
-                <Button variant="secondary" disabled className="bg-white text-teal-600 opacity-75">
-                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                  PDF laden...
-                </Button>
-            )}
-          </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

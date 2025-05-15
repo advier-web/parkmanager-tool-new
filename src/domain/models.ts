@@ -64,12 +64,14 @@ export interface MobilitySolution {
   samenvattingKort?: string; // ADDED: Short summary, plain text or markdown
   samenvattingLang?: string; // HTML string from Contentful Rich Text
   implementatie?: string; // HTML string from Contentful Rich Text
-  uitvoering?: string; // ADDED: New field for uitvoering
+  uitvoering?: string; // HTML string from Contentful Rich Text
   paspoort?: string; // HTML string from Contentful Rich Text
   investering?: string; // Generic investment info, specific is in variation
   collectiefVsIndiviueel?: string; // HTML string
   uitvoeringsmogelijkheden?: string; // HTML string (Consider if this moves to variation?)
   inputBusinesscase?: string; // HTML string
+  casebeschrijving?: string; // ADDED: HTML string from Contentful Rich Text
+  uitdagingenEnAanleidingen?: string; // ADDED: HTML string from Contentful Rich Text (alternative to challenges array)
 
   implementationTime?: string;
   costs?: string; // Generic costs info, specific is in variation

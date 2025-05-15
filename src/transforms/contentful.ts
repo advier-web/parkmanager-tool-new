@@ -136,8 +136,8 @@ export function transformImplementationVariation(entry: Entry<any>): Implementat
       // Extract the ID from the linked mobiliteitsdienstVariant field safely
       mobiliteitsdienstVariantId: getLinkedEntryId(fields.mobiliteitsdienstVariant),
       samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
-      investering: safeDocumentToHtmlString(fields.investering),
-      realisatieplan: safeDocumentToHtmlString(fields.realisatieplan),
+      investering: typeof fields.investering === 'string' ? fields.investering : undefined,
+      realisatieplan: typeof fields.realisatieplan === 'string' ? fields.realisatieplan : undefined,
       governanceModels: getRefIdArray(fields.governanceModels),
       governanceModelsMits: getRefIdArray(fields.governanceModelsMits),
       governanceModelsNietgeschikt: getRefIdArray(fields.governanceModelsNietgeschikt),
@@ -161,22 +161,32 @@ export function transformImplementationVariation(entry: Entry<any>): Implementat
 
 export function transformGovernanceModel(entry: Entry<any>): GovernanceModel {
   const fields = entry.fields;
+  const processField = (fieldValue: any): string | undefined => {
+    const html = safeDocumentToHtmlString(fieldValue);
+    if (html) return html;
+    if (typeof fieldValue === 'string') {
+      const trimmed = fieldValue.trim();
+      return trimmed ? trimmed : undefined;
+    }
+    return undefined;
+  };
+
   return {
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
-    description: typeof fields.description === 'string' ? fields.description : undefined,
-    summary: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
-    advantages: typeof fields.voordelen === 'string' ? [fields.voordelen] : [],
-    disadvantages: typeof fields.nadelen === 'string' ? [fields.nadelen] : [],
+    description: processField(fields.description),
+    summary: processField(fields.samenvatting),
+    advantages: Array.isArray(fields.voordelen) ? fields.voordelen.filter((item: unknown): item is string => typeof item === 'string') : [],
+    disadvantages: Array.isArray(fields.nadelen) ? fields.nadelen.filter((item: unknown): item is string => typeof item === 'string') : [],
     applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios.filter((item: unknown): item is string => typeof item === 'string') : [],
-    organizationalStructure: safeDocumentToHtmlString(fields.organizationalStructure),
+    organizationalStructure: processField(fields.organizationalStructure),
     legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
     stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders.filter((item: unknown): item is string => typeof item === 'string') : [],
-    aansprakelijkheid: typeof fields.aansprakelijkheid === 'string' ? fields.aansprakelijkheid : undefined,
-    benodigdhedenOprichting: fields.benodigdhedenOprichting,
-    doorlooptijdLang: safeDocumentToHtmlString(fields.doorlooptijdLang),
-    implementatie: typeof fields.implementatie === 'string' ? fields.implementatie : undefined,
-    links: fields.links,
+    aansprakelijkheid: processField(fields.aansprakelijkheid),
+    benodigdhedenOprichting: processField(fields.benodigdhedenOprichting),
+    doorlooptijdLang: processField(fields.doorlooptijdLang),
+    implementatie: processField(fields.implementatie),
+    links: processField(fields.links),
     voorbeeldContracten: Array.isArray(fields.voorbeeldContracten) ? fields.voorbeeldContracten.map(getSafeAssetUrl).filter((url): url is string => !!url) : [],
   } as GovernanceModel;
 }

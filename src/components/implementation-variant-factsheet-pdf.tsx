@@ -1,0 +1,387 @@
+import React from 'react';
+import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { ImplementationVariation } from '@/domain/models';
+import Html from 'react-pdf-html';
+
+// Using Open Sans from CDN
+const openSansRegularUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf';
+const openSansItalicUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-italic.ttf';
+const openSansBoldUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700.ttf';
+const openSansBoldItalicUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700italic.ttf';
+
+Font.register({
+  family: 'Open Sans',
+  fonts: [
+    { src: openSansRegularUrl, fontWeight: 'normal', fontStyle: 'normal' },
+    { src: openSansItalicUrl, fontWeight: 'normal', fontStyle: 'italic' },
+    { src: openSansBoldUrl, fontWeight: 'bold', fontStyle: 'normal' },
+    { src: openSansBoldItalicUrl, fontWeight: 'bold', fontStyle: 'italic' },
+  ],
+});
+
+// Disable hyphenation globally
+Font.registerHyphenationCallback(word => [word]);
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 30,
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: '#000000',
+  },
+  headerContainer: {
+    marginBottom: 25,
+    paddingBottom: 5,
+  },
+  headerText: {
+    fontSize: 18,
+    textAlign: 'left',
+    color: '#000000',
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    lineHeight: 1.4,
+  },
+  section: {
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eaeaea',
+  },
+  sectionTitle: {
+    fontSize: 12.5,
+    fontWeight: 'bold',
+    marginBottom: 2,
+    color: '#000000',
+    fontFamily: 'Open Sans',
+    lineHeight: 1.2,
+  },
+  content: {
+    fontSize: 9,
+    textAlign: 'justify',
+  },
+  h1Style: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginTop: 10,
+    marginBottom: 2,
+    lineHeight: 1.1,
+  },
+  h2Style: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginTop: 8,
+    marginBottom: 2,
+    lineHeight: 1.1,
+  },
+  h3Style: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000000',
+    marginTop: 6,
+    marginBottom: 3,
+    lineHeight: 1.1,
+  },
+  ulStyle: {
+    marginTop: 5,
+    marginBottom: 5,
+    paddingLeft: 15,
+  },
+  liStyle: {
+    fontSize: 9,
+    marginBottom: 3,
+    lineHeight: 1.5,
+  },
+  strongStyle: {
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+  },
+  pStyle: {
+    fontSize: 9,
+    marginBottom: 5,
+    lineHeight: 1.5,
+    textAlign: 'left',
+    marginTop: 0,
+  },
+  emStyle: {
+    fontStyle: 'italic',
+  },
+  pdfTable: {
+    display: 'flex',
+    flexDirection: 'column',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 10,
+    width: '100%',
+  },
+  pdfTableRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  pdfTableHeaderRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    backgroundColor: '#f0f0f0',
+  },
+  pdfTableCell: {
+    padding: 4,
+    fontSize: 8.5,
+    textAlign: 'left',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  pdfTableHeaderCell: {
+    padding: 4,
+    fontSize: 8.5,
+    textAlign: 'left',
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  pdfTableCellCol0: {
+    flexGrow: 2,
+  },
+});
+
+const htmlTagStyles = {
+  p: { fontSize: 9, marginBottom: 5, lineHeight: 1.5, textAlign: 'left', marginTop: 0 },
+  h1: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 1, lineHeight: 1.1 },
+  h2: { fontSize: 14, fontWeight: 'bold', marginTop: 8, marginBottom: 1, lineHeight: 1.1 },
+  h3: { fontSize: 12, fontWeight: 'bold', marginTop: 6, marginBottom: 3, lineHeight: 1.1 },
+  ul: { marginTop: 5, marginBottom: 5, paddingLeft: 15 },
+  li: { fontSize: 9, marginBottom: 3, lineHeight: 1.5 },
+  strong: { fontWeight: 'bold', fontFamily: 'Open Sans' },
+  em: { fontStyle: 'italic' },
+  table: { width: '100%', border: '1px solid #ccc', marginBottom: 10, borderCollapse: 'collapse' },
+  thead: { backgroundColor: '#f0f0f0' },
+  th: { border: '1px solid #ccc', padding: 4, fontWeight: 'bold', textAlign: 'left', fontSize: 8.5, display: 'table-cell' },
+  td: { border: '1px solid #ccc', padding: 4, textAlign: 'left', fontSize: 8.5, display: 'table-cell' },
+  tbody: {},
+};
+
+interface ImplementationVariantFactsheetPdfProps {
+  variation: ImplementationVariation;
+}
+
+// Helper for inline markdown processing (bold, italic, links) within a line/paragraph
+const processInlineMarkdown = (line: string): string => {
+  let processedLine = line;
+  processedLine = processedLine.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+  processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  processedLine = processedLine.replace(/__(.*?)__/g, '<strong>$1</strong>');
+  processedLine = processedLine.replace(/(?<![\*_])\*(?!\*)(.*?)(?<![\*_])\*(?!\*)/g, '<em>$1</em>');
+  processedLine = processedLine.replace(/(?<![a-zA-Z0-9_])_(?!_)(.*?)(?<!_)_(?![a-zA-Z0-9_])/g, '<em>$1</em>');
+  return processedLine;
+};
+
+const basicMarkdownToHtml = (markdownText: string): string[] => {
+  if (!markdownText) return [];
+
+  const blocks: string[] = [];
+  let remainingText = markdownText.trim().replace(/\r\n/g, '\n'); // Normalize newlines first, ensure this is let
+
+  // Regexes for block elements
+  const headerRegex = /^(#{1,3}) +(.*)/; // Ensure space after #
+  const listRegex = /^\s*([-*+]) +(.*)/; // Ensure space after marker
+  const preformattedRegex = /^```([a-zA-Z]*)\n([\s\S]*?)\n```/;
+  const horizontalRuleRegex = /^[-*_]{3,}\s*$/;
+
+  while (remainingText.length > 0) {
+    let matched = false;
+
+    // 1. Check for Preformatted Block
+    const preMatch = remainingText.match(preformattedRegex);
+    if (preMatch) {
+      blocks.push(`<pre><code>${preMatch[2].trim()}</code></pre>`);
+      remainingText = remainingText.substring(preMatch[0].length).trim();
+      matched = true;
+      continue;
+    }
+
+    // 2. Check for Horizontal Rule
+    const hrMatch = remainingText.match(horizontalRuleRegex);
+    if (hrMatch) {
+        blocks.push('<hr />');
+        remainingText = remainingText.substring(hrMatch[0].length).trim();
+        matched = true;
+        continue;
+    }
+
+    // 3. Check for Header
+    const headerMatch = remainingText.match(headerRegex);
+    if (headerMatch) {
+      const level = headerMatch[1].length;
+      const textContent = processInlineMarkdown(headerMatch[2].trim());
+      blocks.push(`<h${level}>${textContent}</h${level}>`);
+      remainingText = remainingText.substring(headerMatch[0].length).trim();
+      matched = true;
+      continue;
+    }
+
+    // 4. Paragraph (default)
+    const lines = remainingText.split('\n');
+    let paragraphBuffer: string[] = [];
+    let consumedLength = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Check if the *next* line starts a new block type (excluding current line if it's empty)
+        const nextLineIsBlockStart = (i + 1 < lines.length) && 
+                                     (lines[i+1].match(headerRegex) || 
+                                      lines[i+1].match(listRegex) || 
+                                      lines[i+1].match(preformattedRegex) ||
+                                      lines[i+1].match(horizontalRuleRegex));
+
+        if (line.trim() === '' || (paragraphBuffer.length > 0 && nextLineIsBlockStart)) {
+            // End of paragraph if blank line, or if buffer has content and next line is a new block type
+            if (paragraphBuffer.length > 0) {
+                blocks.push(`<p>${processInlineMarkdown(paragraphBuffer.join('\n'))}</p>`);
+                remainingText = lines.slice(i).join('\n').trim();
+                matched = true;
+                break; // Break from line iteration, re-enter main while loop
+            }
+            if (line.trim() === '' && !nextLineIsBlockStart) { // consume blank line if it's not a separator before another block
+                 consumedLength += line.length +1; // +1 for newline
+                 continue;
+            } 
+            if(line.trim() === '' && nextLineIsBlockStart){
+                // This blank line is a separator, consume it and break to let next block be processed
+                remainingText = lines.slice(i + 1).join('\n').trim();
+                matched = true;
+                break;
+            }
+        }
+        paragraphBuffer.push(line);
+        consumedLength += line.length + 1; // +1 for newline character itself if splitting by \n
+        if (i === lines.length - 1) { // Last line of remainingText
+            if (paragraphBuffer.length > 0) {
+                blocks.push(`<p>${processInlineMarkdown(paragraphBuffer.join('\n'))}</p>`);
+                remainingText = '';
+                matched = true;
+                break;
+            }
+        }
+    }
+    if (!matched && remainingText.length > 0) { // Should not happen if paragraph logic is correct
+        console.warn("Markdown parser loop finished without consuming text:", remainingText);
+        remainingText = ''; // Prevent infinite loop
+    }
+  }
+  return blocks;
+};
+
+const ImplementationVariantFactsheetPdf: React.FC<ImplementationVariantFactsheetPdfProps> = ({ variation }) => {
+  const renderContent = (content?: string) => {
+    if (!content) return <Text>Niet gespecificeerd</Text>;
+
+    const htmlBlocks = basicMarkdownToHtml(content);
+    if (htmlBlocks.length === 0) {
+      return <Text>Niet gespecificeerd</Text>;
+    }
+
+    const combinedHtml = htmlBlocks.join('');
+
+    if (combinedHtml.trim() === '') {
+      return <Text>Niet gespecificeerd</Text>;
+    }
+
+    return (
+      <Html stylesheet={htmlTagStyles}>
+        {combinedHtml}
+      </Html>
+    );
+  };
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.headerContainer}> 
+          <Text style={{ ...styles.headerText, marginBottom: 2 }}>
+            Factsheet Implementatievariant:
+          </Text>
+          <Text style={styles.headerText}>
+            {variation.title || 'Onbekende Variant'}
+          </Text>
+        </View>
+
+        {variation.samenvatting && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Samenvatting</Text>
+            {renderContent(variation.samenvatting)}
+          </View>
+        )}
+
+        {variation.investering && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Investering</Text>
+            {renderContent(variation.investering)}
+          </View>
+        )}
+
+        {variation.realisatieplan && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Realisatieplan</Text>
+            {renderContent(variation.realisatieplan)}
+          </View>
+        )}
+
+        {variation.realisatieplanLeveranciers && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Leveranciers</Text>
+            {renderContent(variation.realisatieplanLeveranciers)}
+          </View>
+        )}
+
+        {variation.realisatieplanContractvormen && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Contractvormen</Text>
+            {renderContent(variation.realisatieplanContractvormen)}
+          </View>
+        )}
+
+        {variation.realisatieplanKrachtenveld && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Krachtenveld</Text>
+            {renderContent(variation.realisatieplanKrachtenveld)}
+          </View>
+        )}
+
+        {variation.realisatieplanVoorsEnTegens && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Voors en Tegens</Text>
+            {renderContent(variation.realisatieplanVoorsEnTegens)}
+          </View>
+        )}
+
+        {variation.realisatieplanAandachtspunten && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Aandachtspunten</Text>
+            {renderContent(variation.realisatieplanAandachtspunten)}
+          </View>
+        )}
+
+        {variation.realisatieplanChecklist && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Checklist</Text>
+            {renderContent(variation.realisatieplanChecklist)}
+          </View>
+        )}
+      </Page>
+    </Document>
+  );
+};
+
+export default ImplementationVariantFactsheetPdf; 
