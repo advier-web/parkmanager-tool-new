@@ -9,12 +9,14 @@ interface MobilitySolutionFactsheetButtonProps {
   solution: MobilitySolution | null;
   className?: string;
   buttonColorClassName?: string;
+  children?: React.ReactNode;
 }
 
 const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonProps> = ({ 
   solution, 
   className, 
-  buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white'
+  buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
+  children
 }) => {
   const [isClient, setIsClient] = useState(false);
 
@@ -42,8 +44,16 @@ const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonP
         >
           {({ loading }) => (
             <Button variant="default" disabled={loading} className={buttonColorClassName}>
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              {loading ? 'Factsheet genereren...' : `Download Factsheet: ${solution.title}`}
+              {children ? (
+                <>
+                  {loading ? 'Genereren...' : children}
+                </>
+              ) : (
+                <>
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                  {loading ? 'Factsheet genereren...' : `Download Factsheet: ${solution.title}`}
+                </>
+              )}
             </Button>
           )}
         </PDFDownloadLink>

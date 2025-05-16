@@ -113,6 +113,7 @@ export default function SelectImplementationVariantPage() {
                             variation={variation}
                             isSelected={selectedVariants[solutionId] === variation.id}
                             onSelect={() => handleSelectVariation(solutionId, variation.id)}
+                            solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
                           />
                         ))}
                       </div>

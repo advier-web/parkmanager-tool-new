@@ -3,6 +3,8 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle } from '../utils/wizard-helpers';
 import { SelectedVariantMap } from '@/lib/store';
+import GovernanceModelFactsheetButton from './governance-model-factsheet-button';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 
 interface GovernanceCardProps {
   model: GovernanceModel;
@@ -127,21 +129,39 @@ export function GovernanceCard({
             )}
           </div>
           
-          <div className="flex items-center justify-between mt-6 pt-3 border-t">
-            {/* More info button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onMoreInfo) onMoreInfo(model);
-              }}
-              className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
-            >
-              <InformationCircleIcon className="h-4 w-4 mr-1" />
-              Meer informatie
-            </button>
+          <div className="flex items-center justify-between mt-6 pt-3 border-t"> 
+            {/* Container for left-aligned links */}
+            <div className="flex items-center space-x-4">
+              {/* More info button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onMoreInfo) onMoreInfo(model);
+                }}
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+              >
+                <InformationCircleIcon className="h-4 w-4 mr-1" />
+                Meer informatie
+              </button>
+
+              {/* PDF Download Link */}
+              <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
+                <GovernanceModelFactsheetButton
+                  governanceModel={model}
+                  selectedVariations={variationsToDisplay} 
+                  governanceTitleToFieldName={governanceTitleToFieldName}
+                  stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                  buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+                >
+                  <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
+                  {`Download factsheet ${model.title}`}
+                </GovernanceModelFactsheetButton>
+              </div>
+            </div>
             
-            {/* Select button for larger screens */}
+            {/* Select button for larger screens - now correctly on the far right */}
             <button
               type="button"
               onClick={(e) => { 

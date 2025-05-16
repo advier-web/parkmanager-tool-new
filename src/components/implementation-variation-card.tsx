@@ -3,17 +3,21 @@
 import { ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
+import ImplementationVariantFactsheetButton from './implementation-variant-factsheet-button';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 
 interface ImplementationVariationCardProps {
   variation: ImplementationVariation;
   isSelected: boolean;
   onSelect: () => void;
+  solutionTitle: string;
 }
 
 export function ImplementationVariationCard({ 
   variation, 
   isSelected, 
-  onSelect 
+  onSelect, 
+  solutionTitle
 }: ImplementationVariationCardProps) {
   const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
 
@@ -48,6 +52,20 @@ export function ImplementationVariationCard({
           />
         </div>
       </div> 
+
+      {/* PDF Download Link Section */}
+      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-start items-center">
+        <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
+          <ImplementationVariantFactsheetButton
+            variation={variation}
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+            buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+          >
+            <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
+            {`Download factsheet ${solutionTitle}: ${displayTitle}`}
+          </ImplementationVariantFactsheetButton>
+        </div>
+      </div>
     </div>
   );
 } 

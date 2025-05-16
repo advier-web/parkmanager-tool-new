@@ -12,7 +12,8 @@ interface GovernanceModelFactsheetButtonProps {
   governanceTitleToFieldName: (title: string | undefined) => string | null | undefined;
   stripSolutionPrefixFromVariantTitle: (title: string) => string;
   className?: string;
-  buttonText?: string; // Optional custom button text
+  children?: React.ReactNode; // Added children prop
+  buttonColorClassName?: string; // Added for consistency with other buttons
 }
 
 const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonProps> = ({
@@ -21,11 +22,10 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
   governanceTitleToFieldName,
   stripSolutionPrefixFromVariantTitle,
   className = '',
-  buttonText,
+  children,
+  buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white' // Default styling
 }) => {
-  const defaultButtonText = `Download factsheet ${governanceModel.title || 'Governance Model'}`;
-  const actualButtonText = buttonText || defaultButtonText;
-  const fileName = `Factsheet_Governance_Model_${(governanceModel.title || 'model').replace(/\s+/g, '_')}.pdf`;
+  const fileName = `Factsheet_Governance_Model_${(governanceModel.title || 'model').replace(/[^\s\w-]/gi, '_').replace(/\s+/g, '_')}.pdf`; // Improved file name generation
 
   // Client-side rendering check for PDFDownloadLink
   const [isClient, setIsClient] = React.useState(false);
@@ -57,11 +57,19 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
       {({ blob, url, loading, error }) => (
         <Button 
           variant="default" 
-          className={`${className} bg-blue-600 text-white hover:bg-blue-700`}
+          className={`${className} ${buttonColorClassName}`} // Use buttonColorClassName
           disabled={loading}
         >
-          <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-          {loading ? 'PDF genereren...' : actualButtonText}
+          {children ? (
+            <>
+              {loading ? 'Genereren...' : children}
+            </>
+          ) : (
+            <>
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+              {loading ? 'PDF genereren...' : `Download Factsheet: ${governanceModel.title || 'Governance Model'}`}
+            </>
+          )}
         </Button>
       )}
     </PDFDownloadLink>

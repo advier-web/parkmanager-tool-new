@@ -195,12 +195,14 @@ const GovernanceModelFactsheetPdf: React.FC<GovernanceModelFactsheetPdfProps> = 
     return <Html stylesheet={htmlTagStyles}>{combinedHtml}</Html>;
   };
 
-  const renderList = (items?: string[]) => {
+  const renderContentArray = (items?: string[]) => {
     if (!items || items.length === 0) return <Text>Niet gespecificeerd</Text>;
     return (
       <View>
         {items.map((item, index) => (
-          <Text key={index} style={styles.listItem}>• {item}</Text>
+          <View key={index} style={{ marginBottom: 5 }}>
+            {renderContent(item)}
+          </View>
         ))}
       </View>
     );
@@ -232,24 +234,24 @@ const GovernanceModelFactsheetPdf: React.FC<GovernanceModelFactsheetPdfProps> = 
           </View>
         )}
 
-        {model.advantages && model.advantages.length > 0 && (
+        {model.voordelen && model.voordelen.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Voordelen</Text>
-            {renderList(model.advantages)}
+            {renderContentArray(model.voordelen)}
           </View>
         )}
 
-        {model.disadvantages && model.disadvantages.length > 0 && (
+        {model.nadelen && model.nadelen.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Nadelen</Text>
-            {renderList(model.disadvantages)}
+            {renderContentArray(model.nadelen)}
           </View>
         )}
 
         {model.benodigdhedenOprichting && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Benodigdheden Oprichting</Text>
-            {renderContent(model.benodigdhedenOprichting)}
+            {renderContent(Array.isArray(model.benodigdhedenOprichting) ? model.benodigdhedenOprichting.join('\n\n') : model.benodigdhedenOprichting)}
           </View>
         )}
 

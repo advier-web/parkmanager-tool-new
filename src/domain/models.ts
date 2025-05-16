@@ -137,15 +137,15 @@ export interface GovernanceModel {
   title: string;
   description?: string; // Can be Rich Text -> HTML
   summary?: string; // Can be Rich Text -> HTML
-  advantages: string[];
-  disadvantages: string[];
+  voordelen: string[];
+  nadelen: string[];
   applicableScenarios: string[];
   organizationalStructure?: string;
   legalForm?: string;
   stakeholders: string[];
   samenvatting?: string; // Can be Rich Text -> HTML
   aansprakelijkheid?: string; // Can be Rich Text -> HTML
-  benodigdhedenOprichting?: any; // Keep as any or refine if structure is known
+  benodigdhedenOprichting?: string[]; // Changed from any/string to string[]
   doorlooptijdLang?: string; // Can be Rich Text -> HTML
   implementatie?: string; // Can be Rich Text -> HTML
   links?: any; // Keep as any or refine

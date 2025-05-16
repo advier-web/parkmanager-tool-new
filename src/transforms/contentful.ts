@@ -171,19 +171,29 @@ export function transformGovernanceModel(entry: Entry<any>): GovernanceModel {
     return undefined;
   };
 
+  const parseMultilineStringToArray = (text: unknown): string[] => {
+    if (typeof text === 'string' && text.trim() !== '') {
+      return text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
+    }
+    return [];
+  };
+
   return {
     id: entry.sys.id,
     title: typeof fields.title === 'string' ? fields.title : 'Geen titel',
     description: processField(fields.description),
     summary: processField(fields.samenvatting),
-    advantages: Array.isArray(fields.voordelen) ? fields.voordelen.filter((item: unknown): item is string => typeof item === 'string') : [],
-    disadvantages: Array.isArray(fields.nadelen) ? fields.nadelen.filter((item: unknown): item is string => typeof item === 'string') : [],
+    voordelen: parseMultilineStringToArray(fields.voordelen),
+    nadelen: parseMultilineStringToArray(fields.nadelen),
     applicableScenarios: Array.isArray(fields.applicableScenarios) ? fields.applicableScenarios.filter((item: unknown): item is string => typeof item === 'string') : [],
     organizationalStructure: processField(fields.organizationalStructure),
     legalForm: typeof fields.legalForm === 'string' ? fields.legalForm : undefined,
     stakeholders: Array.isArray(fields.stakeholders) ? fields.stakeholders.filter((item: unknown): item is string => typeof item === 'string') : [],
     aansprakelijkheid: processField(fields.aansprakelijkheid),
-    benodigdhedenOprichting: processField(fields.benodigdhedenOprichting),
+    benodigdhedenOprichting: parseMultilineStringToArray(fields.benodigdhedenOprichting),
     doorlooptijdLang: processField(fields.doorlooptijdLang),
     implementatie: processField(fields.implementatie),
     links: processField(fields.links),

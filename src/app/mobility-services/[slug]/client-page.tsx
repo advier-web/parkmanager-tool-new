@@ -4,13 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { MobilitySolution, ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
-import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful';
+// import PdfDownloadButtonContentful from '@/components/pdf-download-button-contentful'; // Commenting out or removing if not used elsewhere on this page for this purpose
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
 import { Button } from '@/components/ui/button';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 import { getMobilitySolutionsFromContentful, getMobilitySolutionById, getImplementationVariationsForSolution } from '@/services/contentful-service';
+import MobilitySolutionFactsheetButton from '@/components/mobility-solution-factsheet-button'; // Added import
+import { DocumentArrowDownIcon } from '@heroicons/react/24/solid'; // Added import
 
 interface MobilityServiceClientPageProps {
   solution: MobilitySolution | null;
@@ -59,18 +61,36 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             )}
           </div>
 
+          {/* Main summary/description section */}
           {solution.samenvattingLang && (
-            <div className="mb-10 rounded-lg text-gray-900">
-              <div className="text-2xl font-semibold">
+            <div className="mb-10 text-gray-900"> {/* Reverted margin and removed rounded-lg as it wasn't there before for this specific div*/}
+              <div className="text-2xl font-semibold"> {/* Reverted to text-2xl font-semibold */}
                 <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
               </div>
             </div>
           )}
-          {solution.description && (
-            <div className="mb-12 rounded-lg bg-white">
-              <MarkdownWithAccordions content={solution.description} />
+          {!solution.samenvattingLang && solution.description && ( // Show description if samenvattingLang is not present
+            <div className="mb-6">  {/* Adjusted margin */}
+              <div className="prose max-w-none">
+                 <MarkdownWithAccordions content={solution.description} />
+              </div>
             </div>
           )}
+          
+          {/* PDF Download Link for the main solution factsheet */}
+          {(solution.samenvattingLang || solution.description) && ( 
+            <div className="mt-6 mb-10"> {/* Adjusted top margin for more space */}
+              <MobilitySolutionFactsheetButton
+                solution={solution}
+                className="inline-flex items-center text-sm cursor-pointer focus:outline-none" // Removed text color classes from wrapper
+                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm" // New button styling
+              >
+                <DocumentArrowDownIcon className="h-4 w-4 mr-2" /> {/* Adjusted icon size and margin */}
+                {`Download factsheet ${solution.title}`}
+              </MobilitySolutionFactsheetButton>
+            </div>
+          )}
+
           {solution.uitvoering && (
             <div className="mb-10 rounded-lg bg-white">
               <h2 className="text-3xl font-semibold mb-6">Uitvoering</h2>
@@ -120,32 +140,30 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             )}
           </div>
 
+          {/* Gedetailleerd advies section */}
           <div className="bg-white rounded-lg p-6 mb-10">
             <h2 className="font-semibold text-xl mb-3">Gedetailleerd advies</h2>
             <p className="mb-4 text-gray-700">
-              Wil u gedetailleerd advies over het implementeren van deze mobiliteitsoplossing binnen uw bedrijfsvereniging? Start de wizard! 
+              Wil u gedetailleerd advies over het implementeren van deze mobiliteitsoplossing binnen uw bedrijfsvereniging?{' '}
+              <Link href="/wizard/bedrijventerrein" className="text-blue-600 hover:text-blue-700 underline font-medium">
+                Start de wizard!
+              </Link>
             </p>
-            <Link href="/wizard/bedrijventerrein">
-              <Button 
-                variant="default" 
-                className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md transition-colors text-base"
-              >
-                Start de wizard
-              </Button>
-            </Link>
           </div>
 
-          <div className="bg-teal-600 text-white rounded-lg p-6 mb-10">
-            <h2 className="font-semibold text-lg mb-3">PDF Informatie</h2>
-            <p className="mb-6">
-              Download meer informatie over deze mobilitietsoplossing via onderstaande PDF. In deze PDF staat meer informatie over het collectief oppakken van deze dienst, aan wat voor investering je moet denken en stappen die genomen moeten worden voor het implementeren van deze mobiliteitsoplossing.
-            </p>
-            <PdfDownloadButtonContentful
-              mobilityServiceId={solution.id}
-              fileName={`${solution.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
-              className="bg-white text-teal-600 hover:bg-gray-100 hover:text-teal-700 py-2 px-6 rounded-md font-semibold transition-colors"
-            />
-          </div>
+          {/* Add the new Download Factsheet button here, styled as the previous one */}
+          {solution && (
+            <div className="mb-10"> {/* Consistent spacing */}
+              <MobilitySolutionFactsheetButton
+                solution={solution}
+                className="inline-flex items-center text-sm cursor-pointer focus:outline-none"
+                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                {`Download factsheet ${solution.title}`}
+              </MobilitySolutionFactsheetButton>
+            </div>
+          )}
 
           {solution.benefits && solution.benefits.length > 0 && (
             <div className="bg-white rounded-lg p-6 mb-10">

@@ -9,12 +9,14 @@ interface ImplementationVariantFactsheetButtonProps {
   variation: ImplementationVariation | null;
   className?: string;
   buttonColorClassName?: string;
+  children?: React.ReactNode;
 }
 
 const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsheetButtonProps> = ({ 
   variation, 
   className, 
-  buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white'
+  buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
+  children
 }) => {
   const [isClient, setIsClient] = useState(false);
 
@@ -42,8 +44,16 @@ const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsh
         >
           {({ loading }) => (
             <Button variant="default" disabled={loading} className={buttonColorClassName}>
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              {loading ? 'Factsheet genereren...' : `Download Factsheet: ${variation.title}`}
+              {children ? (
+                <>
+                  {loading ? 'Genereren...' : children}
+                </>
+              ) : (
+                <>
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                  {loading ? 'Factsheet genereren...' : `Download Factsheet: ${variation.title}`}
+                </>
+              )}
             </Button>
           )}
         </PDFDownloadLink>

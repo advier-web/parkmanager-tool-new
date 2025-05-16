@@ -3,6 +3,8 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { useDialog } from '../contexts/dialog-context';
+import MobilitySolutionFactsheetButton from './mobility-solution-factsheet-button';
+import { ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
@@ -213,18 +215,28 @@ export function SolutionCard({
           </div>
           
           {onMoreInfo && (
-            <div className="flex items-center justify-start mt-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation(); 
                   handleShowMoreInfo();
                 }}
-                className="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
               >
                 <InformationCircleIcon className="h-3.5 w-3.5 mr-1" />
                 Meer informatie & Varianten
               </button>
+              <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
+                <MobilitySolutionFactsheetButton
+                  solution={solution}
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                  buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+                >
+                  <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
+                  {`Download factsheet ${solution.title}`}
+                </MobilitySolutionFactsheetButton>
+              </div>
             </div>
           )}
         </div>
