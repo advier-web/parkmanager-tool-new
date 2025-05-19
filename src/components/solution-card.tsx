@@ -213,7 +213,7 @@ export function SolutionCard({
               </div>
             )}
           </div>
-          
+
           {onMoreInfo && (
             <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
               <button

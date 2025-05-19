@@ -107,15 +107,17 @@ export default function SelectImplementationVariantPage() {
                     <h3 className="text-xl font-semibold mb-4 border-b pb-2">{data[solutionId]?.solution?.title || 'Oplossing'}</h3>
                     {data[solutionId]?.variations.length > 0 ? (
                       <div className="space-y-4">
-                        {data[solutionId].variations.map(variation => (
-                          <ImplementationVariationCard
-                            key={variation.id}
-                            variation={variation}
-                            isSelected={selectedVariants[solutionId] === variation.id}
-                            onSelect={() => handleSelectVariation(solutionId, variation.id)}
-                            solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
-                          />
-                        ))}
+                        {data[solutionId].variations.map(variation => {
+                          return (
+                            <ImplementationVariationCard
+                              key={variation.id}
+                              variation={variation}
+                              isSelected={selectedVariants[solutionId] === variation.id}
+                              onSelect={() => handleSelectVariation(solutionId, variation.id)}
+                              solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
+                            />
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-gray-500 italic">Geen specifieke implementatievarianten gevonden voor deze oplossing.</p>

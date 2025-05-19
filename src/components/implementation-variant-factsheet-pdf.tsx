@@ -198,6 +198,11 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
   const listRegex = /^\s*([-*+]) +(.*)/; // Ensure space after marker
   const preformattedRegex = /^```([a-zA-Z]*)\n([\s\S]*?)\n```/;
   const horizontalRuleRegex = /^[-*_]{3,}\s*$/;
+  // Regex for table rows (simplified: must start and end with |, and contain at least one more | for columns)
+  // Handles optional leading/trailing spaces around cell content
+  const tableRowRegex = /^\|(.*?)(?:\|)?$/;
+  // Regex for table separator (e.g., |---|---| or |:---|:--:|--:|)
+  const tableSeparatorRegex = /^\|( *:?-+:? *\|)+$/;
 
   while (remainingText.length > 0) {
     let matched = false;
@@ -220,7 +225,108 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
         continue;
     }
 
-    // 3. Check for Header
+    // 3. Check for Table (NEW)
+    // A table is a sequence of lines matching tableRowRegex, potentially with a separator line
+    const linesForTableCheck = remainingText.split('\n');
+    let tableHtml = '';
+    let tableRowCount = 0;
+    let consumedTableLength = 0;
+    let inTable = false;
+    let hasHeader = false;
+
+    if (linesForTableCheck.length >= 1) {
+      let currentLineIndex = 0;
+      // Get the first line and trim it for processing
+      let firstLineInspected = linesForTableCheck[currentLineIndex];
+      let firstLineContent = firstLineInspected.trim();
+
+      if (tableRowRegex.test(firstLineContent)) {
+        // Potential start of a table
+        let headerCells = [];
+        const firstLineCellsMatch = firstLineContent.match(tableRowRegex);
+
+        if (firstLineCellsMatch) {
+          headerCells = firstLineCellsMatch[1].split('|').map(cell => cell.trim());
+          tableHtml += '<thead><tr>';
+          headerCells.forEach(cell => {
+            tableHtml += `<th>${processInlineMarkdown(cell)}</th>`;
+          });
+          tableHtml += '</tr></thead><tbody>';
+          tableRowCount++;
+          consumedTableLength += firstLineInspected.length + 1; // Consume original length
+          currentLineIndex++;
+          inTable = true;
+
+          // Check for separator line immediately after the first line
+          if (currentLineIndex < linesForTableCheck.length) {
+            let separatorLineInspected = linesForTableCheck[currentLineIndex];
+            let separatorLineContent = separatorLineInspected.trim();
+            if (tableSeparatorRegex.test(separatorLineContent)) {
+              hasHeader = true;
+              consumedTableLength += separatorLineInspected.length + 1; // Consume original length
+              currentLineIndex++;
+            } else {
+              // No separator, the first line was data. Reset and rebuild.
+              tableHtml = '<tbody><tr>';
+              headerCells.forEach(cell => {
+                tableHtml += `<td>${processInlineMarkdown(cell)}</td>`;
+              });
+              tableHtml += '</tr>';
+              hasHeader = false;
+            }
+          } else {
+            // No more lines after the first, treat first line as data if no separator implied
+            tableHtml = '<tbody><tr>';
+            headerCells.forEach(cell => {
+                tableHtml += `<td>${processInlineMarkdown(cell)}</td>`;
+            });
+            tableHtml += '</tr>';
+            hasHeader = false;
+          }
+
+          // Process subsequent rows
+          while (currentLineIndex < linesForTableCheck.length) {
+            let subsequentLineInspected = linesForTableCheck[currentLineIndex];
+            let subsequentLineContent = subsequentLineInspected.trim();
+
+            if (subsequentLineContent === '') { // Skip empty lines
+              consumedTableLength += subsequentLineInspected.length + 1; // Consume original length
+              currentLineIndex++;
+              continue;
+            }
+
+            if (tableRowRegex.test(subsequentLineContent)) {
+              const rowMatch = subsequentLineContent.match(tableRowRegex);
+              if (rowMatch) {
+                const cells = rowMatch[1].split('|').map(cell => cell.trim());
+                tableHtml += '<tr>';
+                cells.forEach(cell => {
+                  tableHtml += `<td>${processInlineMarkdown(cell)}</td>`;
+                });
+                tableHtml += '</tr>';
+                tableRowCount++;
+                consumedTableLength += subsequentLineInspected.length + 1; // Consume original length
+                currentLineIndex++;
+              } else {
+                break; 
+              }
+            } else {
+              break; // Not a valid table row, stop table processing
+            }
+          }
+        }
+      }
+
+      if (inTable && tableRowCount > (hasHeader ? 1 : 0)) { // Ensure at least one data row if header, or one row if no header
+        tableHtml += '</tbody>';
+        blocks.push(`<table>${tableHtml}</table>`);
+        remainingText = remainingText.substring(consumedTableLength).trim();
+        matched = true;
+        continue;
+      }
+    }
+
+    // 4. Check for Header (was 3)
     const headerMatch = remainingText.match(headerRegex);
     if (headerMatch) {
       const level = headerMatch[1].length;
@@ -231,7 +337,7 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
       continue;
     }
 
-    // 4. Paragraph (default)
+    // 5. Paragraph (default) (was 4)
     const lines = remainingText.split('\n');
     let paragraphBuffer: string[] = [];
     let consumedLength = 0;

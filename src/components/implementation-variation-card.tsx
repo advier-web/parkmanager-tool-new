@@ -5,6 +5,8 @@ import { MarkdownContent, processMarkdownText } from '@/components/markdown-cont
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 import ImplementationVariantFactsheetButton from './implementation-variant-factsheet-button';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useDialog } from '../contexts/dialog-context';
 
 interface ImplementationVariationCardProps {
   variation: ImplementationVariation;
@@ -20,6 +22,7 @@ export function ImplementationVariationCard({
   solutionTitle
 }: ImplementationVariationCardProps) {
   const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+  const { openImplementationVariantDialog } = useDialog();
 
   return (
     <div 
@@ -54,15 +57,27 @@ export function ImplementationVariationCard({
       </div> 
 
       {/* PDF Download Link Section */}
-      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-start items-center">
-        <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
+      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-start items-center space-x-4">
+        {/* Meer informatie button */}
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); openImplementationVariantDialog(variation); }}
+          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none whitespace-nowrap"
+        >
+          <InformationCircleIcon className="h-4 w-4 mr-1 flex-shrink-0" />
+          Meer informatie
+        </button>
+        {/* PDF Download Button */}
+        <div onClick={(e) => e.stopPropagation()} className="flex-shrink min-w-0">
           <ImplementationVariantFactsheetButton
             variation={variation}
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
-            buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none w-full"
+            buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm w-full overflow-hidden"
           >
-            <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
-            {`Download factsheet ${solutionTitle}: ${displayTitle}`}
+            <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+            <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+              Download factsheet van deze implementatievariant
+            </span>
           </ImplementationVariantFactsheetButton>
         </div>
       </div>

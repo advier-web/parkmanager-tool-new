@@ -7,6 +7,8 @@ import { MarkdownContent, processMarkdownText } from '../../../components/markdo
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { SiteHeader } from '@/components/site-header';
 import { useEffect } from 'react';
+import GovernanceModelFactsheetButton from '@/components/governance-model-factsheet-button';
+import { governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 export default function ImplementationPlanPage() {
   const {
@@ -92,6 +94,15 @@ export default function ImplementationPlanPage() {
                   ) : (
                      <p className="italic text-gray-500">Geen specifieke implementatie-informatie beschikbaar voor dit model.</p>
                   )}
+                  <div className="mt-6">
+                    <GovernanceModelFactsheetButton 
+                      governanceModel={selectedGovernanceModelData}
+                      selectedVariations={[]}
+                      governanceTitleToFieldName={governanceTitleToFieldName}
+                      stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                      className="w-full md:w-auto"
+                    />
+                  </div>
                 </div>
               )}
               {_hasHydrated && !isLoading && !error && !selectedGovernanceModelData && (

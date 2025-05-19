@@ -12,7 +12,7 @@ import { GovernanceModel } from '@/domain/models';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 export function SolutionDialog() {
-  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, currentVariations, closeDialog } = useDialog();
+  const { isOpen, dialogType, currentSolution, compatibleGovernanceModels, currentGovernanceModel, currentReason, currentVariations, currentImplementationVariant, closeDialog } = useDialog();
 
   // Debug logs for troubleshooting
   useEffect(() => {
@@ -162,6 +162,15 @@ export function SolutionDialog() {
               </section>
             )}
 
+            {/* ADDED Casebeschrijving section AT THE BOTTOM of content */}
+            {currentSolution.casebeschrijving && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Casebeschrijving</h2>
+                {/* Using MarkdownWithAccordions for consistency, or MarkdownContent if preferred */}
+                <MarkdownWithAccordions content={currentSolution.casebeschrijving} /> 
+              </section>
+            )}
+
             {/* Uitgecommenteerde secties */}
             {/*
             {paspoort && (<section>...</section>)} // Paspoort is uit
@@ -199,8 +208,8 @@ export function SolutionDialog() {
     const typedModel = currentGovernanceModel as GovernanceModel;
     const anyModel = currentGovernanceModel as any;
     
-    const advantages = typedModel.advantages || anyModel.voordelen || [];
-    const disadvantages = typedModel.disadvantages || anyModel.nadelen || [];
+    const advantages: string[] = (anyModel.voordelen || []) as string[];
+    const disadvantages: string[] = (anyModel.nadelen || []) as string[];
     const benodigdheden = typedModel.benodigdhedenOprichting || anyModel.benodigdhedenOprichting || [];
     const links = typedModel.links || anyModel.links || [];
     const doorlooptijdLang = typedModel.doorlooptijdLang || anyModel.doorlooptijdLang || '';
@@ -240,28 +249,18 @@ export function SolutionDialog() {
             {advantages && advantages.length > 0 && (
               <div>
                 <h3 className="text-base font-semibold mb-1">Voordelen</h3>
-                {typeof advantages[0] === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(advantages[0])} />
-                ) : (
-                  /* Optional: Handle array case differently if needed later */ 
-                  <ul className="list-disc pl-5">
-                    {advantages.map(renderListItem)}
-                  </ul>
-                )}
+                {advantages.map((adv: string, idx: number) => (
+                  <MarkdownContent key={idx} content={processMarkdownText(adv)} />
+                ))}
               </div>
             )}
              {/* Render disadvantages as Markdown if it's a string (or first element of array) */}
             {disadvantages && disadvantages.length > 0 && (
               <div>
                 <h3 className="text-base font-semibold mb-1">Nadelen</h3>
-                 {typeof disadvantages[0] === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(disadvantages[0])} />
-                ) : (
-                   /* Optional: Handle array case differently if needed later */ 
-                  <ul className="list-disc pl-5">
-                    {disadvantages.map(renderListItem)}
-                  </ul>
-                )}
+                {disadvantages.map((nad: string, idx: number) => (
+                  <MarkdownContent key={idx} content={processMarkdownText(nad)} />
+                ))}
               </div>
             )}
             {/* Render benodigdheden based on type */} 
@@ -284,6 +283,93 @@ export function SolutionDialog() {
             {/* ... Potentially render other fields from typedModel ... */}
           </div>
           
+          <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
+            <button
+              onClick={closeDialog}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Sluiten
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show implementation variant information dialog
+  if (dialogType === 'implementation-variant' && currentImplementationVariant) {
+    const variant = currentImplementationVariant;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
+            <h2 className="text-xl font-bold">{variant.title}</h2>
+            <button
+              onClick={closeDialog}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
+          {/* Content Area */}
+          <div className="p-6 space-y-6">
+            {variant.samenvatting && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Samenvatting</h2>
+                <MarkdownContent content={processMarkdownText(variant.samenvatting)} />
+              </section>
+            )}
+            {variant.investering && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Investering</h2>
+                <MarkdownContent content={variant.investering} />
+              </section>
+            )}
+            {variant.realisatieplan && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Realisatieplan</h2>
+                <MarkdownContent content={variant.realisatieplan} />
+              </section>
+            )}
+            {variant.realisatieplanLeveranciers && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Leveranciers</h2>
+                <MarkdownContent content={variant.realisatieplanLeveranciers} />
+              </section>
+            )}
+            {variant.realisatieplanContractvormen && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Contractvormen</h2>
+                <MarkdownContent content={variant.realisatieplanContractvormen} />
+              </section>
+            )}
+            {variant.realisatieplanKrachtenveld && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Krachtenveld</h2>
+                <MarkdownContent content={variant.realisatieplanKrachtenveld} />
+              </section>
+            )}
+            {variant.realisatieplanVoorsEnTegens && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Voors en Tegens</h2>
+                <MarkdownContent content={variant.realisatieplanVoorsEnTegens} />
+              </section>
+            )}
+            {variant.realisatieplanAandachtspunten && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Aandachtspunten</h2>
+                <MarkdownContent content={variant.realisatieplanAandachtspunten} />
+              </section>
+            )}
+            {variant.realisatieplanChecklist && (
+              <section>
+                <h2 className="text-xl font-bold mb-2">Checklist</h2>
+                <MarkdownContent content={variant.realisatieplanChecklist} />
+              </section>
+            )}
+          </div>
+          {/* Footer */}
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
             <button
               onClick={closeDialog}
