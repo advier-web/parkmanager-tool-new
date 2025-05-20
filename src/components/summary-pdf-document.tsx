@@ -2,208 +2,298 @@
 
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font as PdfFont } from '@react-pdf/renderer';
-import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation, BusinessParkReason } from '@/domain/models'; // Add ImplementationVariation
+import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation, BusinessParkReason } from '@/domain/models';
 import { SelectedVariantMap } from '@/lib/store';
-import { extractPassportTextWithVariant, stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers'; // Import new helper
+import { stripSolutionPrefixFromVariantTitle, governanceTitleToFieldName as governanceTitleToFieldNameHelper, snakeToCamel as snakeToCamelHelper } from '@/utils/wizard-helpers';
 
-// Register font (optional, but good for consistency)
-// Ensure you have the font files available or use standard fonts
-// Font.register({ family: 'Helvetica', fonts: [ { src: 'path/to/Helvetica.ttf' } ] }); // Example
+// --- BEGIN STYLING CHANGES ---
+
+// Using Open Sans from CDN (consistent with other PDF components)
+const openSansRegularUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf';
+const openSansItalicUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-italic.ttf';
+const openSansBoldUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700.ttf';
+const openSansBoldItalicUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700italic.ttf';
+
+PdfFont.register({
+  family: 'Open Sans',
+  fonts: [
+    { src: openSansRegularUrl, fontWeight: 'normal', fontStyle: 'normal' },
+    { src: openSansItalicUrl, fontWeight: 'normal', fontStyle: 'italic' },
+    { src: openSansBoldUrl, fontWeight: 'bold', fontStyle: 'normal' },
+    { src: openSansBoldItalicUrl, fontWeight: 'bold', fontStyle: 'italic' },
+  ],
+});
+
+// Disable hyphenation globally
+PdfFont.registerHyphenationCallback(word => [word]);
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    padding: 35, // Slightly more padding
-    fontSize: 10,
-    fontFamily: 'Helvetica', // Ensure this matches registered font or is standard
-    lineHeight: 1.5, // Increased line height
-    color: '#333',
+    padding: 30,
+    fontFamily: 'Open Sans', // Changed from Helvetica
+    fontSize: 9, // Consistent base font size
+    lineHeight: 1.5, // Consistent line height
+    color: '#000000', // Consistent base text color
   },
-  section: {
-    marginBottom: 18, // Increased spacing
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#ccc',
+  // Header for "Samenvatting" and "Mobiliteitsplan Bedrijventerrein X"
+  headerSection: { 
+    marginBottom: 25, // Consistent with factsheets headerContainer
+    paddingBottom: 5, // Consistent with factsheets headerContainer
+    // Removed borderBottom, factsheets don't have it on the main PDF title container
+  },
+  mainTitle: { // "Samenvatting"
+    fontSize: 18, // Consistent with factsheets headerText
+    fontWeight: 'bold', // Consistent with factsheets headerText
+    fontFamily: 'Open Sans', // Ensure Open Sans
+    color: '#000000', // Consistent with factsheets headerText
+    textAlign: 'left', // Changed from center for consistency
+    marginBottom: 2, // Consistent spacing for multi-line headers
+    lineHeight: 1.4, // Consistent with factsheets headerText
+  },
+  subTitle: { // "Mobiliteitsplan Bedrijventerrein X"
+    fontSize: 18, // Keep same size as main title if it's part of the main header block
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    color: '#000000',
+    textAlign: 'left',
+    lineHeight: 1.4,
+    marginBottom: 15, // Spacing after the full header block
+  },
+  // Generic heading styles for renderRichText, similar to htmlTagStyles in factsheets
+  h1: { // Used by renderRichText if # is encountered
+    fontSize: 16, 
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    color: '#000000', 
+    marginTop: 10, 
+    marginBottom: 1, // Consistent with factsheet h1
+    lineHeight: 1.1,
+  },
+  section: { // For major sections like "Uw keuzes"
+    marginBottom: 15, // Consistent with factsheets
+    paddingBottom: 10, // Consistent with factsheets
+    borderBottomWidth: 1, // Consistent with factsheets
+    borderBottomColor: '#eaeaea', // Consistent with factsheets
     borderBottomStyle: 'solid',
   },
-  lastSection: {
-    marginBottom: 18,
+  lastSection: { // No border for the last section
+    marginBottom: 15, // Consistent margin
     paddingBottom: 0,
     borderBottomWidth: 0,
   },
-  h1: {
-    fontSize: 20, // Larger
-    marginBottom: 18,
+  h2: { // Section titles like "Uw keuzes", "Geselecteerde Oplossingen & Varianten"
+    fontSize: 12.5, // Consistent with factsheet sectionTitle
     fontWeight: 'bold',
-    color: '#111',
+    fontFamily: 'Open Sans',
+    color: '#000000', // Consistent with factsheet sectionTitle
+    marginBottom: 8, // Adjusted for visual hierarchy below section, allow more space than factsheet's 2mb
+    lineHeight: 1.2, // Consistent with factsheet sectionTitle
+    // Removed its own borderBottom, as the parent <View style={styles.section}> has it
   },
-  h2: {
-    fontSize: 16,
-    marginBottom: 12,
+  h3: { // Sub-section titles like "Bedrijventerrein Informatie", or Solution Titles
+    fontSize: 12, // Slightly smaller than h2, similar to factsheet h3 for renderRichText
     fontWeight: 'bold',
-    color: '#222',
+    fontFamily: 'Open Sans',
+    color: '#000000',
+    marginTop: 6, // Added marginTop for spacing, consistent with factsheet h3
+    marginBottom: 5, // Adjusted from 8, factsheet h3 has 3
+    lineHeight: 1.1,
   },
-  h3: {
-    fontSize: 13, // Adjusted size
-    marginBottom: 10,
+  h4: { // Further sub-titles, e.g., for variant name or reason title in contribution block
+    fontSize: 10, // New distinct size, smaller than h3
     fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'Open Sans',
+    color: '#333333', // Slightly lighter if needed, or keep #000000
+    marginTop: 8,
+    marginBottom: 4, // Adjusted from 6
+    lineHeight: 1.1,
   },
-  h4: {
-    fontSize: 11,
-    marginBottom: 8,
-    fontWeight: 'bold',
-    color: '#444',
+  paragraph: { // For general text from renderRichText
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    lineHeight: 1.5,
+    marginBottom: 5, // Consistent with factsheet p
+    textAlign: 'left', // Changed from justify
+    marginTop: 0, // Consistent with factsheet p
   },
-  paragraph: {
-    marginBottom: 8, // Space after paragraphs
-  },
-  listItemContainer: { // Container for list items for potential indentation
+  listItemContainer: { // For bulleted lists from renderRichText
     flexDirection: 'row',
-    marginBottom: 5,
-    marginLeft: 10, // Indent list items
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    lineHeight: 1.5,
+    marginBottom: 3, // Consistent with factsheet li
+    paddingLeft: 0, // Bullets will create indent, actual list container not padded like factsheet ul
+    // marginLeft is handled by renderRichText if it's a nested list, or directly if needed.
   },
   listItemBullet: {
-    width: 10,
-    fontSize: 10,
-    marginRight: 5,
+    width: 8, // Keeps bullet small
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    marginRight: 5, // Space after bullet
   },
   listItemText: {
     flex: 1,
-  },
-  indent: {
-    marginLeft: 15,
-    marginBottom: 12,
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#555',
-    marginBottom: 4,
+    fontFamily: 'Open Sans',
     fontSize: 9,
-    textTransform: 'uppercase',
   },
-  grid: {
+  // Indent style, if directly used. renderRichText list items get auto-indent from bullet usually.
+  indent: { 
+    marginLeft: 15, // Standard indent
+    marginBottom: 10, 
+  },
+  label: { // For labels like "Aantal bedrijven:"
+    fontFamily: 'Open Sans',
+    fontWeight: 'bold', 
+    color: '#000000', // Make labels black for higher contrast like section titles
+    fontSize: 9, 
+    marginBottom: 2,
+  },
+  value: { // For values next to labels
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    marginBottom: 6, // Spacing after a value entry
+    color: '#000000',
+  },
+  gridContainer: { 
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
+    marginBottom: 10,
   },
-  gridCol: {
+  gridColumn: {
     width: '50%',
-    paddingRight: 12,
-    marginBottom: 12,
+    paddingRight: 10, 
   },
-  solutionItem: {
-    marginBottom: 18,
-    paddingBottom: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
-    borderBottomStyle: 'solid',
+  gridColumnLast: { 
+    width: '50%',
   },
-  lastSolutionItem: {
-    marginBottom: 18,
-    paddingBottom: 0,
+  solutionBlock: { 
+    marginBottom: 15,
+    paddingBottom: 15, // Add padding before border to match section
+    borderBottomWidth: 1,
+    borderBottomColor: '#eaeaea', // Consistent light border
+  },
+  lastSolutionBlock: {
     borderBottomWidth: 0,
+    paddingBottom: 0,
+    marginBottom: 0,
   },
-  subSection: {
-    marginTop: 12,
+  variantBlock: { // Container for a variant within a solution
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 0.5, // Lighter border for sub-sections
+    borderTopColor: '#f0f0f0', // Very light separator
+    marginLeft: 10, 
+  },
+  contributionBlock: { // For "Bijdrage aan geselecteerde aanleidingen"
+    marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 0.5,
-    borderTopColor: '#f0f0f0',
-    borderTopStyle: 'solid',
-    marginLeft: 10,
+    borderTopColor: '#f0f0f0', // Very light separator
   },
-  // --- Table Styles ---
+  contributionItem: {
+    marginBottom: 8,
+  },
+  subtleText: { // For "(Geen specifieke toelichting beschikbaar)"
+    fontFamily: 'Open Sans',
+    fontSize: 9,
+    color: '#555555', // Slightly darker grey than before
+    fontStyle: 'italic',
+    marginLeft: 10, // If it's under a label
+  },
+  bold: { fontWeight: 'bold', fontFamily: 'Open Sans' }, // Ensure Open Sans for bold/italic
+  italic: { fontStyle: 'italic', fontFamily: 'Open Sans' },
+  
+  // Table Styles - make them consistent with ImplementationVariantFactsheet if tables are complex
+  // The current renderRichText table rendering is basic. If complex tables from factsheets are needed,
+  // then the full table styling from ImplementationVariantFactsheetPdf (pdfTable, etc.) would be needed.
+  // For now, keeping the existing improved table styles in summary-pdf, but with Open Sans.
   table: {
-    width: 'auto',
+    width: 'auto', // Keep auto for flexibility
     borderStyle: 'solid',
-    borderWidth: 0.5,
-    borderColor: '#ddd',
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
+    borderWidth: 0.5, // Lighter border than factsheets if desired, or match to #ccc
+    borderColor: '#cccccc', // Consistent with factsheet table border
     marginBottom: 10,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomColor: '#ddd',
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 0.5, // Lighter than factsheets, or match to #ccc
+    borderBottomColor: '#cccccc',
     alignItems: 'stretch',
   },
   tableColHeader: {
-    backgroundColor: '#f8f8f8',
-    borderStyle: 'solid',
-    borderWidth: 0.5,
-    borderColor: '#ddd',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-    flexBasis: 0, // Base for flex grow
-    flexGrow: 3, // Default grow for header cols
+    backgroundColor: '#f0f0f0', // Consistent with factsheet table header
+    padding: 5, // Consistent padding
     fontWeight: 'bold',
-  },
-  tableColHeaderLast: { // Style for the last header cell
-    backgroundColor: '#f8f8f8',
-    borderStyle: 'solid',
-    borderWidth: 0.5,
-    borderColor: '#ddd',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
+    fontFamily: 'Open Sans', // Ensure Open Sans
+    fontSize: 8.5, // Match factsheet table cell font size
+    borderRightWidth: 0.5, // Lighter than factsheets, or match to #ccc
+    borderRightColor: '#cccccc',
+    flexGrow: 3, // Keep existing flex for now
     flexBasis: 0,
-    flexGrow: 1, // Less grow for the last column
-    fontWeight: 'bold',
   },
   tableCol: {
-    borderStyle: 'solid',
-    borderWidth: 0.5,
-    borderColor: '#ddd',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
     padding: 5,
+    fontFamily: 'Open Sans',
+    fontSize: 8.5,
+    borderRightWidth: 0.5,
+    borderRightColor: '#cccccc',
+    flexGrow: 3,
     flexBasis: 0,
-    flexGrow: 3, // Default grow (description column)
   },
-  tableColLast: { // Style for the last data cell column
-     borderStyle: 'solid',
-     borderWidth: 0.5,
-     borderColor: '#ddd',
-     borderLeftWidth: 0,
-     borderTopWidth: 0,
-     padding: 5,
-     flexBasis: 0,
-     flexGrow: 1, // Less grow (cost column)
+  tableCell: { // Applied to Text within tableCol/tableColHeader
+    fontFamily: 'Open Sans',
+    fontSize: 8.5, // Match factsheet table cell font size
   },
-  tableCell: {
-    fontSize: 9,
+  tableColHeaderLast: { // Style for last header cell
+    backgroundColor: '#f0f0f0',
+    padding: 5,
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    fontSize: 8.5,
+    flexGrow: 1, // Keep existing flex
+    flexBasis: 0,
+    // No right border for the very last cell in a row
   },
-  tableCellRight: { // Style for right-aligned text in cells
-      fontSize: 9,
-      textAlign: 'right',
+  tableColLast: { // Style for last data cell
+    padding: 5,
+    fontFamily: 'Open Sans',
+    fontSize: 8.5,
+    flexGrow: 1,
+    flexBasis: 0,
+    // No right border
   },
-  // --- Inline Styles --- (used within renderInlineFormatting)
-  bold: { fontWeight: 'bold' }, 
-  italic: { fontStyle: 'italic' }, 
+  tableCellRight: { // For right-aligning text in a cell (e.g., last column)
+    fontFamily: 'Open Sans',
+    fontSize: 8.5,
+    textAlign: 'right',
+  },
 });
+
+// --- END STYLING CHANGES ---
 
 interface SummaryPdfDocumentProps {
   businessParkInfo: BusinessParkInfo;
+  businessParkName: string;
   currentGovernanceModelTitle: string;
   selectedReasonTitles: string[];
   selectedSolutionsData: MobilitySolution[];
   selectedVariants: SelectedVariantMap;
   selectedGovernanceModelId: string | null;
-  selectedImplementationPlanTitle: string;
   governanceModels: GovernanceModel[];
   governanceTitleToFieldName: (title: string | undefined) => string | null;
-  extractImplementationSummaryFromVariant: (implementationText: string | undefined, variantName: string | null) => string | null;
   reasons: Array<{ id: string; title: string; identifier?: string }>;
   selectedReasons: string[];
   snakeToCamel: (str: string) => string;
-  selectedVariationsData?: ImplementationVariation[]; // Add prop
+  selectedVariationsData?: ImplementationVariation[];
 }
 
 // Cleaner: Preserves structure, trims lines.
-const cleanText = (text: string | null | undefined): string => {
-  if (!text) return '';
+const cleanText = (text: any): string => {
+  if (typeof text !== 'string') {
+    // If it's not a string, return an empty string to prevent crashes.
+    // This might hide underlying data issues if non-string values are common.
+    return '';
+  }
+  // Now we know text is a string
   return text
     .split('\n')
     .map(line => line.trimEnd()) // Trim end, keep leading spaces for lists etc.
@@ -332,176 +422,199 @@ const renderRichText = (text: string | null | undefined, baseKey: string) => {
 
 const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   businessParkInfo,
+  businessParkName,
   currentGovernanceModelTitle,
   selectedReasonTitles,
   selectedSolutionsData,
   selectedVariants,
   selectedGovernanceModelId,
-  selectedImplementationPlanTitle,
   governanceModels,
   governanceTitleToFieldName,
-  extractImplementationSummaryFromVariant,
   reasons,
-  selectedReasons,
+  selectedReasons: selectedReasonIds,
   snakeToCamel,
-  selectedVariationsData // Destructure prop
+  selectedVariationsData = []
 }) => {
-  const selectedGovernanceModel = governanceModels.find(m => m.id === selectedGovernanceModelId);
-  const selectedGovernanceModelTitle = selectedGovernanceModel?.title || 'N/A';
+  const selectedGovModel = governanceModels.find(gm => gm.id === selectedGovernanceModelId);
+
+  // Helper to find a selected variation object by its ID
+  const findVariantById = (variantId: string | null | undefined) => {
+    if (!variantId) return null;
+    return selectedVariationsData.find(v => v.id === variantId);
+  };
+  
+  // Helper for rendering a label and value
+  const renderLabelValue = (label: string, value?: string | number | null, keyPrefix?: string) => {
+    if (value === null || value === undefined || value === '') return null;
+    return (
+      <View key={`${keyPrefix}-${label}`} style={{ marginBottom: 6 }}>
+        <Text style={styles.label}>{label}:</Text>
+        {typeof value === 'string' && value.includes('\n') ? (
+          renderRichText(value, `${keyPrefix}-${label}-value`)
+        ) : (
+          <Text style={styles.value}>{String(value)}</Text>
+        )}
+      </View>
+    );
+  };
+  
+  // Helper for list items
+  const renderListItem = (text: string, key: string) => (
+    <View style={styles.listItemContainer} key={key}>
+      <Text style={styles.listItemBullet}>•</Text>
+      <Text style={styles.listItemText}>{text}</Text>
+    </View>
+  );
 
   return (
-    <Document title="Samenvatting Mobiliteitsplan">
+    <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.section}>
-          <Text style={styles.h1}>Samenvatting Mobiliteitsplan</Text>
+        <View style={styles.headerSection}>
+          <Text style={styles.mainTitle}>Samenvatting</Text>
         </View>
 
-        {/* Bedrijventerrein Info */}
+        {/* == Section 1: Uw Keuzes == */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Bedrijventerrein Informatie</Text>
-          <View style={styles.grid}>
-            <View style={styles.gridCol}>
-              <Text style={styles.label}>Aantal bedrijven</Text>
-              <Text style={styles.paragraph}>{businessParkInfo.numberOfCompanies || 'N/A'}</Text>
-              <Text style={styles.label}>Verkeerstypen</Text>
-              {(businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0) ? (
-                businessParkInfo.trafficTypes.map(type => (
-                  <View key={type} style={styles.listItemContainer}>
-                    <Text style={styles.listItemBullet}>•</Text>
-                    <Text style={styles.listItemText}>{type}</Text>
-                  </View>
-                ))
-              ) : <Text style={styles.paragraph}>Geen</Text>}
-            </View>
-            <View style={styles.gridCol}>
-              <Text style={styles.label}>Aantal werknemers</Text>
-              <Text style={styles.paragraph}>{businessParkInfo.numberOfEmployees || 'N/A'}</Text>
-              {currentGovernanceModelTitle && (
-                <>
-                  <Text style={styles.label}>Huidig bestuursmodel</Text>
-                  <Text style={styles.paragraph}>{currentGovernanceModelTitle}</Text>
-                </>
+          <Text style={styles.h2}>Uw Keuzes</Text>
+          
+          <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
+          <View style={styles.gridContainer}>
+            <View style={styles.gridColumn}>
+              {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
+              {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={styles.label}>Verkeerstypen:</Text>
+                  {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
+                </View>
               )}
+              {renderLabelValue("Bereikbaarheid met auto", businessParkInfo.carAccessibility, "bp")}
+              {renderLabelValue("Bereikbaarheid met trein", businessParkInfo.trainAccessibility, "bp")}
+              {renderLabelValue("Bereikbaarheid met bus", businessParkInfo.busAccessibility, "bp")}
+            </View>
+            <View style={styles.gridColumnLast}>
+              {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
+              {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
+              {businessParkInfo.employeePickupPreference && renderLabelValue("Ophalen werknemers", businessParkInfo.employeePickupPreference === 'thuis' ? 'Vanaf thuis' : 'Vanaf locatie', "bp")}
+              {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}
+              {businessParkInfo.averageDistance && renderLabelValue("Gemiddelde woon-werk afstand", businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`, "bp")}
             </View>
           </View>
-          <Text style={styles.h3}>Locatiekenmerken</Text>
-          <View style={styles.grid}>
-            {businessParkInfo.carAccessibility && <View style={styles.gridCol}><Text style={styles.label}>Bereikbaarheid auto</Text><Text style={styles.paragraph}>{businessParkInfo.carAccessibility}</Text></View>}
-            {businessParkInfo.trainAccessibility && <View style={styles.gridCol}><Text style={styles.label}>Bereikbaarheid trein</Text><Text style={styles.paragraph}>{businessParkInfo.trainAccessibility}</Text></View>}
-            {businessParkInfo.busAccessibility && <View style={styles.gridCol}><Text style={styles.label}>Bereikbaarheid bus</Text><Text style={styles.paragraph}>{businessParkInfo.busAccessibility}</Text></View>}
-            {businessParkInfo.sufficientParking && <View style={styles.gridCol}><Text style={styles.label}>Voldoende parkeerplaatsen</Text><Text style={styles.paragraph}>{businessParkInfo.sufficientParking}</Text></View>}
-            {businessParkInfo.averageDistance && <View style={styles.gridCol}><Text style={styles.label}>Gem. woon-werk afstand</Text><Text style={styles.paragraph}>{businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`}</Text></View>}
+
+          <Text style={styles.h3}>Selecties</Text>
+           <View style={styles.gridContainer}>
+             <View style={styles.gridColumn}>
+                {selectedReasonTitles.length > 0 && (
+                    <View style={{ marginBottom: 6 }}>
+                    <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
+                    {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
+                    </View>
+                )}
+                {selectedSolutionsData.length > 0 && (
+                    <View style={{ marginBottom: 6 }}>
+                    <Text style={styles.label}>Geselecteerde mobiliteitsoplossingen:</Text>
+                    {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
+                    </View>
+                )}
+            </View>
+            <View style={styles.gridColumnLast}>
+                {selectedVariationsData.length > 0 && (
+                    <View style={{ marginBottom: 6 }}>
+                        <Text style={styles.label}>Gekozen implementatievarianten:</Text>
+                        {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
+                    </View>
+                )}
+                {selectedGovModel && (
+                    renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
+                )}
+            </View>
           </View>
-          {!(businessParkInfo.carAccessibility || businessParkInfo.trainAccessibility || businessParkInfo.busAccessibility || businessParkInfo.sufficientParking || businessParkInfo.averageDistance) && (
-              <Text style={styles.paragraph}>Geen specifieke locatiekenmerken opgegeven.</Text>
-          )}
         </View>
 
-        {/* Geselecteerde Oplossingen */}
-        {selectedSolutionsData.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.h2}>Geselecteerde Mobiliteitsoplossingen</Text>
-            {selectedSolutionsData.map((solution, index) => {
-               const variantId = selectedVariants[solution.id];
-               // Find full variation data using the ID
-               const variation = selectedVariationsData?.find(v => v.id === variantId);
-               const variantTitle = variation ? stripSolutionPrefixFromVariantTitle(variation.title) : (variantId || null); // Apply helper, fallback to ID
-               
-               const passportText = extractPassportTextWithVariant(solution.paspoort, variantTitle); // Pass title to extraction
-               const implementationSummary = extractImplementationSummaryFromVariant(solution.implementatie, variantTitle);
-               const isLastItemInList = index === selectedSolutionsData.length - 1;
+        {/* == Section 2: Geselecteerde Oplossingen & Varianten == */}
+        <View style={styles.section}>
+          <Text style={styles.h2}>Geselecteerde Oplossingen & Varianten</Text>
+          {selectedSolutionsData.map((solution, index) => {
+            const variantIdForSolution = selectedVariants[solution.id];
+            const chosenVariant = findVariantById(variantIdForSolution);
+            const relevantUserReasons = reasons.filter(r => selectedReasonIds.includes(r.id) && r.identifier);
 
-               return (
-                 <View key={solution.id} style={isLastItemInList ? styles.lastSolutionItem : styles.solutionItem}>
-                   <Text style={styles.h3}>{solution.title}</Text>
-                   {variantTitle && (
-                     <View style={styles.indent}>
-                       <Text style={styles.label}>Gekozen variant</Text>
-                       {/* Display the stripped title */}
-                       <Text style={styles.paragraph}>{variantTitle}</Text> 
-                     </View>
-                   )}
-                   {passportText && (
-                     <View style={styles.indent}>
-                       <Text style={styles.label}>Kernpunten</Text>
-                       {renderRichText(passportText, `${solution.id}-passport`)}
-                     </View>
-                   )}
-                   {implementationSummary && (
-                      <View style={styles.subSection}>
-                          <Text style={styles.h4}>Implementatie Kernpunten</Text>
-                          {renderRichText(implementationSummary, `${solution.id}-impl`)}
-                      </View>
-                   )}
-                   {/* --- Added Section: Contribution to Selected Reasons --- */}
-                   {selectedReasons.length > 0 && reasons.length > 0 && (
-                        <View style={styles.subSection}>
-                            <Text style={styles.h4}>Bijdrage aan Geselecteerde Aanleidingen:</Text>
-                            {selectedReasons.map(reasonId => {
-                                const reason = reasons.find(r => r.id === reasonId);
-                                if (!reason || !reason.identifier) return null; 
+            return (
+              <View key={solution.id} style={index === selectedSolutionsData.length - 1 ? styles.lastSolutionBlock : styles.solutionBlock}>
+                <Text style={styles.h3}>{solution.title}</Text>
+                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-desc-${solution.id}`)}
 
-                                const reasonIdentifierCamel = snakeToCamel(reason.identifier);
-                                const fieldName = `${reasonIdentifierCamel}Toelichting`;
-                                const text = (solution as any)[fieldName];
-
-                                if (!text) return null; 
-
-                                return (
-                                    <View key={reasonId} style={{ marginBottom: 8 }}>
-                                        <Text style={{ ...styles.bold, fontSize: 10, marginBottom: 3 }}>
-                                            {reason.title}:
-                                        </Text>
-                                        <View style={{ marginLeft: 10 }}> {/* Indent explanation */}
-                                            {renderRichText(text, `${solution.id}-${reasonId}-contrib`)}
-                                        </View>
-                                    </View>
-                                );
-                            })}
+                {relevantUserReasons.length > 0 && (
+                  <View style={styles.contributionBlock}>
+                    <Text style={styles.h4}>Bijdrage aan geselecteerde aanleidingen:</Text>
+                    {relevantUserReasons.map(reason => {
+                      const explanationFieldName = reason.identifier ? snakeToCamelHelper(reason.identifier) + 'Toelichting' : ''; // Use helper and add suffix
+                      const explanationText = (solution as any)[explanationFieldName];
+                      return (
+                        <View key={reason.id} style={styles.contributionItem}>
+                          <Text style={styles.label}>{reason.title}:</Text>
+                          {explanationText ? (
+                            <View style={{ marginLeft: 10 }}>{renderRichText(explanationText, `reason-expl-${solution.id}-${reason.id}`)}</View>
+                          ) : (
+                            <Text style={styles.subtleText}>(Geen specifieke toelichting beschikbaar)</Text>
+                          )}
                         </View>
-                    )}
-                 </View>
-               );
-            })}
-          </View>
-        )}
+                      );
+                    })}
+                  </View>
+                )}
 
-        {/* Gekozen Governance Model */}
-        {selectedGovernanceModel && (
-          <View style={styles.section}>
+                {chosenVariant && (
+                  <View style={styles.variantBlock}>
+                    <Text style={styles.h4}>Geselecteerde implementatievariant: {stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
+                  </View>
+                )}
+                 {!chosenVariant && Object.keys(selectedVariants).includes(solution.id) && selectedVariants[solution.id] && ( // Case where variantId is selected but data not found (should be rare)
+                  <View style={styles.variantBlock}>
+                    <Text style={styles.h4}>Geselecteerde implementatievariant:</Text>
+                    <Text style={styles.subtleText}>(Details voor variant ID {selectedVariants[solution.id]} konden niet geladen worden)</Text>
+                  </View>
+                )}
+                 {/* Consider adding a note if no variant was selected for this solution AT ALL, if applicable based on app logic */}
+
+              </View>
+            );
+          })}
+        </View>
+
+        {/* == Section 3: Gekozen Governance Model == */}
+        {selectedGovModel && (
+          <View style={styles.lastSection}>
             <Text style={styles.h2}>Gekozen Governance Model</Text>
-            <Text style={styles.h3}>{selectedGovernanceModelTitle}</Text>
-            {renderRichText(selectedGovernanceModel.summary || selectedGovernanceModel.samenvatting || selectedGovernanceModel.description, `${selectedGovernanceModelId}-desc`)}
+            <Text style={styles.h3}>{selectedGovModel.title}</Text>
+            {renderRichText(selectedGovModel.description || selectedGovModel.summary, `gov-desc-${selectedGovModel.id}`)}
             
-            {selectedSolutionsData.length > 0 && (
-                <View style={styles.subSection}>
-                  <Text style={styles.h4}>Relevantie per Gekozen Oplossing:</Text>
-                  {selectedSolutionsData.map(solution => {
-                    const fieldName = governanceTitleToFieldName(selectedGovernanceModel.title);
-                    if (!fieldName) return null;
-                    const text = (solution as any)[fieldName];
-                    if (!text) return null;
-                    
-                    return (
-                        <View key={`${solution.id}-gov`} style={{ marginBottom: 8 }}>
-                            <Text style={{ ...styles.bold, fontSize: 11, marginBottom: 4 }}>{solution.title}:</Text> {/* Use style object */}
-                            {renderRichText(text, `${solution.id}-gov-text`)}
-                        </View>
-                    );
-                  })}
+            {selectedVariationsData && selectedVariationsData.length > 0 && (
+              <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: '#f0f0f0' }}>
+                <Text style={styles.h4}>Relevantie voor geselecteerde varianten:</Text>
+                {selectedVariationsData.map(variation => {
+                  const fieldName = governanceTitleToFieldName(selectedGovModel.title); // Use helper
+                  if (!fieldName) return null;
+                  
+                  const text = (variation as any)[fieldName];
+                  if (!text) return null;
+
+                  return (
+                    <View key={variation.id} style={{ marginBottom: 8, marginLeft: 10 }}>
+                      <Text style={styles.label}>Relevantie voor variant "{stripSolutionPrefixFromVariantTitle(variation.title)}":</Text>
+                      {renderRichText(text, `gov-var-rel-${variation.id}`)}
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>
         )}
-
-        {/* Gekozen Implementatieplan */}
-        {selectedImplementationPlanTitle && (
-          <View style={!selectedGovernanceModel ? styles.lastSection : styles.section}>
-            <Text style={styles.h2}>Gekozen Implementatieplan</Text>
-            <Text style={styles.paragraph}>{selectedImplementationPlanTitle}</Text>
-          </View>
-        )}
+        
+        {/* Potential Footer for page numbers or generated date */}
+        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
+          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </Text>
 
       </Page>
     </Document>

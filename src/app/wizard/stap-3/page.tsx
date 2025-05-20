@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGovernanceModels } from '../../../hooks/use-domain-models';
 import { useWizardStore } from '@/store/wizard-store';
@@ -45,43 +44,41 @@ export default function Step3Page() {
     }
 
     async function fetchVariations() {
-      // Check if there are selected variants to fetch
       const variantIdsToFetch = Object.values(selectedVariants).filter((vId): vId is string => vId !== null);
       
       if (variantIdsToFetch.length === 0) {
         setIsLoadingVariations(false);
-        setRelevantVariations([]);
+        setRelevantVariations([]); // Still set to empty array if no IDs
         return;
       }
 
       setIsLoadingVariations(true);
       
-      // Check if variantIdsToFetch contains valid IDs before proceeding
       if (!variantIdsToFetch || variantIdsToFetch.length === 0 || variantIdsToFetch.some(id => !id)) {
           console.error("[Stap 3] Invalid or empty variant IDs detected:", variantIdsToFetch);
           setRelevantVariations([]);
           setIsLoadingVariations(false);
-          return; // Stop fetching if IDs are invalid
+          return;
       }
 
       try {
-        // Create an array of promises to fetch each selected variation
         const fetchPromises = variantIdsToFetch.map(variationId => 
           getImplementationVariationById(variationId)
         );
-        
-        // Wait for all promises to resolve
         const variationsResults = await Promise.all(fetchPromises);
-        
-        // Filter out any null results (if a variation wasn't found) 
-        // and ensure type correctness
         const fetchedVariations = variationsResults.filter((v: ImplementationVariation | null): v is ImplementationVariation => v !== null);
         
-        setRelevantVariations(fetchedVariations);
+        setRelevantVariations(currentRelevantVariations => {
+          // Compare stringified versions to avoid new reference if content is the same
+          if (JSON.stringify(currentRelevantVariations) === JSON.stringify(fetchedVariations)) {
+            return currentRelevantVariations;
+          }
+          return fetchedVariations;
+        });
 
       } catch (err) {
         console.error("Error fetching variations for Stap 3:", err);
-        setRelevantVariations([]); // Clear on error
+        setRelevantVariations([]);
       } finally {
         setIsLoadingVariations(false);
       }
@@ -149,32 +146,29 @@ export default function Step3Page() {
   // Check if the current model is also in the recommended list
   const currentModelIsRecommended = currentModel ? recommendedModels.includes(currentModel.id) : false;
   
-  // Get other recommended models (excluding the current model)
-  const getOtherRecommendedModels = () => {
+  // Memoize the lists of models for rendering
+  const otherRecommendedModelsList = useMemo(() => {
     if (!governanceModels) return [];
     return governanceModels.filter(model => 
       recommendedModels.includes(model.id) && model.id !== currentGovernanceModelId
     );
-  };
-  
-  // Get conditional recommended models (mits)
-  const getConditionalRecommendedModels = () => {
+  }, [governanceModels, recommendedModels, currentGovernanceModelId]);
+
+  const conditionalRecommendedModelsList = useMemo(() => {
     if (!governanceModels) return [];
     return governanceModels.filter(model => 
       conditionalRecommendedModels.includes(model.id) && model.id !== currentGovernanceModelId
     );
-  };
-  
-  // Get unsuitable models
-  const getUnsuitableModels = () => {
+  }, [governanceModels, conditionalRecommendedModels, currentGovernanceModelId]);
+
+  const unsuitableModelsList = useMemo(() => {
     if (!governanceModels) return [];
     return governanceModels.filter(model =>
       unsuitableModels.includes(model.id) && model.id !== currentGovernanceModelId
     );
-  };
-  
-  // Get all other models that don't fit in any category
-  const getOtherModels = () => {
+  }, [governanceModels, unsuitableModels, currentGovernanceModelId]);
+
+  const otherModelsList = useMemo(() => {
     if (!governanceModels) return [];
     return governanceModels.filter(model => 
       !recommendedModels.includes(model.id) && 
@@ -182,23 +176,23 @@ export default function Step3Page() {
       !unsuitableModels.includes(model.id) &&
       model.id !== currentGovernanceModelId
     );
-  };
+  }, [governanceModels, recommendedModels, conditionalRecommendedModels, unsuitableModels, currentGovernanceModelId]);
   
   // Handler for selecting a governance model
-  const handleSelectModel = (modelId: string) => {
+  const handleSelectModel = useCallback((modelId: string) => {
     setSelectedGovernanceModel(modelId);
-  };
+  }, [setSelectedGovernanceModel]);
   
   // Handler for showing more info about a governance model
-  const handleShowMoreInfo = (model: GovernanceModel) => {
+  const handleShowMoreInfo = useCallback((model: GovernanceModel) => {
     openGovernanceDialog(model);
-  };
+  }, [openGovernanceDialog]);
   
   // Determine if we're currently loading
   const isLoading = governanceLoading || isLoadingVariations;
   
   // Create a stable key based on selected variants to force re-render of cards
-  const variantsKey = JSON.stringify(selectedVariants);
+  // const variantsKey = JSON.stringify(selectedVariants); // Intentionally removed for optimization
 
   return (
     <div className="space-y-8">
@@ -248,18 +242,11 @@ export default function Step3Page() {
           {/* Inleiding sectie */}
           <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h2 className="text-2xl font-bold mb-4">Stap 3: Governance Modellen</h2>
-            <p className="mb-6">
-              Kies een passend governance model voor de organisatie en het beheer van uw mobiliteitsoplossingen. Dit bepaalt hoe de implementatie en het beheer van de oplossingen wordt georganiseerd.
+            <p className="text-gray-600 mb-6">
+              Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen mobiliteitsoplossingen. 
+              De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten.
             </p>
-            
-            {isLoading && <p>Governance modellen laden...</p>}
-            {governanceError && <p className="text-red-500">Fout bij laden governance modellen.</p>}
-            
-            {governanceModels && governanceModels.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-600">Geen governance modellen gevonden.</p>
-              </div>
-            )}
+            {isLoading && <p>Aanbevelingen laden...</p>}
           </div>
             
           {/* Current Governance Model Section (always at the top) */}
@@ -277,13 +264,13 @@ export default function Step3Page() {
               </div>
               
               <GovernanceCard
-                key={`${currentModel.id}-${variantsKey}`}
+                key={currentModel.id}
                 model={currentModel}
                 isSelected={selectedGovernanceModel === currentModel.id}
                 onSelect={handleSelectModel}
+                onMoreInfo={handleShowMoreInfo}
                 isRecommended={currentModelIsRecommended}
                 isCurrent={true}
-                onMoreInfo={handleShowMoreInfo}
                 relevantVariations={relevantVariations}
                 selectedVariants={selectedVariants}
               />
@@ -291,21 +278,21 @@ export default function Step3Page() {
           )}
             
           {/* Recommended Governance Models Section */}
-          {!isLoading && getOtherRecommendedModels().length > 0 && (
+          {!isLoading && otherRecommendedModelsList.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Aanbevolen governance modellen</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
               </p>
               <div className="space-y-6">
-                {getOtherRecommendedModels().map(model => (
+                {otherRecommendedModelsList.map(model => (
                   <GovernanceCard
-                    key={`${model.id}-${variantsKey}`}
+                    key={model.id}
                     model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
-                    isRecommended={true}
                     onMoreInfo={handleShowMoreInfo}
+                    isRecommended={true}
                     relevantVariations={relevantVariations}
                     selectedVariants={selectedVariants}
                   />
@@ -315,7 +302,7 @@ export default function Step3Page() {
           )}
             
           {/* Conditional Recommended Governance Models Section */}
-          {!isLoading && getConditionalRecommendedModels().length > 0 && (
+          {!isLoading && conditionalRecommendedModelsList.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Aanbevolen, mits...</h3>
               <div className="bg-blue-50 p-4 rounded-md mb-6 border border-blue-200">
@@ -324,15 +311,14 @@ export default function Step3Page() {
                 </p>
               </div>
               <div className="space-y-6">
-                {getConditionalRecommendedModels().map(model => (
+                {conditionalRecommendedModelsList.map(model => (
                   <GovernanceCard
-                    key={`${model.id}-${variantsKey}`}
+                    key={model.id}
                     model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
-                    isRecommended={false}
-                    isConditionalRecommended={true}
                     onMoreInfo={handleShowMoreInfo}
+                    isConditionalRecommended={true}
                     relevantVariations={relevantVariations}
                     selectedVariants={selectedVariants}
                   />
@@ -342,7 +328,7 @@ export default function Step3Page() {
           )}
             
           {/* Unsuitable Governance Models Section */}
-          {!isLoading && getUnsuitableModels().length > 0 && (
+          {!isLoading && unsuitableModelsList.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h3 className="text-xl font-semibold mb-4 text-red-700 border-b pb-2">Ongeschikte governance modellen</h3>
               <div className="bg-red-50 p-4 rounded-md mb-6 border border-red-200">
@@ -351,13 +337,12 @@ export default function Step3Page() {
                 </p>
               </div>
               <div className="space-y-6">
-                {getUnsuitableModels().map(model => (
+                {unsuitableModelsList.map(model => (
                   <GovernanceCard
-                    key={`${model.id}-${variantsKey}`}
+                    key={model.id}
                     model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
-                    isRecommended={false}
                     onMoreInfo={handleShowMoreInfo}
                     relevantVariations={relevantVariations}
                     selectedVariants={selectedVariants}
@@ -368,20 +353,19 @@ export default function Step3Page() {
           )}
           
           {/* Other Models Section - models that don't fit in any category */}
-          {!isLoading && getOtherModels().length > 0 && (
+          {!isLoading && otherModelsList.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even">
               <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Deze modellen hebben geen specifieke aanbeveling voor de door u geselecteerde mobiliteitsoplossingen.
               </p>
               <div className="space-y-6">
-                {getOtherModels().map(model => (
+                {otherModelsList.map(model => (
                   <GovernanceCard
-                    key={`${model.id}-${variantsKey}`}
+                    key={model.id}
                     model={model}
                     isSelected={selectedGovernanceModel === model.id}
                     onSelect={handleSelectModel}
-                    isRecommended={false}
                     onMoreInfo={handleShowMoreInfo}
                     relevantVariations={relevantVariations}
                     selectedVariants={selectedVariants}
@@ -389,6 +373,17 @@ export default function Step3Page() {
                 ))}
               </div>
             </div>
+          )}
+          
+          {/* Fallback if no models are shown and not loading */}
+          {!isLoading && 
+            !currentModel && 
+            otherRecommendedModelsList.length === 0 &&
+            conditionalRecommendedModelsList.length === 0 &&
+            unsuitableModelsList.length === 0 &&
+            otherModelsList.length === 0 &&
+          (
+            <p>Geen governance modellen gevonden of de aanbevelingen zijn nog niet geladen.</p>
           )}
         </div>
       </div>

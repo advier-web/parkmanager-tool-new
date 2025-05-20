@@ -180,7 +180,7 @@ interface GovernanceModelFactsheetPdfProps {
   stripSolutionPrefixFromVariantTitle: (title: string) => string;
 }
 
-const GovernanceModelFactsheetPdf: React.FC<GovernanceModelFactsheetPdfProps> = ({
+const GovernanceModelFactsheetPdfComponent: React.FC<GovernanceModelFactsheetPdfProps> = ({
   model,
   variations = [],
   governanceTitleToFieldName,
@@ -304,4 +304,4 @@ const GovernanceModelFactsheetPdf: React.FC<GovernanceModelFactsheetPdfProps> = 
   );
 };
 
-export default GovernanceModelFactsheetPdf; 
+export default React.memo(GovernanceModelFactsheetPdfComponent); 

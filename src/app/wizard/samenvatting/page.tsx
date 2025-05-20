@@ -29,6 +29,7 @@ import {
 export default function SummaryPage() {
   const {
     businessParkInfo,
+    businessParkName,
     currentGovernanceModelId,
     selectedReasons,
     selectedSolutions,
@@ -170,15 +171,14 @@ export default function SummaryPage() {
                   document={(
                     <SummaryPdfDocument 
                       businessParkInfo={businessParkInfo} 
+                      businessParkName={businessParkName}
                       currentGovernanceModelTitle={currentGovernanceModelTitle}
                       selectedReasonTitles={selectedReasonTitles} 
                       selectedSolutionsData={Object.values(selectedSolutionsData)}
                       selectedVariants={selectedVariants}
                       selectedGovernanceModelId={selectedGovernanceModelId} 
-                      selectedImplementationPlanTitle={''}
                       governanceModels={models || []} 
                       governanceTitleToFieldName={governanceTitleToFieldName}
-                      extractImplementationSummaryFromVariant={extractImplementationSummaryFromVariant}
                       reasons={reasons || []}
                       selectedReasons={selectedReasons}
                       snakeToCamel={snakeToCamel}

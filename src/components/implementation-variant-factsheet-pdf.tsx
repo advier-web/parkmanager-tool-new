@@ -389,7 +389,7 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
   return blocks;
 };
 
-const ImplementationVariantFactsheetPdf: React.FC<ImplementationVariantFactsheetPdfProps> = ({ variation }) => {
+const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariantFactsheetPdfProps> = ({ variation }) => {
   const renderContent = (content?: string) => {
     if (!content) return <Text>Niet gespecificeerd</Text>;
 
@@ -490,4 +490,4 @@ const ImplementationVariantFactsheetPdf: React.FC<ImplementationVariantFactsheet
   );
 };
 
-export default ImplementationVariantFactsheetPdf; 
+export default React.memo(ImplementationVariantFactsheetPdfComponent); 

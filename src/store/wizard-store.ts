@@ -14,6 +14,7 @@ interface WizardState {
   selectedVariants: { [solutionId: string]: string | null }; // Gekozen variant per solutionId
   // trafficTypes: TrafficType[]; // Verwijderd
   businessParkInfo: BusinessParkInfo; // Re-add businessParkInfo state
+  businessParkName: string; // <-- ADDED
 
   // Actions
   setHasHydrated: (state: boolean) => void;
@@ -26,8 +27,9 @@ interface WizardState {
   setCurrentGovernanceModelId: (modelId: string | null) => void;
   // setAcquisitionType: (type: AcquisitionType | null) => void; // Verwijderd
   setSelectedVariant: (solutionId: string, variant: string | null) => void; // Nieuwe action
-  // setTrafficTypes: (types: TrafficType[]) => void; // Verwijder losse action
+  // setTrafficTypes: (types: TrafficType[]) => void; // Verwijderd
   setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void; // Re-add action
+  setBusinessParkName: (name: string) => void; // <-- ADDED
   reset: () => void;
   // Add missing actions from previous state
   updateTrafficTypes: (types: TrafficType[]) => void;
@@ -42,6 +44,9 @@ const initialBusinessParkInfo: BusinessParkInfo = {
   // Optional fields can be omitted or set to undefined
 };
 
+// --- ADDED INITIAL VALUE ---
+const initialBusinessParkName: string = '';
+
 export const useWizardStore = create<WizardState>()(
   persist(
     (set, get) => ({
@@ -55,6 +60,7 @@ export const useWizardStore = create<WizardState>()(
       selectedVariants: {}, // Initialize selected variants map
       // trafficTypes: [], // Verwijderd
       businessParkInfo: initialBusinessParkInfo, // Initialize with default object
+      businessParkName: initialBusinessParkName, // <-- ADDED INITIALIZATION
 
       // --- Actions --- 
       setHasHydrated: (state) => {
@@ -143,6 +149,9 @@ export const useWizardStore = create<WizardState>()(
 
       // setTrafficTypes: (types) => set({ trafficTypes: types }), // Verwijderd
 
+      // <-- ADDED ACTION IMPLEMENTATION ---
+      setBusinessParkName: (name) => set ({ businessParkName: name }),
+
       // Add implementation for updateTrafficTypes
       updateTrafficTypes: (types) => set((state) => ({
         businessParkInfo: { ...state.businessParkInfo, trafficTypes: types }
@@ -158,6 +167,7 @@ export const useWizardStore = create<WizardState>()(
         selectedVariants: {},
         // trafficTypes: [], // Verwijderd
         businessParkInfo: initialBusinessParkInfo, // Reset to initial state
+        businessParkName: initialBusinessParkName, // <-- ADDED RESET
       }),
       // Add alias resetWizard pointing to reset
       resetWizard: () => get().reset(), 

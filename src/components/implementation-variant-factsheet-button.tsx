@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ImplementationVariantFactsheetPdf from './implementation-variant-factsheet-pdf';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ interface ImplementationVariantFactsheetButtonProps {
   children?: React.ReactNode;
 }
 
-const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsheetButtonProps> = ({ 
+const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVariantFactsheetButtonProps> = ({ 
   variation, 
   className, 
   buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
@@ -23,6 +23,11 @@ const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsh
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const pdfDocument = useMemo(() => {
+    if (!variation) return null;
+    return <ImplementationVariantFactsheetPdf variation={variation} />;
+  }, [variation]);
 
   if (!variation) {
     return (
@@ -35,11 +40,20 @@ const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsh
   
   const fileName = `Factsheet_Variant_${variation.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
 
+  if (!pdfDocument) {
+    return (
+      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
+        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+        Factsheet (document niet beschikbaar)
+      </Button>
+    );
+  }
+
   return (
     <div className={className}>
       {isClient ? (
         <PDFDownloadLink
-          document={<ImplementationVariantFactsheetPdf variation={variation} />}
+          document={pdfDocument}
           fileName={fileName}
         >
           {({ loading }) => (
@@ -67,4 +81,4 @@ const ImplementationVariantFactsheetButton: React.FC<ImplementationVariantFactsh
   );
 };
 
-export default ImplementationVariantFactsheetButton; 
+export default React.memo(ImplementationVariantFactsheetButtonComponent); 

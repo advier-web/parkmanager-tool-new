@@ -141,7 +141,7 @@ const basicMarkdownToHtml = (text: string): string => {
   return html;
 };
 
-const MobilitySolutionFactsheetPdf: React.FC<MobilitySolutionFactsheetPdfProps> = ({ solution }) => {
+const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetPdfProps> = ({ solution }) => {
   console.log("MobilitySolutionFactsheetPdf received solution:", JSON.stringify(solution, null, 2)); // Added for debugging
   // renderContent function (copied and adapted from ImplementationVariantFactsheetPdf)
   const renderContent = (content?: string) => {
@@ -215,4 +215,4 @@ const MobilitySolutionFactsheetPdf: React.FC<MobilitySolutionFactsheetPdfProps> 
   );
 };
 
-export default MobilitySolutionFactsheetPdf; 
+export default React.memo(MobilitySolutionFactsheetPdfComponent); 

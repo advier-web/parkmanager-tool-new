@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import MobilitySolutionFactsheetPdf from './mobility-solution-factsheet-pdf';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ interface MobilitySolutionFactsheetButtonProps {
   children?: React.ReactNode;
 }
 
-const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonProps> = ({ 
+const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactsheetButtonProps> = ({ 
   solution, 
   className, 
   buttonColorClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
@@ -23,6 +23,11 @@ const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonP
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const pdfDocument = useMemo(() => {
+    if (!solution) return null;
+    return <MobilitySolutionFactsheetPdf solution={solution} />;
+  }, [solution]);
 
   if (!solution) {
     return (
@@ -35,11 +40,20 @@ const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonP
 
   const fileName = `Factsheet_${solution.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
 
+  if (!pdfDocument) {
+    return (
+      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
+        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+        Factsheet (document niet beschikbaar)
+      </Button>
+    );
+  }
+
   return (
     <div className={className}>
       {isClient ? (
         <PDFDownloadLink
-          document={<MobilitySolutionFactsheetPdf solution={solution} />}
+          document={pdfDocument}
           fileName={fileName}
         >
           {({ loading }) => (
@@ -67,4 +81,4 @@ const MobilitySolutionFactsheetButton: React.FC<MobilitySolutionFactsheetButtonP
   );
 };
 
-export default MobilitySolutionFactsheetButton; 
+export default React.memo(MobilitySolutionFactsheetButtonComponent); 

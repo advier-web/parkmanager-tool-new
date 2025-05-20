@@ -5,6 +5,7 @@ import { governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle } from 
 import { SelectedVariantMap } from '@/lib/store';
 import GovernanceModelFactsheetButton from './governance-model-factsheet-button';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
+import React, { useMemo } from 'react';
 
 interface GovernanceCardProps {
   model: GovernanceModel;
@@ -18,7 +19,8 @@ interface GovernanceCardProps {
   selectedVariants: SelectedVariantMap;
 }
 
-export function GovernanceCard({ 
+// Rename original component to avoid conflict and for clarity
+const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({ 
   model, 
   isSelected, 
   onSelect, 
@@ -28,27 +30,38 @@ export function GovernanceCard({
   onMoreInfo,
   relevantVariations,
   selectedVariants
-}: GovernanceCardProps) {
+}) => {
   // Calculate variant specific texts, filtering by currently selected variants
-  const currentlySelectedVariantIds = Object.values(selectedVariants); 
+  const currentlySelectedVariantIds = useMemo(() => Object.values(selectedVariants), [selectedVariants]);
 
-  const variationsToDisplay = relevantVariations?.filter(variation => {
-    const isSelected = currentlySelectedVariantIds.includes(variation.id);
-    return isSelected;
-  });
+  const variationsToDisplay = useMemo(() => {
+    return relevantVariations?.filter(variation => {
+      const isSelected = currentlySelectedVariantIds.includes(variation.id);
+      return isSelected;
+    });
+  }, [relevantVariations, currentlySelectedVariantIds]);
 
-  const variantSpecificTexts = variationsToDisplay?.map(variation => {
-      const fieldName = governanceTitleToFieldName(model.title);
-      if (!fieldName) {
-        return null;
-      }
-      const text = (variation as any)[fieldName]; 
-      if (!text || typeof text !== 'string') {
-         return null;
-      }
-      const displayVariationTitle = stripSolutionPrefixFromVariantTitle(variation.title);
-      return { variationTitle: displayVariationTitle, text };
-    }).filter(item => item !== null) as { variationTitle: string; text: string }[] | undefined;
+  const variantSpecificTexts = useMemo(() => {
+    return variationsToDisplay?.map(variation => {
+        const fieldName = governanceTitleToFieldName(model.title);
+        if (!fieldName) {
+          return null;
+        }
+        const text = (variation as any)[fieldName]; 
+        if (!text || typeof text !== 'string') {
+           return null;
+        }
+        const displayVariationTitle = stripSolutionPrefixFromVariantTitle(variation.title);
+        return { variationTitle: displayVariationTitle, text };
+      }).filter(item => item !== null) as { variationTitle: string; text: string }[] | undefined;
+  }, [variationsToDisplay, model.title]);
+
+  const buttonChildren = useMemo(() => (
+    <>
+      <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
+      {`Download factsheet ${model.title}`}
+    </>
+  ), [model.title]);
 
   return (
     <div
@@ -155,8 +168,7 @@ export function GovernanceCard({
                   className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
                   buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
                 >
-                  <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
-                  {`Download factsheet ${model.title}`}
+                  {buttonChildren}
                 </GovernanceModelFactsheetButton>
               </div>
             </div>
@@ -177,4 +189,7 @@ export function GovernanceCard({
       </div>
     </div>
   );
-} 
+}
+
+// Export the memoized version as GovernanceCard
+export const GovernanceCard = React.memo(GovernanceCardComponent); 

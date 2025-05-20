@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button'; // Assuming you have a Button component
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
@@ -33,6 +33,17 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
     setIsClient(true);
   }, []);
 
+  const pdfDocument = useMemo(() => {
+    return (
+      <GovernanceModelFactsheetPdf 
+        model={governanceModel}
+        variations={selectedVariations}
+        governanceTitleToFieldName={governanceTitleToFieldName}
+        stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+      />
+    );
+  }, [governanceModel, selectedVariations, governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle]);
+
   if (!isClient) {
     return (
       <Button variant="default" disabled className={`${className} bg-blue-600 text-white opacity-75`}>
@@ -44,14 +55,7 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
 
   return (
     <PDFDownloadLink
-      document={(
-        <GovernanceModelFactsheetPdf 
-          model={governanceModel}
-          variations={selectedVariations}
-          governanceTitleToFieldName={governanceTitleToFieldName}
-          stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-        />
-      )}
+      document={pdfDocument}
       fileName={fileName}
     >
       {({ blob, url, loading, error }) => (
@@ -76,4 +80,4 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
   );
 };
 
-export default GovernanceModelFactsheetButton; 
+export default React.memo(GovernanceModelFactsheetButton); 
