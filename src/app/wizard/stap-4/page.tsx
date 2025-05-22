@@ -65,50 +65,91 @@ export default function ImplementationPlanPage() {
           <div className="lg:col-span-3">
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
               <h2 className="text-2xl font-bold mb-4">Stap 4: Implementatieplan</h2>
-              {_hasHydrated && (
-                <p className="mb-6">
-                  Hieronder vindt u de implementatiestappen specifiek voor het door u geselecteerde governance model: 
-                  <strong>{selectedGovernanceModelData?.title || 'Geen model geselecteerd'}</strong>.
-                </p>
-              )}
+              
               {!_hasHydrated && <p className="mb-6 text-gray-500 italic">Laden...</p>}
-              
-              {isLoading && (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">Governance model laden...</p>
-                </div>
-              )}
-              
-              {error && (
-                <div className="bg-red-50 p-4 rounded-md mb-6">
-                  <p className="text-red-600">Fout bij laden: {error.message}</p>
-                </div>
-              )}
 
-              {_hasHydrated && !isLoading && !error && selectedGovernanceModelData && (
-                <div className="mt-6 prose prose-sm max-w-none">
-                  <h3 className="text-lg font-semibold mb-2">Implementatiestappen ({selectedGovernanceModelData.title})</h3>
-                  {selectedGovernanceModelData.implementatie ? (
-                     <MarkdownContent content={processMarkdownText(selectedGovernanceModelData.implementatie)} />
-                  ) : (
-                     <p className="italic text-gray-500">Geen specifieke implementatie-informatie beschikbaar voor dit model.</p>
+              {_hasHydrated && (
+                <>
+                  {isLoading && (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                      <p className="mt-4 text-gray-600">Governance modellen laden...</p>
+                    </div>
                   )}
-                  <div className="mt-6">
-                    <GovernanceModelFactsheetButton 
-                      governanceModel={selectedGovernanceModelData}
-                      selectedVariations={[]}
-                      governanceTitleToFieldName={governanceTitleToFieldName}
-                      stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-                      className="w-full md:w-auto"
-                    />
-                  </div>
-                </div>
+                  
+                  {error && (
+                    <div className="bg-red-50 p-4 rounded-md mb-6">
+                      <p className="text-red-600">Fout bij laden van governance modellen: {error.message}</p>
+                    </div>
+                  )}
+
+                  {!isLoading && !error && (
+                    <>
+                      {/* CASE 1: Selected model is the same as the current bedrijventerrein model */}
+                      {selectedGovernanceModel && currentGovernanceModelId && selectedGovernanceModel === currentGovernanceModelId ? (
+                        <>
+                          {selectedGovernanceModelData ? (
+                            <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-md mb-6" role="alert">
+                              <p className="font-bold">Huidig model voldoet</p>
+                              <p>Uw huidige governance model, "{selectedGovernanceModelData.title}", is reeds geselecteerd en voldoet. Er hoeft geen nieuw governance model geïmplementeerd te worden.</p>
+                              <div className="mt-4">
+                                <GovernanceModelFactsheetButton 
+                                  governanceModel={selectedGovernanceModelData}
+                                  selectedVariations={[]}
+                                  governanceTitleToFieldName={governanceTitleToFieldName}
+                                  stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                                  className="w-full md:w-auto"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            // Edge case: currentGovernanceModelId matches selectedGovernanceModel, but this ID is not in the loaded 'models' list.
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md mb-6" role="alert">
+                              <p className="font-bold">Fout: Huidig model niet gevonden</p>
+                              <p>Uw huidige en geselecteerde governance model (ID: {selectedGovernanceModel}) kon niet worden gevonden in de beschikbare modellen. Dit duidt mogelijk op een data inconsistentie. U kunt proberen een ander model te selecteren in de vorige stap.</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {/* CASE 2: A different model is selected, or no current model ID, or no model selected at all */}
+                          <p className="mb-6">
+                            Hieronder vindt u de implementatiestappen specifiek voor het door u geselecteerde governance model: 
+                            <strong> {selectedGovernanceModelData?.title || (selectedGovernanceModel ? 'Geselecteerd model niet gevonden' : 'Geen model geselecteerd')}</strong>.
+                          </p>
+
+                          {selectedGovernanceModelData ? (
+                            <div className="mt-6 prose prose-sm max-w-none">
+                              <h3 className="text-lg font-semibold mb-2">Implementatiestappen ({selectedGovernanceModelData.title})</h3>
+                              {selectedGovernanceModelData.implementatie ? (
+                                 <MarkdownContent content={processMarkdownText(selectedGovernanceModelData.implementatie)} />
+                              ) : (
+                                 <p className="italic text-gray-500">Geen specifieke implementatie-informatie beschikbaar voor dit model.</p>
+                              )}
+                              <div className="mt-6">
+                                <GovernanceModelFactsheetButton 
+                                  governanceModel={selectedGovernanceModelData}
+                                  selectedVariations={[]}
+                                  governanceTitleToFieldName={governanceTitleToFieldName}
+                                  stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                                  className="w-full md:w-auto"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            // This covers "no model selected" or "selected model ID not found in list"
+                            <p className="italic text-gray-500 mt-4">
+                              {selectedGovernanceModel 
+                                ? "Het geselecteerde governance model kon niet worden geladen. Controleer of het model bestaat of selecteer een ander model in de vorige stap."
+                                : "Geen governance model geselecteerd in de vorige stap."}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
               )}
-              {_hasHydrated && !isLoading && !error && !selectedGovernanceModelData && (
-                 <p className="italic text-gray-500">Geen governance model geselecteerd in de vorige stap.</p>
-              )}
-              
             </div>
           </div>
         </div>
