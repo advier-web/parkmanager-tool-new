@@ -8,10 +8,11 @@ const nextConfig = {
     'pdfjs-dist'
   ],
   eslint: {
-    // Waarschuwing: Dit wordt alleen gebruikt voor de build, ESLint blijft nog steeds actief tijdens ontwikkeling
+    // Tijdelijk uitgeschakeld tot alle linting issues zijn opgelost
     ignoreDuringBuilds: true,
   },
   typescript: {
+    // Tijdelijk uitgeschakeld tot alle type issues zijn opgelost
     ignoreBuildErrors: true,
   },
   webpack: (config) => {
