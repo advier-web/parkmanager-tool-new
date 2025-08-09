@@ -53,14 +53,14 @@ export default function Step1Page() {
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
                 Door te begrijpen waarom u de mobiliteit wilt verbeteren, 
-                kunnen we gerichter adviseren over passende oplossingen. Elke reden kan leiden tot andere aanbevelingen.
+                kan ik gerichter adviseren over passende collectieve vervoersoplossing. Elke reden kan leiden tot andere aanbevelingen.
               </p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-2">Meerdere redenen</h3>
               <p className="text-gray-600 text-sm">
                 Selecteer gerust meerdere redenen als die van toepassing zijn. 
-                Dit helpt ons om een compleet beeld te krijgen van uw situatie en doelstellingen.
+                Dit helpt mij om een compleet beeld te krijgen van uw situatie en doelstellingen.
               </p>
             </div>
             <div className="border-t pt-4 mt-6">
@@ -76,7 +76,7 @@ export default function Step1Page() {
 
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-2xl font-bold mb-4">Stap 1: Selecteer uw aanleiding(en)</h2>
+            <h2 className="text-2xl font-bold mb-4">Aanleidingen</h2>
             <p className="mb-6">
               Selecteer de redenen waarom u de mobiliteit op uw bedrijventerrein wilt verbeteren. 
               U kunt meerdere redenen selecteren, maar dit is niet verplicht.
@@ -110,9 +110,12 @@ export default function Step1Page() {
       
       <WizardNavigation
         previousStep="/wizard/bedrijventerrein"
-        nextStep="/wizard/stap-2"
+        nextStep="/wizard/oplossingen"
         isNextDisabled={!isFormValid}
       />
     </div>
   );
-} 
+}
+
+
+

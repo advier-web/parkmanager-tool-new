@@ -7,15 +7,29 @@ import { useMemo, useState, useEffect } from 'react';
 import { ImplementationVariation } from '@/domain/models';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
-// Helper to get step number from pathname
+// Helper to map pathname to a numeric step index
+// Supports both legacy `/wizard/stap-*` routes and new semantic routes
 const getStepFromPathname = (pathname: string): number => {
-  const match = pathname.match(/\/wizard\/(?:stap-(\d+[ab]?)|(bedrijventerrein)|(samenvatting))/);
-  if (!match) return 0;
-  if (match[2]) return 0; // bedrijventerrein is step 0
-  if (match[3]) return 5; // samenvatting is step 5 (or last)
-  if (match[1]) {
-    // Handle steps like 2a, 2b as step 2 for choices display logic
-    return parseInt(match[1].replace(/[ab]/, ''), 10); 
+  // Normalize to exclude query/hash
+  const path = pathname.split('?')[0].split('#')[0];
+
+  // New semantic routes
+  if (/^\/wizard\/bedrijventerrein$/.test(path)) return 0;
+  if (/^\/wizard\/aanleidingen$/.test(path)) return 1;
+  if (/^\/wizard\/oplossingen$/.test(path)) return 2;
+  if (/^\/wizard\/implementatievarianten$/.test(path)) return 3; // was 2b
+  if (/^\/wizard\/governance-modellen$/.test(path)) return 4;   // was 3
+  if (/^\/wizard\/implementatieplan$/.test(path)) return 5;     // was 4
+  if (/^\/wizard\/samenvatting$/.test(path)) return 6;
+
+  // Legacy numeric routes fallback
+  const legacy = path.match(/\/wizard\/(?:stap-(\d+[ab]?)|(bedrijventerrein)|(samenvatting))/);
+  if (legacy) {
+    if (legacy[2]) return 0; // bedrijventerrein
+    if (legacy[3]) return 6; // samenvatting last
+    if (legacy[1]) {
+      return parseInt(legacy[1].replace(/[ab]/, ''), 10) + (legacy[1].includes('b') ? 1 : 0) - 0; // handle 2b -> 3
+    }
   }
   return 0;
 };
@@ -116,7 +130,9 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
                 <li>Verkeer: {businessParkInfo.trafficTypes.join(', ')}</li>
               )}
                {businessParkInfo.employeePickupPreference && (
-                <li>Ophalen: {businessParkInfo.employeePickupPreference === 'thuis' ? 'Vanaf thuis' : 'Vanaf locatie'}</li>
+                <li>
+                  Deel van de woon-werkreis: {businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor een gedeelte van de reis'}
+                </li>
               )}
             </ul>
           </div>
@@ -134,7 +150,7 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
           {/* Stap 2: Oplossingen - Show starting from Step 2 */}
           {currentStep >= 2 && selectedSolutionTitles.length > 0 && (
              <div className="space-y-2 text-sm border-t pt-4 mt-4">
-              <p className="font-medium text-gray-700">Mobiliteitsoplossingen:</p>
+              <p className="font-medium text-gray-700">Collectieve mobiliteitsoplossing:</p>
               <ul className="list-disc pl-5 text-gray-600 space-y-1">
                 {selectedSolutionTitles.map(title => <li key={title}>{title}</li>)}
               </ul>

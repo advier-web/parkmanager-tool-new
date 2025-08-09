@@ -13,6 +13,26 @@ interface ImplementationVariantDialogProps {
 export function ImplementationVariantDialog({ variation, isOpen, onClose }: ImplementationVariantDialogProps) {
   if (!variation) return null;
 
+  // Helper function to split comma-separated text into list items
+  const renderCommaSeparatedList = (text: string | undefined, className: string = '') => {
+    if (!text) return <span className="text-gray-400">Geen informatie beschikbaar</span>;
+    
+    const items = text.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    
+    if (items.length === 0) return <span className="text-gray-400">Geen informatie beschikbaar</span>;
+    
+    return (
+      <ul className={`${className} space-y-1`}>
+        {items.map((item, index) => (
+          <li key={index} className="flex items-start">
+            <span className="inline-block w-1.5 h-1.5 bg-current rounded-full mt-2 mr-2 flex-shrink-0"></span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -62,6 +82,36 @@ export function ImplementationVariantDialog({ variation, isOpen, onClose }: Impl
                           <MarkdownContent content={processMarkdownText(variation.samenvatting || '')} />
                         </div>
                       </div>
+
+                      {/* Cost information grid */}
+                      {(variation.geschatteJaarlijkseKosten || variation.geschatteKostenPerKmPp || variation.geschatteKostenPerRit) && (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Kosteninformatie</h3>
+                          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {variation.geschatteJaarlijkseKosten && (
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <h4 className="font-medium text-gray-900 mb-1">Geschatte jaarlijkse kosten</h4>
+                                <p className="text-gray-700">{variation.geschatteJaarlijkseKosten}</p>
+                              </div>
+                            )}
+                            {variation.geschatteKostenPerKmPp && (
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <h4 className="font-medium text-gray-900 mb-1">Kosten per km per persoon</h4>
+                                <p className="text-gray-700">{variation.geschatteKostenPerKmPp}</p>
+                              </div>
+                            )}
+                            {variation.geschatteKostenPerRit && (
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <h4 className="font-medium text-gray-900 mb-1">Kosten per rit</h4>
+                                <p className="text-gray-700">{variation.geschatteKostenPerRit}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Verantwoordelijkheid, contractvormen, voordelen en nadelen zijn verwijderd uit het content type en worden hier niet meer getoond */}
+
                       {variation.investering && (
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">Investering</h3>

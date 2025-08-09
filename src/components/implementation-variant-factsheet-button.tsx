@@ -19,15 +19,17 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
   children
 }) => {
   const [isClient, setIsClient] = useState(false);
+  // Defer heavy PDF rendering until the user explicitly requests it
+  const [isArmed, setIsArmed] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const pdfDocument = useMemo(() => {
-    if (!variation) return null;
+    if (!variation || !isArmed) return null;
     return <ImplementationVariantFactsheetPdf variation={variation} />;
-  }, [variation]);
+  }, [variation, isArmed]);
 
   if (!variation) {
     return (
@@ -40,22 +42,10 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
   
   const fileName = `Factsheet_Variant_${variation.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
 
-  if (!pdfDocument) {
-    return (
-      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-        Factsheet (document niet beschikbaar)
-      </Button>
-    );
-  }
-
   return (
     <div className={className}>
-      {isClient ? (
-        <PDFDownloadLink
-          document={pdfDocument}
-          fileName={fileName}
-        >
+      {isClient && isArmed && pdfDocument ? (
+        <PDFDownloadLink document={pdfDocument} fileName={fileName}>
           {({ loading }) => (
             <Button variant="default" disabled={loading} className={buttonColorClassName}>
               {children ? (
@@ -71,6 +61,19 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
             </Button>
           )}
         </PDFDownloadLink>
+      ) : isClient ? (
+        <Button
+          variant="default"
+          className={buttonColorClassName}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsArmed(true);
+          }}
+        >
+          <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+          {children || `Download Factsheet: ${variation.title}`}
+        </Button>
       ) : (
         <Button variant="default" disabled className={buttonColorClassName}>
           <ArrowDownTrayIcon className="h-5 w-5 mr-2" />

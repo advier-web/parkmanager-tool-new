@@ -21,14 +21,9 @@ export function MarkdownContent({
     return null;
   }
   
-  // Log the original content to debug
-  console.log('Original Content:', content);
-  
   // Process the content through the markdown-text processor
   const processedContent = processMarkdownText(content);
   
-  // Log the processed content
-  console.log('Processed Content:', processedContent);
   
   return (
     <div className={`prose prose-blue max-w-none ${className}`}>
@@ -181,9 +176,10 @@ function preprocessTables(text: string): string {
         line = line.replace(/\|\s+/g, '| ').replace(/\s+\|/g, ' |');
         
         // Controleer of dit een scheidingsrij is (alleen streepjes tussen pipes)
-        if (line.match(/\|\s*-{3,}\s*\|/)) {
+      if (line.match(/\|\s*-{3,}\s*\|/)) {
           // Vervang door standaard markdown scheidingsrij
-          const columnCount = (line.match(/\|/g) || []).length - 1;
+          const rawCount = (line.match(/\|/g) || []).length - 1;
+          const columnCount = Math.max(1, Math.min(50, rawCount));
           line = '|' + Array(columnCount).fill(' --- ').join('|') + '|';
         }
       }
@@ -228,7 +224,8 @@ function preprocessTables(text: string): string {
           // Zorg ervoor dat we een scheidingsrij hebben na de header
           if (currentTable.length < 2 || !currentTable[1].match(/^\|[\s-:|]+\|[\s-:|]+\|/)) {
             // Aantal kolommen berekenen
-            const headerCols = (currentTable[0].match(/\|/g) || []).length - 1;
+            const rawHeaderCols = (currentTable[0].match(/\|/g) || []).length - 1;
+            const headerCols = Math.max(1, Math.min(50, rawHeaderCols));
             const separator = '|' + Array(headerCols).fill(' --- ').join('|') + '|';
             currentTable.splice(1, 0, separator);
           }
@@ -250,7 +247,8 @@ function preprocessTables(text: string): string {
       // Zorg ervoor dat we een scheidingsrij hebben na de header
       if (currentTable.length < 2 || !currentTable[1].match(/^\|[\s-:|]+\|[\s-:|]+\|/)) {
         // Aantal kolommen berekenen
-        const headerCols = (currentTable[0].match(/\|/g) || []).length - 1;
+        const rawHeaderCols = (currentTable[0].match(/\|/g) || []).length - 1;
+        const headerCols = Math.max(1, Math.min(50, rawHeaderCols));
         const separator = '|' + Array(headerCols).fill(' --- ').join('|') + '|';
         currentTable.splice(1, 0, separator);
       }

@@ -190,6 +190,13 @@ export async function getMobilitySolutionsFromContentful(options: ContentfulQuer
               challenges: Array.isArray(fields.challenges) ? fields.challenges.filter((c: unknown): c is string => typeof c === 'string') : [],
               implementatievarianten: getRefIdArray(fields.implementatievarianten).map(ref => ref.sys.id),
               typeVervoer: parseTypeVervoer(fields.typeVervoer),
+              
+              // New fields from Contentful
+              ophalen: Array.isArray(fields.ophalen) ? fields.ophalen.filter((item: unknown): item is string => typeof item === 'string') : undefined,
+              minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
+              minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
+              afstand: typeof fields.afstand === 'string' ? fields.afstand : undefined,
+              
               implementationVariations: undefined,
               pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,
               parkeer_bereikbaarheidsproblemen: typeof fields.parkeer_bereikbaarheidsproblemen === 'number' ? fields.parkeer_bereikbaarheidsproblemen : undefined,
@@ -263,6 +270,13 @@ export async function getMobilitySolutionById(id: string, options: ContentfulQue
           challenges: Array.isArray(fields.challenges) ? fields.challenges.filter((c: unknown): c is string => typeof c === 'string') : [],
           implementatievarianten: getRefIdArray(fields.implementatievarianten).map(ref => ref.sys.id),
           typeVervoer: parseTypeVervoer(fields.typeVervoer),
+          
+          // New fields from Contentful
+          ophalen: Array.isArray(fields.ophalen) ? fields.ophalen.filter((item: unknown): item is string => typeof item === 'string') : undefined,
+          minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
+          minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
+          afstand: typeof fields.afstand === 'string' ? fields.afstand : undefined,
+          
           implementationVariations: undefined,
           pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,
 
@@ -422,7 +436,14 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       benefits: getStringArrayFieldSafe(fields, 'benefits'),
       challenges: getStringArrayFieldSafe(fields, 'challenges'),
       implementatievarianten: getRefIdArray(fields?.implementatievarianten).map(ref => ref.sys.id),
-      typeVervoer: parseTypeVervoer(fields?.typeVervoer), 
+      typeVervoer: parseTypeVervoer(fields?.typeVervoer),
+      
+      // New fields from Contentful
+      ophalen: getStringArrayFieldSafe(fields, 'ophalen'),
+      minimaleInvestering: getStringFieldSafe(fields, 'minimaleInvestering'),
+      minimumAantalPersonen: getStringFieldSafe(fields, 'minimumAantalPersonen'),
+      afstand: getStringFieldSafe(fields, 'afstand'),
+      
       parkeer_bereikbaarheidsproblemen: getNumberFieldSafe(fields, 'parkeer_bereikbaarheidsproblemen'),
       bereikbaarheidsproblemen: getNumberFieldSafe(fields, 'bereikbaarheidsproblemen'),
       gezondheid: getNumberFieldSafe(fields, 'gezondheid'),

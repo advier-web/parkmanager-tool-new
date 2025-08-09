@@ -13,11 +13,11 @@ interface Step {
 
 const STEPS: Step[] = [
   { id: 0, name: 'Bedrijventerrein', path: '/wizard/bedrijventerrein' },
-  { id: 1, name: 'Aanleiding', path: '/wizard/stap-1' },
-  { id: 2, name: 'Oplossingen', path: '/wizard/stap-2' },
-  { id: 3, name: 'Implementatievariant', path: '/wizard/stap-2b' },
-  { id: 4, name: 'Governance', path: '/wizard/stap-3' },
-  { id: 5, name: 'Implementatie', path: '/wizard/stap-4' },
+  { id: 1, name: 'Aanleidingen', path: '/wizard/aanleidingen' },
+  { id: 2, name: 'Oplossingen', path: '/wizard/oplossingen' },
+  { id: 3, name: 'Implementatievarianten', path: '/wizard/implementatievarianten' },
+  { id: 4, name: 'Governance modellen', path: '/wizard/governance-modellen' },
+  { id: 5, name: 'Implementatieplan', path: '/wizard/implementatieplan' },
   { id: 6, name: 'Samenvatting', path: '/wizard/samenvatting' },
 ];
 

@@ -494,7 +494,11 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             <View style={styles.gridColumnLast}>
               {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
               {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
-              {businessParkInfo.employeePickupPreference && renderLabelValue("Ophalen werknemers", businessParkInfo.employeePickupPreference === 'thuis' ? 'Vanaf thuis' : 'Vanaf locatie', "bp")}
+              {businessParkInfo.employeePickupPreference && renderLabelValue(
+                "Deel van de woon-werkreis",
+                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor een gedeelte van de reis',
+                "bp"
+              )}
               {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}
               {businessParkInfo.averageDistance && renderLabelValue("Gemiddelde woon-werk afstand", businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`, "bp")}
             </View>
@@ -511,7 +515,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
                 )}
                 {selectedSolutionsData.length > 0 && (
                     <View style={{ marginBottom: 6 }}>
-                    <Text style={styles.label}>Geselecteerde mobiliteitsoplossingen:</Text>
+                    <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
                     {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
                     </View>
                 )}

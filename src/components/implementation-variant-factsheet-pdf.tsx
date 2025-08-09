@@ -411,6 +411,26 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
     );
   };
 
+  // Helper function to render comma-separated list in PDF
+  const renderCommaSeparatedPdfList = (content?: string) => {
+    if (!content) return <Text>Niet gespecificeerd</Text>;
+    
+    const items = content.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    
+    if (items.length === 0) return <Text>Niet gespecificeerd</Text>;
+    
+    return (
+      <View>
+        {items.map((item, index) => (
+          <View key={index} style={{ flexDirection: 'row', marginBottom: 4 }}>
+            <Text style={{ fontSize: 8, color: '#374151', marginRight: 6, marginTop: 2 }}>•</Text>
+            <Text style={{ fontSize: 11, color: '#374151', flex: 1 }}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -429,6 +449,33 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
             {renderContent(variation.samenvatting)}
           </View>
         )}
+
+        {/* Cost Information Section */}
+        {(variation.geschatteJaarlijkseKosten || variation.geschatteKostenPerKmPp || variation.geschatteKostenPerRit) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Kosteninformatie</Text>
+            {variation.geschatteJaarlijkseKosten && (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={styles.subSectionTitle}>Geschatte jaarlijkse kosten</Text>
+                <Text style={{ fontSize: 11, color: '#374151' }}>{variation.geschatteJaarlijkseKosten}</Text>
+              </View>
+            )}
+            {variation.geschatteKostenPerKmPp && (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={styles.subSectionTitle}>Kosten per km per persoon</Text>
+                <Text style={{ fontSize: 11, color: '#374151' }}>{variation.geschatteKostenPerKmPp}</Text>
+              </View>
+            )}
+            {variation.geschatteKostenPerRit && (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={styles.subSectionTitle}>Kosten per rit</Text>
+                <Text style={{ fontSize: 11, color: '#374151' }}>{variation.geschatteKostenPerRit}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Velden verantwoordelijkheid/contractvormen/voordelen/nadelen zijn verwijderd uit het content type */}
 
         {variation.investering && (
           <View style={styles.section}>

@@ -17,6 +17,8 @@ interface SolutionCardProps {
   activeReasonFilters: string[];
   score: number;
   trafficTypeMatchScore: number;
+  pickupPreferenceMatch?: boolean;
+  userPickupPreference?: 'thuis' | 'locatie' | null;
   variationsData?: ImplementationVariation[];
 }
 
@@ -32,6 +34,8 @@ export function SolutionCard({
   activeReasonFilters,
   score,
   trafficTypeMatchScore,
+  pickupPreferenceMatch = true,
+  userPickupPreference = null,
 }: SolutionCardProps) {
   const { openSolutionDialog } = useDialog();
   const [visibleTooltips, setVisibleTooltips] = useState<Record<string, boolean>>({});
@@ -157,7 +161,94 @@ export function SolutionCard({
           <div className="text-gray-600 mb-3 prose prose-sm max-w-none">
              <MarkdownContent content={processMarkdownText(solution.samenvattingKort || solution.samenvattingLang || solution.description || '')} />
           </div>
-          
+
+          {/* Two-column details layout */}
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column */}
+            <div className="space-y-3 text-xs">
+              {solution.minimumAantalPersonen && (
+                <div className="text-gray-700">
+                  <div className="font-medium mb-1">Minimum aantal personen:</div>
+                  <div>{solution.minimumAantalPersonen}</div>
+                </div>
+              )}
+              {solution.minimaleInvestering && (
+                <div className="text-gray-700">
+                  <div className="font-medium mb-1">Minimale investering:</div>
+                  <div>{solution.minimaleInvestering}</div>
+                </div>
+              )}
+              {solution.afstand && (
+                <div className="text-gray-700">
+                  <div className="font-medium mb-1">Afstand:</div>
+                  <div>{solution.afstand}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Right column */}
+            <div className="space-y-3 text-xs">
+              {activeTrafficTypes && activeTrafficTypes.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Geschikt voor vervoer:</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
+                    {activeTrafficTypes.map(activeType => {
+                      const isMatch = solution.typeVervoer?.includes(activeType);
+                      return (
+                        <div key={activeType} className="flex items-center">
+                          <div 
+                            className={`w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-1`}
+                          ></div>
+                          <span className="text-xs text-gray-600 capitalize">{activeType.replace(/-/g, ' ')}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeReasonFilters.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Bijdrage aan selectie:</p>
+                  {activeReasonFilters.map(reasonId => renderScoreIndicator(reasonId))}
+                </div>
+              )}
+
+              {solution.ophalen && solution.ophalen.length > 0 && userPickupPreference && (
+                <div>
+                  <p className="text-xs font-medium text-gray-700 mb-1">Deel van de woon-werkreis:</p>
+                  <div className="space-y-1">
+                    {solution.ophalen.map((ophalenOptie, index) => {
+                      let optionMatches = false;
+                      if (userPickupPreference && ophalenOptie) {
+                        if (userPickupPreference === 'thuis' && ophalenOptie.toLowerCase().includes('thuis')) {
+                          optionMatches = true;
+                        } else if (userPickupPreference === 'locatie' && ophalenOptie.toLowerCase().includes('locatie')) {
+                          optionMatches = true;
+                        }
+                      }
+                      return (
+                        <div key={index} className="flex items-center">
+                          <div 
+                            className={`w-2.5 h-2.5 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} mr-1`}
+                          ></div>
+                          <span className="text-xs text-gray-600">
+                            {ophalenOptie && ophalenOptie.toLowerCase().includes('thuis')
+                              ? 'Voor de hele reis'
+                              : ophalenOptie && ophalenOptie.toLowerCase().includes('locatie')
+                              ? 'Voor een gedeelte van de reis'
+                              : ophalenOptie}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Benefits/Challenges moved below the two-column layout */}
           <div className="mb-4 space-y-1 text-xs">
             {(solution.benefits || []).slice(0, 1).map((benefit, index) => (
               <div key={`benefit-${index}`} className="flex items-center text-green-700">
@@ -172,32 +263,6 @@ export function SolutionCard({
               </div>
             ))}
           </div>
-
-          {activeTrafficTypes && activeTrafficTypes.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-700 mb-1">Geschikt voor vervoer:</p>
-              <div className="flex flex-wrap gap-x-3 gap-y-1">
-                {activeTrafficTypes.map(activeType => {
-                  const isMatch = solution.typeVervoer?.includes(activeType);
-                  return (
-                    <div key={activeType} className="flex items-center">
-                      <div 
-                        className={`w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-1`}
-                      ></div>
-                      <span className="text-xs text-gray-600 capitalize">{activeType.replace(/-/g, ' ')}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {activeReasonFilters.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-gray-100">
-              <p className="text-xs font-medium text-gray-700 mb-1">Bijdrage aan selectie:</p>
-              {activeReasonFilters.map(reasonId => renderScoreIndicator(reasonId))}
-            </div>
-          )}
           
           <div className="flex flex-wrap gap-2 mt-3 pt-2 border-t border-gray-100 text-xs">
             {solution.costs && (

@@ -88,22 +88,22 @@ export default function BusinessParkInfoPage() {
              <div>
                <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
                <p className="text-gray-600 text-sm">
-                 Deze informatie helpt ons om een passend advies te geven voor uw bedrijventerrein. 
-                 De grootte en complexiteit van het terrein bepalen mede welke mobiliteitsoplossingen het meest geschikt zijn.
+                 Deze informatie helpt mij om een passend advies te geven voor uw bedrijventerrein. 
+                 De grootte en complexiteit van het terrein bepalen mede welke collectieve vervoersoplossingen het meest geschikt zijn.
                </p>
              </div>
              <div>
                <h3 className="text-lg font-semibold mb-2">Huidige situatie</h3>
                <p className="text-gray-600 text-sm">
                  Het is belangrijk om te weten wat uw huidige bestuursmodel is. 
-                 Dit helpt ons later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe mobiliteitsoplossingen.
+                 Dit helpt mij later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe collectieve vervoersoplossingen.
                </p>
              </div>
              <div>
                <h3 className="text-lg font-semibold mb-2">Type verkeer</h3>
                <p className="text-gray-600 text-sm">
                  Door aan te geven voor welk type verkeer u oplossingen zoekt, 
-                 kunnen we gerichter adviseren over mobiliteitsoplossingen die aansluiten bij uw behoeften.
+                 kan ik gerichter adviseren over collectieve vervoersoplossingen die aansluiten bij uw behoeften.
                </p>
              </div>
              <div>
@@ -111,7 +111,7 @@ export default function BusinessParkInfoPage() {
                <p className="text-gray-600 text-sm">
                  De bereikbaarheid van uw bedrijventerrein met verschillende vervoermiddelen 
                  en de afstand tussen woonplaats en werk zijn belangrijke factoren bij het 
-                 kiezen van geschikte mobiliteitsoplossingen.
+                 kiezen van geschikte collectieve vervoersoplossingen.
                </p>
              </div>
              <div className="border-t pt-4 mt-6">
@@ -119,7 +119,7 @@ export default function BusinessParkInfoPage() {
                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                  </svg>
-                 <span>Deze gegevens worden gebruikt om uw advies te personaliseren</span>
+                 <span>Deze gegevens worden gebruikt om uw advies te personaliseren. Deze gegevens worden alleen in uw browser opgeslagen en niet met ons gedeeld.</span>
                </div>
              </div>
            </div>
@@ -130,8 +130,8 @@ export default function BusinessParkInfoPage() {
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Informatie over uw bedrijvenvereniging</h2>
             <p className="mb-6">
-              Voordat we beginnen, hebben we wat basisinformatie nodig over het bedrijventerrein 
-              waarvoor u het mobiliteitsplan wilt opstellen.
+              Voordat we beginnen, heb ik wat basisinformatie nodig over het bedrijventerrein 
+              waarvoor u het advies wilt opstellen.
             </p>
             
             <div className="space-y-6">
@@ -216,7 +216,7 @@ export default function BusinessParkInfoPage() {
               {/* Nieuwe Ophalen werknemers vraag */}
               <div className="mt-6">
                 <label htmlFor="employeePickupPreference" className="block text-sm font-medium text-gray-700 mb-1">
-                  Wilt u werknemers vanaf thuis naar kantoor halen of vanaf een locatie (treinstation/P&R etc)?
+                  Zoekt u een oplossing voor de hele woon-werkreis, of alleen een gedeelte (bijvoorbeeld van treinstation/P&R naar de werklocatie)?
                 </label>
                 <select
                   id="employeePickupPreference"
@@ -226,8 +226,8 @@ export default function BusinessParkInfoPage() {
                   className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Selecteer een optie</option>
-                  <option value="thuis">Ophalen vanaf thuis</option>
-                  <option value="locatie">Ophalen vanaf een locatie</option>
+                  <option value="thuis">Voor de hele reis</option>
+                  <option value="locatie">Voor een gedeelte van de reis</option>
                 </select>
               </div>
               {/* Divider */}
@@ -273,87 +273,7 @@ export default function BusinessParkInfoPage() {
                         <p className="mt-1 text-sm text-red-600">{formErrors.numberOfEmployees}</p>
                       )}
                     </div>
-                    {/* Bereikbaarheid auto */} 
-                    <div>
-                      <label htmlFor="carAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe wordt de bereikbaarheid met de auto ervaren?
-                      </label>
-                      <select
-                        id="carAccessibility" name="carAccessibility"
-                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.carAccessibility || ''} onChange={handleSelectChange}
-                      >
-                        <option value="">Selecteer bereikbaarheid</option>
-                        <option value="slecht">Slecht</option>
-                        <option value="matig">Matig</option>
-                        <option value="goed">Goed</option>
-                      </select>
-                    </div>
-                    {/* Bereikbaarheid trein */} 
-                    <div>
-                      <label htmlFor="trainAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe wordt de bereikbaarheid met de trein ervaren?
-                      </label>
-                      <select
-                        id="trainAccessibility" name="trainAccessibility"
-                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.trainAccessibility || ''} onChange={handleSelectChange}
-                      >
-                        <option value="">Selecteer bereikbaarheid</option>
-                        <option value="slecht">Slecht</option>
-                        <option value="matig">Matig</option>
-                        <option value="goed">Goed</option>
-                      </select>
-                    </div>
-                    {/* Bereikbaarheid bus */} 
-                    <div>
-                      <label htmlFor="busAccessibility" className="block text-sm text-gray-700 mb-1">
-                        Hoe wordt de bereikbaarheid met de bus ervaren?
-                      </label>
-                      <select
-                        id="busAccessibility" name="busAccessibility"
-                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.busAccessibility || ''} onChange={handleSelectChange}
-                      >
-                        <option value="">Selecteer bereikbaarheid</option>
-                        <option value="slecht">Slecht</option>
-                        <option value="matig">Matig</option>
-                        <option value="goed">Goed</option>
-                      </select>
-                    </div>
-                    {/* Parkeerplaatsen */} 
-                    <div>
-                      <label htmlFor="sufficientParking" className="block text-sm text-gray-700 mb-1">
-                        Zijn er voldoende parkeerplaatsen?
-                      </label>
-                      <select
-                        id="sufficientParking" name="sufficientParking"
-                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.sufficientParking || ''} onChange={handleSelectChange}
-                      >
-                        <option value="">Selecteer antwoord</option>
-                        <option value="ja">Ja</option>
-                        <option value="nee">Nee</option>
-                      </select>
-                    </div>
-                    {/* Afstand */} 
-                    <div className="md:col-span-2">
-                      <label htmlFor="averageDistance" className="block text-sm text-gray-700 mb-1">
-                        Wat is de gemiddelde afstand van de woonplaats van werknemers t.o.v. bedrijventerrein?
-                      </label>
-                      <select
-                        id="averageDistance" name="averageDistance"
-                        className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                        value={businessParkInfo.averageDistance || ''} onChange={handleSelectChange}
-                      >
-                        <option value="">Selecteer afstand</option>
-                        <option value="0-5">0-5 km</option>
-                        <option value="5-10">5-10 km</option>
-                        <option value="10-15">10-15 km</option>
-                        <option value="15-25">15-25 km</option>
-                        <option value="25+">Meer dan 25 km</option>
-                      </select>
-                    </div>
+
                   </div>
                 </fieldset>
               </div>
@@ -364,7 +284,7 @@ export default function BusinessParkInfoPage() {
       </div>
 
       <WizardNavigation
-        nextStep="/wizard/stap-1"
+        nextStep="/wizard/aanleidingen"
         isNextDisabled={!isFormValid}
       />
     </div>

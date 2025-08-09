@@ -24,21 +24,16 @@ export default function Step3Page() {
     _hasHydrated
   } = useWizardStore();
   
-  // Access the dialog context
   const { openGovernanceDialog } = useDialog();
   
-  // State for storing governance models based on categories
   const [recommendedModels, setRecommendedModels] = useState<string[]>([]);
   const [conditionalRecommendedModels, setConditionalRecommendedModels] = useState<string[]>([]);
   const [unsuitableModels, setUnsuitableModels] = useState<string[]>([]);
   
-  // State to hold the specifically selected variations data
   const [relevantVariations, setRelevantVariations] = useState<ImplementationVariation[]>([]);
   const [isLoadingVariations, setIsLoadingVariations] = useState(true);
   
-  // Fetch selected variations based on store
   useEffect(() => {
-    // Wait for hydration
     if (!_hasHydrated) {
        return;
     }
@@ -48,14 +43,14 @@ export default function Step3Page() {
       
       if (variantIdsToFetch.length === 0) {
         setIsLoadingVariations(false);
-        setRelevantVariations([]); // Still set to empty array if no IDs
+        setRelevantVariations([]);
         return;
       }
 
       setIsLoadingVariations(true);
       
       if (!variantIdsToFetch || variantIdsToFetch.length === 0 || variantIdsToFetch.some(id => !id)) {
-          console.error("[Stap 3] Invalid or empty variant IDs detected:", variantIdsToFetch);
+          console.error('[Stap 3] Invalid or empty variant IDs detected:', variantIdsToFetch);
           setRelevantVariations([]);
           setIsLoadingVariations(false);
           return;
@@ -69,7 +64,6 @@ export default function Step3Page() {
         const fetchedVariations = variationsResults.filter((v: ImplementationVariation | null): v is ImplementationVariation => v !== null);
         
         setRelevantVariations(currentRelevantVariations => {
-          // Compare stringified versions to avoid new reference if content is the same
           if (JSON.stringify(currentRelevantVariations) === JSON.stringify(fetchedVariations)) {
             return currentRelevantVariations;
           }
@@ -77,28 +71,24 @@ export default function Step3Page() {
         });
 
       } catch (err) {
-        console.error("Error fetching variations for Stap 3:", err);
+        console.error('Error fetching variations for Stap 3:', err);
         setRelevantVariations([]);
       } finally {
         setIsLoadingVariations(false);
       }
     }
     fetchVariations();
-  }, [selectedVariants, _hasHydrated]); // Depend only on selectedVariants map
+  }, [selectedVariants, _hasHydrated]);
   
-  // Check if a governance model is selected
   const hasSelectedModel = selectedGovernanceModel !== null;
   
-  // Categorize governance models based on selected variations
   useEffect(() => {
     if (governanceModels && relevantVariations.length > 0) {
       const recommendedIds: string[] = [];
       const conditionalIds: string[] = [];
       const unsuitableIds: string[] = [];
       
-      // Iterate over the fetched selected variations to categorize models
       relevantVariations.forEach(variation => {
-        // Process standard recommended models
         if (variation.governanceModels) {
           variation.governanceModels.forEach(ref => {
             const modelId = ref.sys?.id;
@@ -107,7 +97,6 @@ export default function Step3Page() {
             }
           });
         }
-        // Process conditional recommended models (mits)
         if (variation.governanceModelsMits) {
            variation.governanceModelsMits.forEach(ref => {
             const modelId = ref.sys?.id;
@@ -116,7 +105,6 @@ export default function Step3Page() {
             }
           });
         }
-        // Process unsuitable models
         if (variation.governanceModelsNietgeschikt) {
            variation.governanceModelsNietgeschikt.forEach(ref => {
             const modelId = ref.sys?.id;
@@ -131,22 +119,15 @@ export default function Step3Page() {
       setConditionalRecommendedModels(conditionalIds);
       setUnsuitableModels(unsuitableIds);
     } else {
-      // Reset if no relevant variations are loaded
        setRecommendedModels([]);
        setConditionalRecommendedModels([]);
        setUnsuitableModels([]);
     }
-    // Add selectedVariants to dependencies, as categorization indirectly depends on it
-    // (because relevantVariations depends on it, and this effect depends on relevantVariations)
   }, [relevantVariations, governanceModels, selectedVariants]); 
   
-  // Find the current model from the governance models array
   const currentModel = governanceModels?.find(model => model.id === currentGovernanceModelId) || null;
-  
-  // Check if the current model is also in the recommended list
   const currentModelIsRecommended = currentModel ? recommendedModels.includes(currentModel.id) : false;
   
-  // Memoize the lists of models for rendering
   const otherRecommendedModelsList = useMemo(() => {
     if (!governanceModels) return [];
     return governanceModels.filter(model => 
@@ -178,22 +159,16 @@ export default function Step3Page() {
     );
   }, [governanceModels, recommendedModels, conditionalRecommendedModels, unsuitableModels, currentGovernanceModelId]);
   
-  // Handler for selecting a governance model
   const handleSelectModel = useCallback((modelId: string) => {
     setSelectedGovernanceModel(modelId);
   }, [setSelectedGovernanceModel]);
   
-  // Handler for showing more info about a governance model
   const handleShowMoreInfo = useCallback((model: GovernanceModel) => {
     openGovernanceDialog(model);
   }, [openGovernanceDialog]);
   
-  // Determine if we're currently loading
   const isLoading = governanceLoading || isLoadingVariations;
   
-  // Create a stable key based on selected variants to force re-render of cards
-  // const variantsKey = JSON.stringify(selectedVariants); // Intentionally removed for optimization
-
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -205,7 +180,7 @@ export default function Step3Page() {
               <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
               <p className="text-gray-600 text-sm">
                 Het kiezen van het juiste governance model is essentieel voor een succesvolle implementatie 
-                van uw mobiliteitsoplossingen. Het bepaalt hoe de organisatie, het beheer en de financiering 
+                van de gekozen collectieve vervoersoplossing. Het bepaalt hoe de organisatie, het beheer en de financiering 
                 worden geregeld.
               </p>
             </div>
@@ -213,7 +188,7 @@ export default function Step3Page() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Aanbevelingen</h3>
               <p className="text-gray-600 text-sm">
-                Op basis van uw gekozen mobiliteitsoplossingen tonen we welke governance modellen het beste 
+                Op basis van uw gekozen collectieve vervoersoplossing tonen we welke governance modellen het beste 
                 passen. Deze aanbevelingen zijn gebaseerd op praktijkervaring en succesvolle implementaties.
               </p>
             </div>
@@ -241,9 +216,9 @@ export default function Step3Page() {
         <div className="lg:col-span-3">
           {/* Inleiding sectie */}
           <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-            <h2 className="text-2xl font-bold mb-4">Stap 3: Governance Modellen</h2>
+            <h2 className="text-2xl font-bold mb-4">Governance modellen</h2>
             <p className="text-gray-600 mb-6">
-              Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen mobiliteitsoplossingen. 
+              Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen collectieve vervoersoplossing. 
               De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten.
             </p>
             {isLoading && <p>Aanbevelingen laden...</p>}
@@ -375,24 +350,23 @@ export default function Step3Page() {
             </div>
           )}
           
-          {/* Fallback if no models are shown and not loading */}
           {!isLoading && 
             !currentModel && 
             otherRecommendedModelsList.length === 0 &&
             conditionalRecommendedModelsList.length === 0 &&
             unsuitableModelsList.length === 0 &&
-            otherModelsList.length === 0 &&
-          (
+            otherModelsList.length === 0 && (
             <p>Geen governance modellen gevonden of de aanbevelingen zijn nog niet geladen.</p>
           )}
         </div>
       </div>
       
       <WizardNavigation
-        previousStep="/wizard/stap-2b"
-        nextStep="/wizard/stap-4"
+        previousStep="/wizard/implementatievarianten"
+        nextStep="/wizard/implementatieplan"
         isNextDisabled={!selectedGovernanceModel}
       />
     </div>
   );
-} 
+}
+

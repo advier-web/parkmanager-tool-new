@@ -138,6 +138,24 @@ export function transformImplementationVariation(entry: Entry<any>): Implementat
       samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
       investering: typeof fields.investering === 'string' ? fields.investering : undefined,
       realisatieplan: typeof fields.realisatieplan === 'string' ? fields.realisatieplan : undefined,
+      
+      // New cost and responsibility fields from Contentful
+      geschatteJaarlijkseKosten: typeof fields.geschatteJaarlijkseKosten === 'string' ? fields.geschatteJaarlijkseKosten : undefined,
+      geschatteKostenPerKmPp: typeof fields.geschatteKostenPerKmPp === 'string' ? fields.geschatteKostenPerKmPp : undefined,
+      geschatteKostenPerRit: typeof fields.geschatteKostenPerRit === 'string' ? fields.geschatteKostenPerRit : undefined,
+      verantwoordelijkheid: typeof fields.verantwoordelijkheid === 'string' ? fields.verantwoordelijkheid : undefined,
+      contractvormen: typeof fields.contractvormen === 'string' ? fields.contractvormen : undefined,
+      voordelen: typeof fields.voordelen === 'string' ? fields.voordelen : undefined,
+      nadelen: typeof fields.nadelen === 'string' ? fields.nadelen : undefined,
+
+      // New qualitative comparison fields
+      controleEnFlexibiliteit: typeof fields.controleEnFlexibiliteit === 'string' ? fields.controleEnFlexibiliteit : undefined,
+      maatwerk: typeof fields.maatwerk === 'string' ? fields.maatwerk : undefined,
+      kostenEnSchaalvoordelen: typeof fields.kostenEnSchaalvoordelen === 'string' ? fields.kostenEnSchaalvoordelen : undefined,
+      operationeleComplexiteit: typeof fields.operationeleComplexiteit === 'string' ? fields.operationeleComplexiteit : undefined,
+      juridischeEnComplianceRisicos: typeof fields.juridischeEnComplianceRisicos === 'string' ? fields.juridischeEnComplianceRisicos : undefined,
+      risicoVanOnvoldoendeGebruik: typeof fields.risicoVanOnvoldoendeGebruik === 'string' ? fields.risicoVanOnvoldoendeGebruik : undefined,
+      
       governanceModels: getRefIdArray(fields.governanceModels),
       governanceModelsMits: getRefIdArray(fields.governanceModelsMits),
       governanceModelsNietgeschikt: getRefIdArray(fields.governanceModelsNietgeschikt),

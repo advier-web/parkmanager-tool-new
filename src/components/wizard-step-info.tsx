@@ -25,21 +25,21 @@ const stepInfoContent: Record<string, React.ReactNode> = {
         <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
         <p className="text-gray-600 text-sm">
           Deze informatie helpt ons om een passend advies te geven voor uw bedrijventerrein. 
-          De grootte en complexiteit van het terrein bepalen mede welke mobiliteitsoplossingen het meest geschikt zijn.
+          De grootte en complexiteit van het terrein bepalen mede welke collectieve vervoersoplossingen het meest geschikt zijn.
         </p>
       </div>
       <div>
         <h3 className="text-lg font-semibold mb-2">Huidige situatie</h3>
         <p className="text-gray-600 text-sm">
           Het is belangrijk om te weten wat uw huidige bestuursmodel is. 
-          Dit helpt ons later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe mobiliteitsoplossingen.
+          Dit helpt ons later te bepalen of er aanpassingen nodig zijn voor de implementatie van nieuwe collectieve vervoersoplossingen.
         </p>
       </div>
       <div>
         <h3 className="text-lg font-semibold mb-2">Type verkeer</h3>
         <p className="text-gray-600 text-sm">
           Door aan te geven voor welk type verkeer u oplossingen zoekt, 
-          kunnen we gerichter adviseren over mobiliteitsoplossingen die aansluiten bij uw behoeften.
+          kunnen we gerichter adviseren over collectieve vervoersoplossingen die aansluiten bij uw behoeften.
         </p>
       </div>
       <div>
@@ -47,7 +47,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
         <p className="text-gray-600 text-sm">
           De bereikbaarheid van uw bedrijventerrein met verschillende vervoermiddelen 
           en de afstand tussen woonplaats en werk zijn belangrijke factoren bij het 
-          kiezen van geschikte mobiliteitsoplossingen.
+          kiezen van geschikte collectieve vervoersoplossingen.
         </p>
       </div>
     </>
@@ -58,7 +58,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
         <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
         <p className="text-gray-600 text-sm">
           Door te begrijpen waarom u de mobiliteit wilt verbeteren, 
-          kunnen we gerichter adviseren over passende oplossingen. Elke reden kan leiden tot andere aanbevelingen.
+          kan ik gerichter adviseren over passende collectieve vervoersoplossingen. Elke reden kan leiden tot andere aanbevelingen.
         </p>
       </div>
       <div>
@@ -75,7 +75,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
        <div>
          <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
          <p className="text-gray-600 text-sm">
-           Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante mobiliteitsoplossingen. 
+           Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante collectieve vervoersoplossingen. 
            Selecteer de oplossingen die u wilt overwegen.
          </p>
        </div>
@@ -83,7 +83,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
          <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
          <p className="text-gray-600 text-sm">
            Bekijk de details van elke oplossing door erop te klikken. 
-           Selecteer de oplossingen die het beste aansluiten bij uw situatie.
+           Selecteer de collectieve vervoersoplossingen die het beste aansluiten bij uw situatie.
          </p>
        </div>
      </>
@@ -93,14 +93,14 @@ const stepInfoContent: Record<string, React.ReactNode> = {
        <div>
          <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
          <p className="text-gray-600 text-sm">
-            Voor sommige oplossingen zijn er verschillende manieren om ze te implementeren. 
+            Voor sommige collectieve vervoersoplossingen zijn er verschillende manieren om ze te implementeren. 
             Kies hier de variant die het beste past bij uw voorkeuren en mogelijkheden.
          </p>
        </div>
         <div>
          <h3 className="text-lg font-semibold mb-2">Kies een variant</h3>
          <p className="text-gray-600 text-sm">
-            Selecteer per gekozen mobiliteitsoplossing de gewenste implementatievariant. 
+            Selecteer per gekozen collectieve vervoersoplossing de gewenste implementatievariant. 
             Deze keuze beïnvloedt het uiteindelijke advies en implementatieplan.
          </p>
        </div>
@@ -111,7 +111,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
        <div>
          <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
          <p className="text-gray-600 text-sm">
-            Het kiezen van het juiste governance model is cruciaal voor een succesvolle implementatie en beheer van mobiliteitsoplossingen. 
+            Het kiezen van het juiste governance model is cruciaal voor een succesvolle implementatie en beheer van collectieve vervoersoplossingen. 
             Hier helpen we u het meest geschikte model te selecteren.
          </p>
        </div>
@@ -119,7 +119,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
          <h3 className="text-lg font-semibold mb-2">Governance model</h3>
          <p className="text-gray-600 text-sm">
             Vergelijk de voorgestelde modellen en selecteer het model dat het beste past bij uw bedrijventerrein, 
-            de gekozen oplossingen en uw organisatorische context.
+            de gekozen collectieve vervoersoplossing en uw organisatorische context.
          </p>
        </div>
      </>
@@ -130,7 +130,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
          <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
          <p className="text-gray-600 text-sm">
             Het implementatieplan geeft u een duidelijk overzicht van de stappen die nodig zijn om uw gekozen 
-            mobiliteitsoplossingen en governance model te realiseren. Dit helpt u bij een gestructureerde aanpak.
+            collectieve vervoersoplossing en governance model te realiseren. Dit helpt u bij een gestructureerde aanpak.
          </p>
        </div>
        <div>

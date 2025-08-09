@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useWizardStore } from '@/store/wizard-store';
-import { getImplementationVariationsForSolution, getMobilitySolutionById } from '@/services/contentful-service'; // Assuming getMobilitySolutionById exists
+import { getImplementationVariationsForSolution, getMobilitySolutionById } from '@/services/contentful-service';
 import { ImplementationVariation, MobilitySolution } from '@/domain/models';
 import { WizardNavigation } from '@/components/wizard-navigation';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
-import { ImplementationVariationCard } from '@/components/implementation-variation-card'; // Assuming this component will be created
+import { ImplementationVariationCard } from '@/components/implementation-variation-card';
+import { VariantComparisonBanner } from '@/components/variant-comparison-banner';
+import { VariantComparisonModal } from '@/components/variant-comparison-modal';
 
 interface SolutionWithVariations {
   solution: MobilitySolution | null;
@@ -18,23 +20,18 @@ export default function SelectImplementationVariantPage() {
   const [data, setData] = useState<Record<string, SolutionWithVariations>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
 
   useEffect(() => {
-    // Wait for hydration before fetching
-    if (!_hasHydrated) {
-       return; 
-    }
-
+    if (!_hasHydrated) return;
     async function fetchData() {
       if (selectedSolutions.length === 0) {
         setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       setError(null);
       const fetchedData: Record<string, SolutionWithVariations> = {};
-
       try {
         for (const solutionId of selectedSolutions) {
           const solution = await getMobilitySolutionById(solutionId);
@@ -43,12 +40,11 @@ export default function SelectImplementationVariantPage() {
         }
         setData(fetchedData);
       } catch (err) {
-        setError("Kon de implementatievarianten niet laden.");
+        setError('Kon de implementatievarianten niet laden.');
       } finally {
         setIsLoading(false);
       }
     }
-
     fetchData();
   }, [selectedSolutions, _hasHydrated]);
 
@@ -56,10 +52,28 @@ export default function SelectImplementationVariantPage() {
     setSelectedVariant(solutionId, variationId);
   };
 
-  // Check if a variation is selected for every solution
-  const allVariationsSelected = selectedSolutions.every(
-    solutionId => selectedVariants[solutionId]
-  );
+  const allVariationsSelected = selectedSolutions.every(solutionId => selectedVariants[solutionId]);
+
+  const allVariations = useMemo(() => {
+    const variations: ImplementationVariation[] = [];
+    Object.values(data).forEach(solutionData => {
+      if (solutionData.variations) {
+        variations.push(...solutionData.variations);
+      }
+    });
+    return variations;
+  }, [data]);
+
+  const selectedVariations = useMemo(() => {
+    return allVariations.filter(variation => Object.values(selectedVariants).includes(variation.id));
+  }, [allVariations, selectedVariants]);
+
+  const getComparisonVariations = (): ImplementationVariation[] => {
+    return allVariations;
+  };
+
+  const handleOpenComparison = () => setIsComparisonModalOpen(true);
+  const handleCloseComparison = () => setIsComparisonModalOpen(false);
 
   return (
     <div className="space-y-8">
@@ -67,11 +81,10 @@ export default function SelectImplementationVariantPage() {
         {/* Left Column */}
         <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
           <WizardChoicesSummary />
-          {/* Optional Info Panel */}
           <div className="bg-white rounded-lg p-6 shadow-even space-y-4">
             <h3 className="text-lg font-semibold">Kies een Implementatievariant</h3>
             <p className="text-gray-600 text-sm">
-              Voor elke gekozen mobiliteitsoplossing zijn er vaak meerdere manieren om deze te implementeren.
+              Voor elke gekozen collectieve vervoersoplossing zijn er vaak meerdere manieren om deze te implementeren.
               Kies per oplossing de variant die het beste bij uw situatie past.
             </p>
           </div>
@@ -80,7 +93,15 @@ export default function SelectImplementationVariantPage() {
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-2xl font-bold mb-6">Stap 2b: Kies Implementatievariant</h2>
+            <h2 className="text-2xl font-bold mb-6">Implementatievarianten</h2>
+
+            {!isLoading && !error && allVariations.length >= 2 && (
+              <VariantComparisonBanner
+                selectedVariations={selectedVariations}
+                totalVariations={allVariations}
+                onOpenComparison={handleOpenComparison}
+              />
+            )}
 
             {isLoading && (
               <div className="text-center py-8">
@@ -107,17 +128,15 @@ export default function SelectImplementationVariantPage() {
                     <h3 className="text-xl font-semibold mb-4 border-b pb-2">{data[solutionId]?.solution?.title || 'Oplossing'}</h3>
                     {data[solutionId]?.variations.length > 0 ? (
                       <div className="space-y-4">
-                        {data[solutionId].variations.map(variation => {
-                          return (
-                            <ImplementationVariationCard
-                              key={variation.id}
-                              variation={variation}
-                              isSelected={selectedVariants[solutionId] === variation.id}
-                              onSelect={() => handleSelectVariation(solutionId, variation.id)}
-                              solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
-                            />
-                          );
-                        })}
+                        {data[solutionId].variations.map(variation => (
+                          <ImplementationVariationCard
+                            key={variation.id}
+                            variation={variation}
+                            isSelected={selectedVariants[solutionId] === variation.id}
+                            onSelect={() => handleSelectVariation(solutionId, variation.id)}
+                            solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
+                          />
+                        ))}
                       </div>
                     ) : (
                       <p className="text-gray-500 italic">Geen specifieke implementatievarianten gevonden voor deze oplossing.</p>
@@ -131,10 +150,20 @@ export default function SelectImplementationVariantPage() {
       </div>
 
       <WizardNavigation
-        previousStep="/wizard/stap-2"
-        nextStep="/wizard/stap-3"
+        previousStep="/wizard/oplossingen"
+        nextStep="/wizard/governance-modellen"
         isNextDisabled={!allVariationsSelected}
+      />
+
+      <VariantComparisonModal
+        variations={getComparisonVariations()}
+        isOpen={isComparisonModalOpen}
+        onClose={handleCloseComparison}
       />
     </div>
   );
-} 
+}
+
+ 
+
+

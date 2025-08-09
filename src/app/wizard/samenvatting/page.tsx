@@ -239,28 +239,10 @@ export default function SummaryPage() {
                     ))}
                   </ul>
                 </div>
-                {/* Moved Locatiekenmerken */}
-                {businessParkInfo.carAccessibility && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Bereikbaarheid met auto:</p>
-                    <p className="capitalize">{businessParkInfo.carAccessibility}</p>
-                  </div>
-                )}
-                {businessParkInfo.trainAccessibility && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Bereikbaarheid met trein:</p>
-                    <p className="capitalize">{businessParkInfo.trainAccessibility}</p>
-                  </div>
-                )}
-                {businessParkInfo.busAccessibility && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Bereikbaarheid met bus:</p>
-                    <p className="capitalize">{businessParkInfo.busAccessibility}</p>
-                  </div>
-                )}
+
               </div>
               
-              {/* Column 2: Werknemers, Huidig Model, Ophalen, Parkeren, Afstand */}
+              {/* Column 2: Werknemers, Huidig Model, Deel woon-werkreis, Parkeren, Afstand */}
               <div>
                 <p className="text-sm font-medium text-gray-500">Aantal werknemers:</p>
                 <p>{businessParkInfo.numberOfEmployees}</p>
@@ -272,25 +254,13 @@ export default function SummaryPage() {
                 )}
                 {businessParkInfo.employeePickupPreference && (
                   <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Ophalen werknemers:</p>
+                    <p className="text-sm font-medium text-gray-500">Welk deel van de woon-werkreis:</p>
                     <p className="capitalize">
-                      {businessParkInfo.employeePickupPreference === 'thuis' ? 'Vanaf thuis' : 'Vanaf locatie'}
+                      {businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor een gedeelte van de reis'}
                     </p>
                   </div>
                 )}
-                {/* Moved Locatiekenmerken */}
-                {businessParkInfo.sufficientParking && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Voldoende parkeerplaatsen:</p>
-                    <p className="capitalize">{businessParkInfo.sufficientParking}</p>
-                  </div>
-                )}
-                {businessParkInfo.averageDistance && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">Gemiddelde woon-werk afstand:</p>
-                    <p>{businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`}</p>
-                  </div>
-                )}
+
               </div>
             </div>
 
@@ -310,11 +280,11 @@ export default function SummaryPage() {
                   </div>
                 )}
 
-                {/* Mobiliteitsoplossingen */} 
+                {/* Collectieve mobiliteitsoplossing */} 
                 {selectedSolutionTitles.length > 0 && (
                    // Remove text-sm from container
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Geselecteerde mobiliteitsoplossingen:</p>
+                    <p className="text-sm font-medium text-gray-500">Geselecteerde collectieve mobiliteitsoplossing:</p>
                     {/* Values inherit base size */}
                     <ul className="list-disc pl-5 text-gray-900 space-y-1">
                       {selectedSolutionTitles.map(title => <li key={title}>{title}</li>)}

@@ -48,7 +48,7 @@ export function FilterPanel({
       
       <div className="mb-4">
         <p className="text-sm text-gray-500 mb-2">
-          Gebruik onderstaande filters om de getoonde mobiliteitsoplossingen aan te passen op uw situatie
+          Gebruik onderstaande filters om de getoonde collectieve vervoersoplossingen aan te passen op uw situatie
         </p>
       </div>
       
@@ -177,7 +177,7 @@ export function FilterPanel({
       
       <div className="mt-6 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-500">
-          Selecteer aanleidingen uit de lijst om te zien welke mobiliteitsoplossingen daarbij passen.
+          Selecteer aanleidingen uit de lijst om te zien welke collectieve vervoersoplossingen daarbij passen.
           Aanleidingen met <span className="text-blue-600">blauw label</span> heeft u in stap 1 geselecteerd.
         </p>
       </div>
