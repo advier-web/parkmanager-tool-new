@@ -7,6 +7,7 @@ import { WizardNavigation } from '../../../components/wizard-navigation';
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import GovernanceModelFactsheetButton from '@/components/governance-model-factsheet-button';
+import { ArrowDownTrayIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { governanceTitleToFieldName, stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
 export default function ImplementationPlanPage() {
@@ -62,18 +63,33 @@ export default function ImplementationPlanPage() {
                       <div className="mt-6 prose prose-sm max-w-none">
                         <h3 className="text-lg font-semibold mb-2">Implementatiestappen ({selectedGovernanceModelData.title})</h3>
                         {selectedGovernanceModelData.implementatie ? (
-                           <MarkdownContent content={processMarkdownText(selectedGovernanceModelData.implementatie)} />
+                          <MarkdownContent variant="page" content={processMarkdownText(selectedGovernanceModelData.implementatie)} />
                         ) : (
                            <p className="italic text-gray-500">Geen specifieke implementatie-informatie beschikbaar voor dit model.</p>
                         )}
-                        <div className="mt-6">
-                          <GovernanceModelFactsheetButton 
-                            governanceModel={selectedGovernanceModelData}
-                            selectedVariations={[]}
-                            governanceTitleToFieldName={governanceTitleToFieldName}
-                            stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-                            className="w-full md:w-auto"
-                          />
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center">
+                                <DocumentTextIcon className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">Factsheet: {selectedGovernanceModelData.title}</p>
+                                <p className="text-xs text-gray-500">PDF-document</p>
+                              </div>
+                            </div>
+                            <GovernanceModelFactsheetButton 
+                              governanceModel={selectedGovernanceModelData}
+                              selectedVariations={[]}
+                              governanceTitleToFieldName={governanceTitleToFieldName}
+                              stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                              className="w-auto"
+                              buttonColorClassName="h-8 px-3 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+                            >
+                              <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
+                              Download
+                            </GovernanceModelFactsheetButton>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -89,7 +105,7 @@ export default function ImplementationPlanPage() {
 
       <WizardNavigation
         previousStep="/wizard/governance-modellen"
-        nextStep="/wizard/samenvatting"
+        nextStep="/wizard/vervolgstappen"
         isNextDisabled={isNextDisabled}
       />
     </div>

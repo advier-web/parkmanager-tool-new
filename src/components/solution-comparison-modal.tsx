@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { MobilitySolution, BusinessParkReason, TrafficType } from '../domain/models';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
@@ -8,7 +8,10 @@ import { MarkdownContent, processMarkdownText } from './markdown-content';
 interface SolutionComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // Pass ALL solutions here in the same order as shown on the page
   solutions: MobilitySolution[];
+  // Which solutions should be selected when the modal opens
+  initialSelectedIds: string[];
   reasonsData: BusinessParkReason[];
   activeReasonFilters: string[];
   activeTrafficTypes: TrafficType[];
@@ -20,6 +23,7 @@ export function SolutionComparisonModal({
   isOpen,
   onClose,
   solutions,
+  initialSelectedIds,
   reasonsData,
   activeReasonFilters,
   activeTrafficTypes,
@@ -27,6 +31,17 @@ export function SolutionComparisonModal({
   contributingReasons
 }: SolutionComparisonModalProps) {
   if (!isOpen) return null;
+
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const visibleSolutions = useMemo(() => {
+    const selectedSet = new Set(selectedIds);
+    const filtered = solutions.filter(s => selectedSet.size === 0 ? true : selectedSet.has(s.id));
+    return filtered;
+  }, [solutions, selectedIds]);
 
   // Helper function to get pickup preference match for a solution
   const getPickupPreferenceMatch = (solution: MobilitySolution): boolean => {
@@ -68,7 +83,7 @@ export function SolutionComparisonModal({
     if (userPickupPreference && option) {
       if (userPickupPreference === 'thuis' && option.toLowerCase().includes('thuis')) {
         optionMatches = true;
-      } else if (userPickupPreference === 'locatie' && option.toLowerCase().includes('locatie')) {
+      } else if (userPickupPreference === 'locatie' && (option.toLowerCase().includes('laatste') || option.toLowerCase().includes('locatie'))) {
         optionMatches = true;
       }
     }
@@ -98,12 +113,41 @@ export function SolutionComparisonModal({
         <div className="flex-1 overflow-auto p-6">
           <div className="space-y-1">
             
-            {/* Solution Title Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+            {/* Selection controls */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900">Kies welke oplossingen je wilt vergelijken</h3>
+                <div className="text-sm text-gray-500">{selectedIds.length} geselecteerd</div>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="flex gap-2 min-w-max">
+                  {solutions.map((sol) => {
+                    const isActive = selectedIds.includes(sol.id);
+                    return (
+                      <button
+                        key={`select-${sol.id}`}
+                        onClick={() => toggleSelected(sol.id)}
+                        className={`${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'} px-3 py-2 rounded-md text-sm whitespace-nowrap border border-gray-200 hover:bg-blue-600/10 hover:text-gray-900`}
+                        title={sol.title || ''}
+                      >
+                        {sol.icon && <span className="mr-1">{getIconDisplay(sol.icon)}</span>}
+                        {sol.title}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Solution Title Row (sticky) */}
+            <div
+              className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm"
+              style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}
+            >
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Oplossing</h3>
               </div>
-              {solutions.map((solution) => (
+              {visibleSolutions.map((solution) => (
                 <div key={`${solution.id}-title`} className="border-l border-gray-200 pl-4 flex items-center">
                   <div>
                     <h4 className="font-semibold text-lg text-blue-600 leading-tight">{solution.title}</h4>
@@ -116,11 +160,11 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Summary Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-start">
-                <h3 className="font-medium text-gray-900">Samenvatting</h3>
+               <h3 className="font-medium text-gray-900">Samenvatting</h3>
               </div>
-              {solutions.map((solution) => (
+              {visibleSolutions.map((solution) => (
                 <div key={`${solution.id}-summary`} className="border-l border-gray-200 pl-4">
                   <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
                     <MarkdownContent content={processMarkdownText(solution.samenvattingKort || solution.samenvattingLang || solution.description || '')} />
@@ -130,11 +174,11 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Minimum aantal personen Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Minimum aantal personen</h3>
               </div>
-              {solutions.map((solution) => (
+              {visibleSolutions.map((solution) => (
                 <div key={`${solution.id}-min-persons`} className="border-l border-gray-200 pl-4 flex items-center">
                   <div className="text-sm text-gray-700">
                     {solution.minimumAantalPersonen || '-'}
@@ -144,11 +188,11 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Minimale investering Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Minimale investering</h3>
               </div>
-              {solutions.map((solution) => (
+              {visibleSolutions.map((solution) => (
                 <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center">
                   <div className="text-sm text-gray-700">
                     {solution.minimaleInvestering || '-'}
@@ -157,12 +201,40 @@ export function SolutionComparisonModal({
               ))}
             </div>
 
+            {/* Moeilijkheidsgraad Row */}
+            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-center">
+                <h3 className="font-medium text-gray-900">Moeilijkheidsgraad</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-difficulty`} className="border-l border-gray-200 pl-4 flex items-center">
+                  <div className="text-sm text-gray-700">
+                    {solution.moeilijkheidsgraad || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Doorlooptijd Row */}
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-center">
+                <h3 className="font-medium text-gray-900">Doorlooptijd</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-leadtime`} className="border-l border-gray-200 pl-4 flex items-center">
+                  <div className="text-sm text-gray-700">
+                    {solution.doorlooptijd || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Afstand Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Afstand</h3>
               </div>
-              {solutions.map((solution) => (
+              {visibleSolutions.map((solution) => (
                 <div key={`${solution.id}-distance`} className="border-l border-gray-200 pl-4">
                   <div className="text-sm text-gray-700">
                     {solution.afstand || '-'}
@@ -173,11 +245,11 @@ export function SolutionComparisonModal({
 
             {/* Traffic Types Row */}
             {activeTrafficTypes.length > 0 && (
-              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Geschikt voor vervoer</h3>
                 </div>
-                {solutions.map((solution) => (
+                {visibleSolutions.map((solution) => (
                   <div key={`${solution.id}-traffic`} className="border-l border-gray-200 pl-4">
                     <div className="space-y-1">
                       {activeTrafficTypes.map(trafficType => (
@@ -194,13 +266,46 @@ export function SolutionComparisonModal({
               </div>
             )}
 
-            {/* Reason Contributions Row */}
+            {/* Pickup Options Row */}
+            {userPickupPreference && solutions.some(s => s.ophalen && s.ophalen.length > 0) && (
+              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+                <div className="flex items-start">
+                  <h3 className="font-medium text-gray-900">Deel van de woon-werkreis</h3>
+                </div>
+                {visibleSolutions.map((solution) => (
+                  <div key={`${solution.id}-pickup`} className="border-l border-gray-200 pl-4">
+                    {solution.ophalen && solution.ophalen.length > 0 ? (
+                      <div className="space-y-1">
+                        {solution.ophalen.map((option, index) => {
+                          const lower = (option || '').toLowerCase();
+                          const display = lower.includes('thuis')
+                            ? 'Voor de hele reis'
+                            : (lower.includes('laatste') || lower.includes('locatie'))
+                            ? 'Voor het laatste deel van de reis'
+                            : option;
+                          return (
+                            <div key={index} className="flex items-center gap-2">
+                              {renderPickupMatch(solution, option)}
+                              <span className="text-xs text-gray-600">{display}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-400">-</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Reason Contributions Row (moved below pickup row) */}
             {activeReasonFilters.length > 0 && (
-              <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
+              <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Bijdrage aan selectie</h3>
                 </div>
-                {solutions.map((solution) => (
+                {visibleSolutions.map((solution) => (
                   <div key={`${solution.id}-reasons`} className="border-l border-gray-200 pl-4">
                     <div className="space-y-1">
                       {activeReasonFilters.map(reasonId => {
@@ -222,32 +327,8 @@ export function SolutionComparisonModal({
               </div>
             )}
 
-            {/* Pickup Options Row */}
-            {userPickupPreference && solutions.some(s => s.ophalen && s.ophalen.length > 0) && (
-              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${solutions.length}, 1fr)` }}>
-                <div className="flex items-start">
-                  <h3 className="font-medium text-gray-900">Deel van de woon-werkreis</h3>
-                </div>
-                {solutions.map((solution) => (
-                  <div key={`${solution.id}-pickup`} className="border-l border-gray-200 pl-4">
-                    {solution.ophalen && solution.ophalen.length > 0 ? (
-                      <div className="space-y-1">
-                        {solution.ophalen.map((option, index) => {
-                          const display = option === 'thuis' ? 'Voor de hele reis' : option === 'locatie' ? 'Voor een gedeelte van de reis' : option;
-                          return (
-                            <div key={index} className="flex items-center gap-2">
-                              {renderPickupMatch(solution, option)}
-                              <span className="text-xs text-gray-600">{display}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-400">-</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {visibleSolutions.length === 0 && (
+              <div className="mt-4 p-4 text-center text-sm text-gray-600">Selecteer minimaal één oplossing om te vergelijken.</div>
             )}
 
           </div>

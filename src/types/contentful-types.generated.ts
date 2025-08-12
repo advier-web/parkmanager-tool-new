@@ -24,10 +24,7 @@ export interface IimplementationvariationsFields {
   geschatteJaarlijkseKosten?: string | undefined;
   geschatteKostenPerKmPp?: string | undefined;
   geschatteKostenPerRit?: string | undefined;
-  verantwoordelijkheid?: string | undefined;
-  contractvormen?: string | undefined;
-  voordelen?: string | undefined;
-  nadelen?: string | undefined;
+  // Fields removed in Contentful: verantwoordelijkheid, contractvormen, voordelen, nadelen
   mobiliteitsdienstVariant?: { sys: { id: string } };
   investering?: string | undefined;
   realisatieplan?: string | undefined;
@@ -93,8 +90,7 @@ export interface IgovernanceModelFields {
   samenvatting?: string | undefined;
   description?: string | undefined;
   aansprakelijkheid?: string | undefined;
-  voordelen?: string | undefined;
-  nadelen?: string | undefined;
+  // Removed fields kept out intentionally
   benodigdhedenOprichting?: string | undefined;
   links?: string | undefined;
   doorlooptijdLang?: string | undefined;

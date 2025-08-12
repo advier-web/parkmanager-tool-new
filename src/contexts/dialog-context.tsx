@@ -5,7 +5,7 @@ import { MobilitySolution, GovernanceModel, BusinessParkReason, ImplementationVa
 
 interface DialogContextType {
   isOpen: boolean;
-  dialogType: 'solution' | 'governance' | 'reason' | 'implementation-variant' | null;
+  dialogType: 'solution' | 'solution-cases' | 'governance' | 'reason' | 'implementation-variant' | null;
   currentSolution: MobilitySolution | null;
   compatibleGovernanceModels: GovernanceModel[] | null;
   currentGovernanceModel: GovernanceModel | null;
@@ -13,6 +13,7 @@ interface DialogContextType {
   currentVariations: ImplementationVariation[] | null;
   currentImplementationVariant: ImplementationVariation | null;
   openSolutionDialog: (solution: MobilitySolution, governanceModels: GovernanceModel[], variations: ImplementationVariation[]) => void;
+  openSolutionCasesDialog: (solution: MobilitySolution) => void;
   openGovernanceDialog: (model: GovernanceModel) => void;
   openReasonDialog: (reason: BusinessParkReason) => void;
   openImplementationVariantDialog: (variant: ImplementationVariation) => void;
@@ -23,7 +24,7 @@ const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export function DialogProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'solution' | 'governance' | 'reason' | 'implementation-variant' | null>(null);
+  const [dialogType, setDialogType] = useState<'solution' | 'solution-cases' | 'governance' | 'reason' | 'implementation-variant' | null>(null);
   const [currentSolution, setCurrentSolution] = useState<MobilitySolution | null>(null);
   const [compatibleGovernanceModels, setCompatibleGovernanceModels] = useState<GovernanceModel[] | null>(null);
   const [currentGovernanceModel, setCurrentGovernanceModel] = useState<GovernanceModel | null>(null);
@@ -39,6 +40,17 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     setCurrentReason(null);
     setCurrentImplementationVariant(null);
     setDialogType('solution');
+    setIsOpen(true);
+  };
+
+  const openSolutionCasesDialog = (solution: MobilitySolution) => {
+    setCurrentSolution(solution);
+    setCompatibleGovernanceModels(null);
+    setCurrentVariations(null);
+    setCurrentGovernanceModel(null);
+    setCurrentReason(null);
+    setCurrentImplementationVariant(null);
+    setDialogType('solution-cases');
     setIsOpen(true);
   };
 
@@ -93,6 +105,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         currentVariations,
         currentImplementationVariant,
         openSolutionDialog,
+        openSolutionCasesDialog,
         openGovernanceDialog,
         openReasonDialog,
         openImplementationVariantDialog,

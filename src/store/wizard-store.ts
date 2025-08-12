@@ -77,9 +77,9 @@ export const useWizardStore = create<WizardState>()(
 
       setSelectedSolutions: (solutions) => set({ selectedSolutions: solutions }),
       toggleSolution: (solutionId) => set((state) => {
-        const newSelectedSolutions = state.selectedSolutions.includes(solutionId)
-          ? state.selectedSolutions.filter(id => id !== solutionId)
-          : [...state.selectedSolutions, solutionId];
+        // Single-select behavior: pick this solution, deselect others if selecting; toggle off if same
+        const isAlreadySelected = state.selectedSolutions.includes(solutionId);
+        const newSelectedSolutions = isAlreadySelected ? [] : [solutionId];
         const newSelectedVariants = { ...state.selectedVariants };
         if (!newSelectedSolutions.includes(solutionId)) {
           delete newSelectedVariants[solutionId];

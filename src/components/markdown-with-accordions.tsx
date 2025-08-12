@@ -74,7 +74,7 @@ export function MarkdownWithAccordions({ content }: MarkdownWithAccordionsProps)
                   key={itemIndex}
                   title={item.title}
                 >
-                  <MarkdownContent content={processMarkdownText(item.content)} />
+                  <MarkdownContent variant="modal" content={processMarkdownText(item.content)} />
                 </SimpleAccordion>
               ))}
             </div>
@@ -87,7 +87,7 @@ export function MarkdownWithAccordions({ content }: MarkdownWithAccordionsProps)
               key={`${groupIndex}-${contentIndex}`} 
               className={`${(previousGroupWasAccordion && contentIndex === 0) ? 'mt-16' : ''} mb-4`}
             >
-              <MarkdownContent content={processMarkdownText(content)} />
+              <MarkdownContent variant="modal" content={processMarkdownText(content)} />
             </div>
           ));
         }

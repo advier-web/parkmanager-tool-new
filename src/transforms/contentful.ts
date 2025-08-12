@@ -5,12 +5,9 @@ import {
   Asset,
   AssetFile
 } from 'contentful';
-import {
-  IBusinessParkReason, 
-  IGovernanceModel, 
-  IMobilityService, 
-  IImplementationvariations 
-} from '../types/contentful-types.generated';
+// Note: We intentionally avoid importing generated Contentful interfaces here
+// because their exact names/casing can change between generations and they are
+// not required for the runtime transforms.
 import { 
   BusinessParkReason, 
   GovernanceModel, 
@@ -138,15 +135,13 @@ export function transformImplementationVariation(entry: Entry<any>): Implementat
       samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
       investering: typeof fields.investering === 'string' ? fields.investering : undefined,
       realisatieplan: typeof fields.realisatieplan === 'string' ? fields.realisatieplan : undefined,
+      vervolgstappen: typeof fields.vervolgstappen === 'string' ? fields.vervolgstappen : undefined,
       
       // New cost and responsibility fields from Contentful
       geschatteJaarlijkseKosten: typeof fields.geschatteJaarlijkseKosten === 'string' ? fields.geschatteJaarlijkseKosten : undefined,
       geschatteKostenPerKmPp: typeof fields.geschatteKostenPerKmPp === 'string' ? fields.geschatteKostenPerKmPp : undefined,
       geschatteKostenPerRit: typeof fields.geschatteKostenPerRit === 'string' ? fields.geschatteKostenPerRit : undefined,
-      verantwoordelijkheid: typeof fields.verantwoordelijkheid === 'string' ? fields.verantwoordelijkheid : undefined,
-      contractvormen: typeof fields.contractvormen === 'string' ? fields.contractvormen : undefined,
-      voordelen: typeof fields.voordelen === 'string' ? fields.voordelen : undefined,
-      nadelen: typeof fields.nadelen === 'string' ? fields.nadelen : undefined,
+      // Fields removed from content type: verantwoordelijkheid, contractvormen, voordelen, nadelen
 
       // New qualitative comparison fields
       controleEnFlexibiliteit: typeof fields.controleEnFlexibiliteit === 'string' ? fields.controleEnFlexibiliteit : undefined,

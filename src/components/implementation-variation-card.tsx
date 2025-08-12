@@ -46,38 +46,42 @@ export function ImplementationVariationCard({
         </div>
 
         <div className="ml-4 mt-1 flex-shrink-0">
-          <input
-            type="checkbox"
-            className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            checked={isSelected}
-            onChange={() => { /* Outer div handles toggle */ }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          <button
+            type="button"
+            aria-pressed={isSelected}
+            onClick={(e) => { e.stopPropagation(); onSelect(); }}
+            className={`h-5 w-5 rounded border flex items-center justify-center focus:outline-none ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}
+          >
+            {isSelected && (
+              <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414-1.414L8 11.172 4.707 7.879A1 1 0 103.293 9.293l4 4a1 1 0 001.414 0l8-8z" clipRule="evenodd"/></svg>
+            )}
+          </button>
         </div>
       </div> 
 
       {/* PDF Download Link Section */}
-      <div className="mt-4 pt-4 border-t border-gray-200 flex justify-start items-center space-x-4">
+      <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-3 items-center">
         {/* Meer informatie button */}
-        <button
+        <div className="justify-self-start">
+          <button
           type="button"
           onClick={e => { e.stopPropagation(); openImplementationVariantDialog(variation); }}
           className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none whitespace-nowrap"
         >
           <InformationCircleIcon className="h-4 w-4 mr-1 flex-shrink-0" />
           Meer informatie
-        </button>
+          </button>
+        </div>
         {/* PDF Download Button */}
-        <div onClick={(e) => e.stopPropagation()} className="flex-shrink min-w-0">
+        <div className="justify-self-center"></div>
+        <div onClick={(e) => e.stopPropagation()} className="justify-self-end min-w-0">
           <ImplementationVariantFactsheetButton
             variation={variation}
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none w-full"
-            buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm w-full overflow-hidden"
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+            buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
           >
             <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
-            <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-              Download factsheet van deze implementatievariant
-            </span>
+            <span>Download factsheet</span>
           </ImplementationVariantFactsheetButton>
         </div>
       </div>

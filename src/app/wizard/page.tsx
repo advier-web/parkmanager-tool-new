@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { Metadata } from 'next';
+import Image from 'next/image';
+import ResetWizardButton from '@/components/reset-wizard-button';
 
 export const metadata: Metadata = {
   title: 'Start Wizard - ParkManager Tool',
@@ -13,7 +15,7 @@ export default function WizardPage() {
         <h2 className="text-2xl font-bold mb-4">Welkom bij de ParkManager Tool</h2>
         <div className="mb-6 space-y-3 text-gray-700">
           <p>
-            Ik help parkmanagers, ondernemersverenigingen en bedrijventerreinorganisaties om snel te komen tot passende collectieve vervoersoplossingen voor hun terrein. Aan het eind ontvangt u een compacte selectie met factsheets per oplossing, de belangrijkste randvoorwaarden en concrete vervolgstappen om door te pakken.
+            Ik help parkmanagers, ondernemersverenigingen en bedrijventerreinorganisaties om snel te komen tot passende collectieve vervoersoplossingen voor hun terrein. Aan het eind ontvangt u een compact advies over de gekozen collectieve vervoersoplossing, de belangrijkste randvoorwaarden en concrete vervolgstappen om door te pakken. U kunt ook factsheet downloaden van de gekozen vervoersoplossing, inkoopvariant en governance model.
           </p>
           <p className="text-gray-600">
             Let op: dit is géén volledige mobiliteitsscan en ook geen individueel bedrijfsadvies; de uitkomst is bedoeld als gerichte shortlist en startpunt voor verdere uitwerking.
@@ -40,80 +42,63 @@ export default function WizardPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg p-8 shadow-even">
-        <h3 className="text-xl font-semibold mb-4">De stappen</h3>
-        
-        <ol className="space-y-4 mt-6">
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">1</span>
+      <div className="bg-transparent">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Linker kolom: Wat zijn collectieve mobiliteitsoplossingen? */}
+          <div className="bg-white rounded-lg p-6 shadow-even">
+            <h3 className="text-lg font-semibold mb-3">Wat zijn collectieve vervoeroplossingen?</h3>
+            <div className="space-y-3 text-gray-700">
+              <p>
+                Collectieve vervoersoplossingen zijn voorzieningen waarmee meerdere organisaties of doelgroepen samen vervoer organiseren en financieren. Doel is efficiënter, betaalbaarder en duurzamer reizen door capaciteit te bundelen en ritten te combineren.
+              </p>
+              <p className="font-medium">Voorbeelden</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Besloten pendelbus of hub-shuttle voor bezoekers en zakelijk verkeer.</li>
+                <li>Deelmobiliteit: poolfietsen, deelfietsen of (elektrische) deelauto’s voor bedrijven op het terrein.</li>
+                <li>Last-mile vervoer vanaf station of HOV-halte naar het terrein.</li>
+                <li>Gedeelde raamovereenkomsten met vervoeraanbieders voor scherpe tarieven en eenvoudige inkoop.</li>
+              </ul>
+              <p>
+                Zulke collectieve voorzieningen verlagen parkeervraag, verbeteren bereikbaarheid en beperken CO₂-uitstoot. Ze werken vooral goed als bedrijven, parkmanagement en aanbieders samenwerken en afspraken borgen in een governance- en inkoopmodel.
+              </p>
             </div>
-            <div>
-              <h4 className="font-medium">Bedrijventerrein informatie</h4>
-              <p className="text-gray-600">Vul basisgegevens in over uw bedrijventerrein en het huidige bestuursmodel.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">2</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Aanleiding</h4>
-              <p className="text-gray-600">Selecteer de aanleiding(en) waarom u de mobiliteit op uw bedrijfsterrein wilt verbeteren.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">3</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Collectieve mobiliteitsoplossingen</h4>
-              <p className="text-gray-600">Kies welke collectieve mobiliteitsoplossingen het beste passen bij uw situatie.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">4</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Implementatievariant</h4>
-              <p className="text-gray-600">Kies het gewenste implementatiemodel voor de implementatie van uw gekozen oplossing.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">5</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Governance modellen</h4>
-              <p className="text-gray-600">Bepaal hoe u de collectieve mobiliteitsoplossingen wilt organiseren en beheren.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">6</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Implementatieplan</h4>
-              <p className="text-gray-600">Krijg een stappenplan voor de implementatie van het gekozen governance model.</p>
-            </div>
-          </li>
-          
-          <li className="flex items-start">
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-semibold">7</span>
-            </div>
-            <div>
-              <h4 className="font-medium">Samenvatting</h4>
-              <p className="text-gray-600">Bekijk en download uw gepersonaliseerde advies.</p>
-            </div>
-          </li>
-        </ol>
+          </div>
+
+          {/* Rechter kolom: foto */}
+          <div className="bg-white rounded-lg overflow-hidden shadow-even">
+            <Image 
+              src="/images/fiets.jpg" 
+              alt="Voorbeeld van een collectieve mobiliteitsoplossing"
+              width={1200}
+              height={800}
+              className="w-full h-64 object-cover md:h-full"
+              priority
+            />
+            <div className="p-3 text-xs text-gray-600">Voorbeeld van een collectieve mobiliteitsoplossing</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Privacy & gegevensbescherming - volledige breedte */}
+      <div className="bg-white rounded-lg p-6 shadow-even">
+        <h3 className="text-lg font-semibold mb-3">Privacy & gegevensbescherming (AVG)</h3>
+        <div className="space-y-3 text-gray-700">
+          <p>
+            Uw antwoorden in deze tool worden uitsluitend lokaal in uw browser opgeslagen via <span className="font-medium">localStorage</span>. We sturen geen gegevens naar een server. Sluit u de browser of komt u later terug op hetzelfde apparaat, dan leest de tool de lokaal bewaarde gegevens weer in.
+          </p>
+          <p>
+            U kunt de opgeslagen invoer op elk moment wissen door uw browseropslag te legen of de wizard te resetten.
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Geen server-side opslag of tracking.</li>
+            <li>Data blijft op uw eigen apparaat en is alleen voor u zichtbaar.</li>
+            <li>Wilt u alles wissen? Verwijder de sitegegevens of reset de wizard in de tool.</li>
+          </ul>
+          <div className="pt-2 mt-2 border-t border-gray-100">
+            <p className="text-sm text-gray-600 mb-2">Druk op reset om alle lokaal opgeslagen wizardgegevens te verwijderen. U begint daarna met een lege wizard.</p>
+            <ResetWizardButton />
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -35,13 +35,13 @@ const styles = StyleSheet.create({
     lineHeight: 1.5, // Consistent line height
     color: '#000000', // Consistent base text color
   },
-  // Header for "Samenvatting" and "Mobiliteitsplan Bedrijventerrein X"
+  // Header for "Vervolgstappen" and "Mobiliteitsplan Bedrijventerrein X"
   headerSection: { 
     marginBottom: 25, // Consistent with factsheets headerContainer
     paddingBottom: 5, // Consistent with factsheets headerContainer
     // Removed borderBottom, factsheets don't have it on the main PDF title container
   },
-  mainTitle: { // "Samenvatting"
+  mainTitle: { // "Vervolgstappen"
     fontSize: 18, // Consistent with factsheets headerText
     fontWeight: 'bold', // Consistent with factsheets headerText
     fontFamily: 'Open Sans', // Ensure Open Sans
@@ -470,7 +470,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerSection}>
-          <Text style={styles.mainTitle}>Samenvatting</Text>
+          <Text style={styles.mainTitle}>Vervolgstappen</Text>
         </View>
 
         {/* == Section 1: Uw Keuzes == */}
@@ -496,7 +496,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
               {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
               {businessParkInfo.employeePickupPreference && renderLabelValue(
                 "Deel van de woon-werkreis",
-                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor een gedeelte van de reis',
+                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
                 "bp"
               )}
               {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}

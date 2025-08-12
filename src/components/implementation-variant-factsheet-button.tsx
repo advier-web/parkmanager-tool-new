@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ImplementationVariantFactsheetPdf from './implementation-variant-factsheet-pdf';
 import { Button } from '@/components/ui/button';
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 import { ImplementationVariation } from '@/domain/models';
 
 interface ImplementationVariantFactsheetButtonProps {
@@ -34,7 +34,7 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
   if (!variation) {
     return (
       <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+        <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
         Factsheet Variant (niet beschikbaar)
       </Button>
     );
@@ -54,7 +54,6 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
                 </>
               ) : (
                 <>
-                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                   {loading ? 'Factsheet genereren...' : `Download Factsheet: ${variation.title}`}
                 </>
               )}
@@ -71,12 +70,11 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
             setIsArmed(true);
           }}
         >
-          <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
           {children || `Download Factsheet: ${variation.title}`}
         </Button>
       ) : (
         <Button variant="default" disabled className={buttonColorClassName}>
-          <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+          <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
           Factsheet laden...
         </Button>
       )}

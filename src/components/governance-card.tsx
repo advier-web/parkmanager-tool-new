@@ -59,9 +59,9 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
   const buttonChildren = useMemo(() => (
     <>
       <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
-      {`Download factsheet ${model.title}`}
+      Download factsheet
     </>
-  ), [model.title]);
+  ), []);
 
   return (
     <div
@@ -85,7 +85,7 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
         )}
         
         {isConditionalRecommended && (
-          <div className="absolute top-2 right-2 bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center">
+          <div className="absolute top-2 right-2 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-0.5 rounded-full flex items-center whitespace-nowrap">
             Aanbevolen, mits
           </div>
         )}
@@ -96,19 +96,20 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
           </span>
         )}
       </div>
+      {/* Select checkbox button at top-right */}
+      <button
+        type="button"
+        aria-pressed={isSelected}
+        onClick={(e) => { e.stopPropagation(); onSelect(model.id); }}
+        className={`absolute top-5 right-2 h-5 w-5 rounded border ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'} flex items-center justify-center shadow-sm`}
+      >
+        {isSelected && (
+          <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414-1.414L8 11.172 4.707 7.879A1 1 0 103.293 9.293l4 4a1 1 0 001.414 0l8-8z" clipRule="evenodd"/></svg>
+        )}
+      </button>
       
       <div className="flex items-start">
-        <div className="flex-shrink-0 mt-1">
-          <input
-            type="radio"
-            className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer"
-            checked={isSelected}
-            onChange={() => { /* Main div handles select */ }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-        
-        <div className="ml-3 flex-grow">
+        <div className="flex-grow">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">{model.title}</h3>
             
@@ -142,10 +143,9 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
             )}
           </div>
           
-          <div className="flex items-center justify-between mt-6 pt-3 border-t"> 
-            {/* Container for left-aligned links */}
-            <div className="flex items-center space-x-4">
-              {/* More info button */}
+          <div className="grid grid-cols-3 items-center mt-6 pt-3 border-t"> 
+            {/* Left: Meer informatie */}
+            <div className="justify-self-start">
               <button
                 type="button"
                 onClick={(e) => {
@@ -157,33 +157,22 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
                 <InformationCircleIcon className="h-4 w-4 mr-1" />
                 Meer informatie
               </button>
-
-              {/* PDF Download Link */}
-              <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
-                <GovernanceModelFactsheetButton
-                  governanceModel={model}
-                  selectedVariations={variationsToDisplay} 
-                  governanceTitleToFieldName={governanceTitleToFieldName}
-                  stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
-                  buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
-                >
-                  {buttonChildren}
-                </GovernanceModelFactsheetButton>
-              </div>
             </div>
-            
-            {/* Select button for larger screens - now correctly on the far right */}
-            <button
-              type="button"
-              onClick={(e) => { 
-                e.stopPropagation();
-                onSelect(model.id); 
-              }}
-              className="hidden md:inline-flex items-center px-3 py-1.5 border border-blue-600 text-sm text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer"
-            >
-              {isSelected ? 'Geselecteerd' : 'Selecteren'}
-            </button>
+            {/* middle spacer */}
+            <div></div>
+            {/* Right: Download factsheet */}
+            <div className="justify-self-end" onClick={(e) => e.stopPropagation()}>
+              <GovernanceModelFactsheetButton
+                governanceModel={model}
+                selectedVariations={variationsToDisplay} 
+                governanceTitleToFieldName={governanceTitleToFieldName}
+                stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+              >
+                {buttonChildren}
+              </GovernanceModelFactsheetButton>
+            </div>
           </div>
         </div>
       </div>

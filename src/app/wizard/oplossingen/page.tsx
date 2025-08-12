@@ -49,6 +49,14 @@ export default function MobilitySolutionsPage() {
       setActiveFilters(selectedReasons);
     }
   }, [selectedReasons]);
+
+  // Enforce single-select: if meerdere geselecteerd zijn door oude state, trim naar de laatst gekozen
+  useEffect(() => {
+    if (selectedSolutions && selectedSolutions.length > 1) {
+      const last = selectedSolutions[selectedSolutions.length - 1];
+      setSelectedSolutions([last]);
+    }
+  }, [selectedSolutions, setSelectedSolutions]);
   
   useEffect(() => {
     if (reasons) {
@@ -74,15 +82,19 @@ export default function MobilitySolutionsPage() {
   
   const getPickupPreferenceMatch = useCallback((solution: MobilitySolution): boolean => {
     const userPreference = businessParkInfo.employeePickupPreference;
-    if (!userPreference || !solution.ophalen) return true; // No preference set or no pickup options - show all
-    
+    // If user has no preference, do not penalize any option
+    if (!userPreference) return true;
+    // If user has a preference but the solution has no pickup info, treat as no match
+    if (!solution.ophalen || solution.ophalen.length === 0) return false;
+
     if (userPreference === 'thuis') {
-      return solution.ophalen.some(option => option.toLowerCase().includes('thuis'));
+      return solution.ophalen.some(option => option?.toLowerCase().includes('thuis'));
     } else if (userPreference === 'locatie') {
-      return solution.ophalen.some(option => option.toLowerCase().includes('locatie'));
+      // Support new content label 'laatste deel' and fallback 'locatie'
+      return solution.ophalen.some(option => option?.toLowerCase().includes('laatste')) || solution.ophalen.some(option => option?.toLowerCase().includes('locatie'));
     }
     
-    return true; // Default to showing solution if unclear
+    return false; // If preference is unknown, be conservative
   }, [businessParkInfo.employeePickupPreference]);
   
   const findScoreForIdentifier = (solution: MobilitySolution, identifier: string): number => {
@@ -131,9 +143,13 @@ export default function MobilitySolutionsPage() {
       pickupMatch: getPickupPreferenceMatch(solution),
       contributingReasons: getReasonScores(solution, currentFilters)
     }));
+    // Sort order:
+    // 1) Match op type reis (traffic types)
+    // 2) Match op Deel van de woon-werkreis (pickup preference)
+    // 3) Bijdrage aan selectie (reason score)
     scoredSolutions.sort((a, b) => {
-      if (a.pickupMatch !== b.pickupMatch) return b.pickupMatch ? 1 : -1;
       if (b.trafficMatch !== a.trafficMatch) return b.trafficMatch - a.trafficMatch;
+      if (a.pickupMatch !== b.pickupMatch) return b.pickupMatch ? 1 : -1;
       return b.score - a.score;
     });
     return scoredSolutions;
@@ -173,24 +189,20 @@ export default function MobilitySolutionsPage() {
     return { filtered: sortedAndScored, grouped };
   }, [mobilitySolutions, reasons, businessParkInfo.trafficTypes, businessParkInfo.employeePickupPreference, activeFilters, calculateScoreForSolution, getTrafficTypeMatchScore, getPickupPreferenceMatch, getReasonScores, sortSolutionsByScore]);
   
-  const getComparisonSolutions = useCallback(() => {
-    const hasSelectedSolutions = selectedSolutions.length > 0;
-    if (hasSelectedSolutions) {
-      const selectedSolutionObjects = mobilitySolutions?.filter(sol => selectedSolutions.includes(sol.id)) || [];
-      const selectedContributingReasons: { [solutionId: string]: { [reasonId: string]: number } } = {};
-      selectedSolutionObjects.forEach(solution => {
-        selectedContributingReasons[solution.id] = getReasonScores(solution, activeFilters);
-      });
-      return { solutions: selectedSolutionObjects, contributingReasons: selectedContributingReasons };
-    } else {
-      const topSolutions = processedSolutions.filtered.slice(0, 3).map(item => item.solution);
-      const topContributingReasons: { [solutionId: string]: { [reasonId: string]: number } } = {};
-      topSolutions.forEach(solution => {
-        topContributingReasons[solution.id] = getReasonScores(solution, activeFilters);
-      });
-      return { solutions: topSolutions, contributingReasons: topContributingReasons };
-    }
-  }, [selectedSolutions, mobilitySolutions, processedSolutions.filtered, getReasonScores, activeFilters]);
+  const getComparisonData = useCallback(() => {
+    // full list in the order shown on the page
+    const allSolutionsOrdered = processedSolutions.filtered.map(item => item.solution);
+    // initial selected: altijd de eerste 3 oplossingen zoals gesorteerd op de pagina
+    const initialSelectedIds = processedSolutions.filtered.slice(0, 3).map(item => item.solution.id);
+
+    // compute contributing reasons for all solutions so toggling in the modal stays accurate
+    const contributing: { [solutionId: string]: { [reasonId: string]: number } } = {};
+    allSolutionsOrdered.forEach(solution => {
+      contributing[solution.id] = getReasonScores(solution, activeFilters);
+    });
+
+    return { solutions: allSolutionsOrdered, initialSelectedIds, contributingReasons: contributing };
+  }, [processedSolutions.filtered, getReasonScores, activeFilters]);
   
   const handleOpenComparison = () => setIsComparisonModalOpen(true);
   const handleCloseComparison = () => setIsComparisonModalOpen(false);
@@ -261,8 +273,8 @@ export default function MobilitySolutionsPage() {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
                 <p className="text-gray-600 text-sm">
-                  Bekijk de details van elke oplossing door erop te klikken. 
-                  Selecteer de oplossingen die het beste aansluiten bij uw situatie.
+                  Bekijk de details van elke oplossing door erop te klikken.
+                  Selecteer precies één oplossing die het beste aansluit bij uw situatie. Vergelijk eerst opties via de vergelijker indien nodig.
                 </p>
               </div>
               <div className="border-t pt-4 mt-6">
@@ -280,13 +292,12 @@ export default function MobilitySolutionsPage() {
             <div className="bg-white rounded-lg p-8 shadow-even">
               <h2 className="text-2xl font-bold mb-4">Oplossingen</h2>
               <p className="mb-6">
-                Op basis van de door u geselecteerde aanleidingen, kunt u hier de gewenste collectieve vervoersoplossing selecteren.
+                Op basis van de door u geselecteerde aanleidingen, kunt u hier één collectieve vervoersoplossing selecteren om mee verder te gaan.
               </p>
   
               {processedSolutions.filtered.length > 0 && (
                 <SolutionComparisonBanner
                   onCompare={handleOpenComparison}
-                  selectedSolutionsCount={selectedSolutions.length}
                   topSolutionsCount={Math.min(3, processedSolutions.filtered.length)}
                 />
               )}
@@ -339,17 +350,18 @@ export default function MobilitySolutionsPage() {
         />
   
         {(() => {
-          const comparisonData = getComparisonSolutions();
+          const data = getComparisonData();
           return (
             <SolutionComparisonModal
               isOpen={isComparisonModalOpen}
               onClose={handleCloseComparison}
-              solutions={comparisonData.solutions}
+              solutions={data.solutions}
+              initialSelectedIds={data.initialSelectedIds}
               reasonsData={reasons || []}
               activeReasonFilters={activeFilters}
               activeTrafficTypes={businessParkInfo.trafficTypes || []}
               userPickupPreference={businessParkInfo.employeePickupPreference}
-              contributingReasons={comparisonData.contributingReasons}
+              contributingReasons={data.contributingReasons}
             />
           );
         })()}

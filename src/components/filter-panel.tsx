@@ -122,58 +122,7 @@ export function FilterPanel({
         ))}
       </div>
       
-      {(activeFilterIds.length > 0 || activeTrafficTypes.length > 0) && (
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Actieve filters:</span>
-            <button
-              onClick={() => {
-                activeFilterIds.forEach(id => onReasonFilterChange(id));
-                activeTrafficTypes.forEach(type => onTrafficTypeFilterChange(type));
-              }}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
-              Wis filters
-            </button>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {activeTrafficTypes.map(type => (
-              <span 
-                key={`traffic-${type}`}
-                className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-              >
-                {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                <button
-                  onClick={() => onTrafficTypeFilterChange(type)}
-                  className="ml-1 text-blue-800 hover:text-blue-600"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            
-            {activeFilterIds
-              .filter(id => reasons.some(r => r.id === id))
-              .map(id => {
-                const reason = reasons.find(r => r.id === id);
-                return (
-                  <span 
-                    key={id}
-                    className="inline-flex items-center text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                  >
-                    {reason?.title}
-                    <button
-                      onClick={() => onReasonFilterChange(id)}
-                      className="ml-1 text-blue-800 hover:text-blue-600"
-                    >
-                      ×
-                    </button>
-                  </span>
-                );
-              })}
-          </div>
-        </div>
-      )}
+      {/* Actieve filters sectie is verborgen op verzoek */}
       
       <div className="mt-6 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-500">

@@ -7,6 +7,8 @@ interface MarkdownContentProps {
   content: string;
   className?: string;
   disableListStyles?: boolean;
+  // visual spacing variant across contexts
+  variant?: 'balanced' | 'page' | 'modal';
 }
 
 /**
@@ -15,7 +17,8 @@ interface MarkdownContentProps {
 export function MarkdownContent({ 
   content, 
   className = '',
-  disableListStyles = false
+  disableListStyles = false,
+  variant = 'balanced'
 }: MarkdownContentProps) {
   if (!content) {
     return null;
@@ -31,13 +34,40 @@ export function MarkdownContent({
         remarkPlugins={[remarkGfm, remarkHtml]}
         components={{
           h1: ({ node, ...props }) => (
-            <h1 {...props} className="text-2xl font-bold mb-4 mt-6" />
+            <h1
+              {...props}
+              className={
+                variant === 'page'
+                  ? 'text-2xl font-bold mb-2 mt-5'
+                  : variant === 'modal'
+                  ? 'text-2xl font-bold mb-1 mt-3'
+                  : 'text-2xl font-bold mb-1 mt-3'
+              }
+            />
           ),
           h2: ({ node, ...props }) => (
-            <h2 {...props} className="text-xl font-bold mb-3 mt-5" />
+            <h2
+              {...props}
+              className={
+                variant === 'page'
+                  ? 'text-xl font-bold mb-2 mt-6'
+                  : variant === 'modal'
+                  ? 'text-xl font-bold mb-1 mt-3'
+                  : 'text-xl font-bold mb-1 mt-3'
+              }
+            />
           ),
           h3: ({ node, ...props }) => (
-            <h3 {...props} className="text-lg font-bold mb-2 mt-4" />
+            <h3
+              {...props}
+              className={
+                variant === 'page'
+                  ? 'text-lg font-bold mb-2 mt-5'
+                  : variant === 'modal'
+                  ? 'text-lg font-bold mb-1 mt-2'
+                  : 'text-lg font-bold mb-1 mt-2'
+              }
+            />
           ),
           h4: ({ node, ...props }) => (
             <h4 {...props} className="text-base font-semibold mb-2 mt-4" />
@@ -49,7 +79,8 @@ export function MarkdownContent({
             <h6 {...props} className="text-sm font-medium mb-2 mt-3" />
           ),
           p: ({ node, ...props }) => {
-            return <p {...props} className="mb-6" />;
+            const margin = variant === 'modal' ? 'mb-3' : 'mb-2';
+            return <p {...props} className={margin} />;
           },
           em: ({ node, ...props }) => (
             <em {...props} className="italic" />
@@ -66,10 +97,18 @@ export function MarkdownContent({
             />
           ),
           ul: ({ node, ...props }) => (
-            disableListStyles ? <ul className="list-none p-0 m-0" {...props} /> : <ul className="list-disc pl-5 mb-6 mt-4 [&>li]:mt-0" {...props} />
+            disableListStyles ? (
+              <ul className="list-none p-0 m-0" {...props} />
+            ) : (
+              <ul className={`${variant === 'modal' ? 'mb-3 mt-2' : 'mb-2 mt-1'} list-disc pl-5 [&>li]:mb-1`} {...props} />
+            )
           ),
           ol: ({ node, ...props }) => (
-            disableListStyles ? <ol className="list-none p-0 m-0" {...props} /> : <ol className="list-decimal pl-5 mb-6 mt-4 [&>li]:mt-0" {...props} />
+            disableListStyles ? (
+              <ol className="list-none p-0 m-0" {...props} />
+            ) : (
+              <ol className={`${variant === 'modal' ? 'mb-3 mt-2' : 'mb-2 mt-1'} list-decimal pl-5 [&>li]:mb-1`} {...props} />
+            )
           ),
           li: ({ node, ...props }) => (
             <li {...props} className="mb-0 [&>p]:mb-0 [&>p]:mt-0" />

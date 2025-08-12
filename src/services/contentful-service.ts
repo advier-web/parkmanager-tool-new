@@ -196,6 +196,8 @@ export async function getMobilitySolutionsFromContentful(options: ContentfulQuer
               minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
               minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
               afstand: typeof fields.afstand === 'string' ? fields.afstand : undefined,
+              moeilijkheidsgraad: typeof fields.moeilijkheidsgraad === 'string' ? fields.moeilijkheidsgraad : undefined,
+              doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
               
               implementationVariations: undefined,
               pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,
@@ -276,6 +278,8 @@ export async function getMobilitySolutionById(id: string, options: ContentfulQue
           minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
           minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
           afstand: typeof fields.afstand === 'string' ? fields.afstand : undefined,
+           moeilijkheidsgraad: typeof fields.moeilijkheidsgraad === 'string' ? fields.moeilijkheidsgraad : undefined,
+           doorlooptijd: typeof fields.doorlooptijd === 'string' ? fields.doorlooptijd : undefined,
           
           implementationVariations: undefined,
           pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,
@@ -443,6 +447,8 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       minimaleInvestering: getStringFieldSafe(fields, 'minimaleInvestering'),
       minimumAantalPersonen: getStringFieldSafe(fields, 'minimumAantalPersonen'),
       afstand: getStringFieldSafe(fields, 'afstand'),
+       moeilijkheidsgraad: getStringFieldSafe(fields, 'moeilijkheidsgraad'),
+       doorlooptijd: getStringFieldSafe(fields, 'doorlooptijd'),
       
       parkeer_bereikbaarheidsproblemen: getNumberFieldSafe(fields, 'parkeer_bereikbaarheidsproblemen'),
       bereikbaarheidsproblemen: getNumberFieldSafe(fields, 'bereikbaarheidsproblemen'),

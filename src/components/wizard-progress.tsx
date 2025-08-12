@@ -18,7 +18,7 @@ const STEPS: Step[] = [
   { id: 3, name: 'Implementatievarianten', path: '/wizard/implementatievarianten' },
   { id: 4, name: 'Governance modellen', path: '/wizard/governance-modellen' },
   { id: 5, name: 'Implementatieplan', path: '/wizard/implementatieplan' },
-  { id: 6, name: 'Samenvatting', path: '/wizard/samenvatting' },
+  { id: 6, name: 'Vervolgstappen', path: '/wizard/vervolgstappen' },
 ];
 
 interface WizardProgressProps {

@@ -27,7 +27,7 @@ export function VariantComparisonBanner({ selectedVariations, totalVariations, o
             </h3>
             <p className="text-sm text-blue-700">
               {hasSelectedVariations 
-                ? `${selectedVariations.length} variant${selectedVariations.length === 1 ? '' : 'en'} geselecteerd voor de wizard. Vergelijk alle ${totalVariations.length} beschikbare varianten om de beste keuze te maken.`
+                ? `Vergelijk alle ${totalVariations.length} beschikbare varianten om de beste keuze te maken.`
                 : `Vergelijk alle ${totalVariations.length} beschikbare implementatievarianten op kosten, verantwoordelijkheden en voor-/nadelen.`
               }
             </p>

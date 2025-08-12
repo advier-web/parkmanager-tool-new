@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/wizard/samenvatting',
+        destination: '/wizard/vervolgstappen',
+        permanent: true,
+      },
+    ];
+  },
   reactStrictMode: true,
   transpilePackages: [
     '@react-pdf',

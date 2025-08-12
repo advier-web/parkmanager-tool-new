@@ -69,13 +69,15 @@ export function SolutionDialog() {
   }
 
   // Show solution information dialog
-  if (dialogType === 'solution' && currentSolution) {
+  if ((dialogType === 'solution' || dialogType === 'solution-cases') && currentSolution) {
     // Keep needed variables
-    const samenvattingLang = currentSolution.samenvattingLang;
+    // const samenvattingLang = currentSolution.samenvattingLang; // removed from popup
     const description = currentSolution.description;
     const uitvoering = currentSolution.uitvoering;
     const inputBusinesscase = currentSolution.inputBusinesscase;
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel;
+    const uitdagingenEnAanleidingen = (currentSolution as any).uitdagingenEnAanleidingen as string | undefined;
+    const showOnlyCases = dialogType === 'solution-cases';
 
     // Remove unused variables
     // const paspoort = currentSolution.paspoort || '';
@@ -98,42 +100,42 @@ export function SolutionDialog() {
           {/* Content Area */}
           <div className="p-6 space-y-6"> 
 
-            {/* Samenvatting Lang */}
-            {samenvattingLang && (
-              <section>
-                <h2 className="text-xl font-bold mb-2">Samenvatting</h2>
-                <MarkdownWithAccordions content={samenvattingLang} />
-              </section>
-            )}
-
             {/* Beschrijving */}
-            {description && (
+            {!showOnlyCases && description && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
+                <h1 className="text-2xl font-bold mb-2">Beschrijving</h1>
                 <MarkdownWithAccordions content={description} />
               </section>
             )}
 
             {/* Uitvoering */}
-            {uitvoering && (
+            {!showOnlyCases && uitvoering && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Uitvoering</h2>
+                <h1 className="text-2xl font-bold mb-2">Uitvoering</h1>
                 <MarkdownWithAccordions content={uitvoering} />
               </section>
             )}
 
             {/* Input Business Case */}
-            {inputBusinesscase && (
+            {!showOnlyCases && inputBusinesscase && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Input voor Business Case</h2>
+                <h1 className="text-2xl font-bold mb-2">Input voor Business Case</h1>
                 <MarkdownWithAccordions content={inputBusinesscase} />
               </section>
             )}
 
-            {/* Implementatievarianten - Render met details uit currentVariations */}
-            {currentVariations && currentVariations.length > 0 && (
+            {/* Uitdagingen en Aanleidingen */}
+            {!showOnlyCases && uitdagingenEnAanleidingen && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Implementatievarianten</h2>
+                <h1 className="text-2xl font-bold mb-2">Uitdagingen en Aanleidingen</h1>
+                <MarkdownWithAccordions content={uitdagingenEnAanleidingen} />
+              </section>
+            )}
+
+            {/* Implementatievarianten - Render met details uit currentVariations */}
+            {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
+              <section>
+                <h1 className="text-2xl font-bold mb-2">Implementatievarianten</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {currentVariations.map((variation, index) => { 
                     const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
@@ -155,17 +157,17 @@ export function SolutionDialog() {
             )}
 
             {/* Collectief vs Individueel */}
-            {collectiefVsIndiviueel && (
+            {!showOnlyCases && collectiefVsIndiviueel && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Collectief vs Individueel</h2>
+                <h1 className="text-2xl font-bold mb-2">Collectief vs Individueel</h1>
                 <MarkdownWithAccordions content={collectiefVsIndiviueel} />
               </section>
             )}
 
             {/* ADDED Casebeschrijving section AT THE BOTTOM of content */}
-            {currentSolution.casebeschrijving && (
+            {showOnlyCases && currentSolution.casebeschrijving && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Casebeschrijving</h2>
+                <h1 className="text-xl font-bold mb-2">Casebeschrijving</h1>
                 {/* Using MarkdownWithAccordions for consistency, or MarkdownContent if preferred */}
                 <MarkdownWithAccordions content={currentSolution.casebeschrijving} /> 
               </section>
@@ -230,49 +232,49 @@ export function SolutionDialog() {
             </button>
           </div>
           
-          <div className="p-6 space-y-4 text-sm text-gray-700">
+          <div className="p-6 space-y-6">
             {/* Use the typed variables */} 
             {typedModel.description && (
               <div>
-                <h3 className="text-base font-semibold mb-1">Beschrijving</h3>
-                <MarkdownContent content={processMarkdownText(typedModel.description)} />
+                <h3 className="text-xl font-bold mb-2">Beschrijving</h3>
+                <MarkdownContent variant="modal" content={processMarkdownText(typedModel.description)} />
               </div>
             )}
             {/* ADDED Aansprakelijkheid section */} 
             {aansprakelijkheid && (
               <div>
-                <h3 className="text-base font-semibold mb-1">Aansprakelijkheid</h3>
-                <MarkdownContent content={processMarkdownText(aansprakelijkheid)} />
+                <h3 className="text-xl font-bold mb-2">Aansprakelijkheid</h3>
+                <MarkdownContent variant="modal" content={processMarkdownText(aansprakelijkheid)} />
               </div>
             )}
             {/* Render advantages as Markdown if it's a string (or first element of array) */}
             {advantages && advantages.length > 0 && (
               <div>
-                <h3 className="text-base font-semibold mb-1">Voordelen</h3>
+                <h3 className="text-xl font-bold mb-2">Voordelen</h3>
                 {advantages.map((adv: string, idx: number) => (
-                  <MarkdownContent key={idx} content={processMarkdownText(adv)} />
+                  <MarkdownContent key={idx} variant="modal" content={processMarkdownText(adv)} />
                 ))}
               </div>
             )}
              {/* Render disadvantages as Markdown if it's a string (or first element of array) */}
             {disadvantages && disadvantages.length > 0 && (
               <div>
-                <h3 className="text-base font-semibold mb-1">Nadelen</h3>
+                <h3 className="text-xl font-bold mb-2">Nadelen</h3>
                 {disadvantages.map((nad: string, idx: number) => (
-                  <MarkdownContent key={idx} content={processMarkdownText(nad)} />
+                  <MarkdownContent key={idx} variant="modal" content={processMarkdownText(nad)} />
                 ))}
               </div>
             )}
             {/* Render benodigdheden based on type */} 
             {benodigdheden && (
               <div>
-                <h3 className="text-base font-semibold mb-1">Benodigdheden Oprichting</h3>
+                <h3 className="text-xl font-bold mb-2">Benodigdheden Oprichting</h3>
                 {Array.isArray(benodigdheden) ? (
                   <ul className="list-disc pl-5">
                     {benodigdheden.map(renderListItem)}
                   </ul>
                 ) : typeof benodigdheden === 'string' ? (
-                  <MarkdownContent content={processMarkdownText(benodigdheden)} />
+                  <MarkdownContent variant="modal" content={processMarkdownText(benodigdheden)} />
                 ) : (
                   <p className="text-sm italic text-gray-500">Kon benodigdheden niet weergeven (onverwacht type).</p>
                 )}
@@ -316,7 +318,7 @@ export function SolutionDialog() {
           <div className="p-6 space-y-6">
             {variant.samenvatting && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Samenvatting</h2>
+                <h2 className="text-xl font-bold mb-2">Vervolgstappen</h2>
                 <MarkdownContent content={processMarkdownText(variant.samenvatting)} />
               </section>
             )}

@@ -32,15 +32,12 @@ export interface ImplementationVariation {
   samenvatting?: string | undefined; // Changed type back to string
   investering?: string; // Transformed from Rich Text
   realisatieplan?: string; // Transformed from Rich Text
+  vervolgstappen?: string; // New follow-up steps for summary page
   
-  // New cost and responsibility fields from Contentful
+  // New cost fields from Contentful
   geschatteJaarlijkseKosten?: string;
   geschatteKostenPerKmPp?: string;
   geschatteKostenPerRit?: string;
-  verantwoordelijkheid?: string;
-  contractvormen?: string;
-  voordelen?: string;
-  nadelen?: string;
 
   // New qualitative comparison fields from Contentful
   controleEnFlexibiliteit?: string;
@@ -125,6 +122,9 @@ export interface MobilitySolution {
   minimaleInvestering?: string; // Minimum investment required
   minimumAantalPersonen?: string; // Minimum number of people
   afstand?: string; // Distance information
+  // Newly added fields in Contentful (MobilityService)
+  moeilijkheidsgraad?: string; // Qualitative difficulty level
+  doorlooptijd?: string; // Expected lead time
 
   // Toelichtingen (Explanations) - keep these if they are generic
   parkeerBereikbaarheidsproblemenToelichting?: string;

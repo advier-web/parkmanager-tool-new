@@ -80,8 +80,8 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                 <div className="flex-1 overflow-auto p-6 max-h-[80vh]">
                   <div className="space-y-1">
                     
-                    {/* Variant Title Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    {/* Variant Title Row (sticky) */}
+                    <div className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Implementatievariant</h3>
                       </div>

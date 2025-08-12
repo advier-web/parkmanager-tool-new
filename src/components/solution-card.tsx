@@ -1,10 +1,10 @@
 import { MobilitySolution, BusinessParkReason, TrafficType, GovernanceModel, ImplementationVariation } from '../domain/models';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, UsersIcon, BanknotesIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { useDialog } from '../contexts/dialog-context';
 import MobilitySolutionFactsheetButton from './mobility-solution-factsheet-button';
-import { ArrowDownTrayIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
+import { ArrowDownTrayIcon, DocumentArrowDownIcon, BookOpenIcon } from '@heroicons/react/24/solid';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
@@ -38,6 +38,7 @@ export function SolutionCard({
   userPickupPreference = null,
 }: SolutionCardProps) {
   const { openSolutionDialog } = useDialog();
+  const { openSolutionCasesDialog } = useDialog() as any;
   const [visibleTooltips, setVisibleTooltips] = useState<Record<string, boolean>>({});
   
   // Toggle tooltip zichtbaarheid
@@ -97,29 +98,31 @@ export function SolutionCard({
 
     if (scoreForReason >= 7) {
       color = 'bg-green-500';
-      label = `Deze oplossing draagt veel bij aan ${reasonTitleLower}`;
+      label = `Draagt veel bij aan ${reasonTitleLower}`;
     } else if (scoreForReason >= 4) {
       color = 'bg-orange-500';
-      label = `Deze oplossing draagt enigszins bij aan ${reasonTitleLower}`;
+      label = `Draagt enigszins bij aan ${reasonTitleLower}`;
     } else if (scoreForReason > 0) {
       color = 'bg-red-500';
-      label = `Deze oplossing draagt weinig bij aan ${reasonTitleLower}`;
+      label = `Draagt weinig bij aan ${reasonTitleLower}`;
     } else {
-       label = `Deze oplossing draagt niet/nauwelijks bij aan ${reasonTitleLower}`;
+       label = `Draagt niet/nauwelijks bij aan ${reasonTitleLower}`;
     }
 
     return (
       <div key={reason.id} className="mt-1">
-        <div className="flex items-center">
-          <div className={`w-3 h-3 rounded-full ${color} mr-2`}></div>
-          <span className="text-xs text-gray-600">{label}</span>
-          <button 
-            onClick={(e) => toggleTooltip(reason.id, e)}
-            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-            aria-label={`Toon uitleg voor ${reason.title}`}
-          >
-            <InformationCircleIcon className="h-4 w-4" />
-          </button>
+        <div className="flex items-start gap-2">
+          <div className={`w-3 h-3 rounded-full ${color} mt-0.5 flex-shrink-0`}></div>
+          <div className="text-sm text-gray-600 leading-snug">
+            <span>{label}</span>
+            <button 
+              onClick={(e) => toggleTooltip(reason.id, e)}
+              className="ml-1 inline text-gray-400 hover:text-gray-600 align-middle focus:outline-none"
+              aria-label={`Toon uitleg voor ${reason.title}`}
+            >
+              <InformationCircleIcon className="h-5 w-5 inline align-middle" />
+            </button>
+          </div>
         </div>
         
         {isTooltipVisible && (
@@ -134,6 +137,10 @@ export function SolutionCard({
   const handleShowMoreInfo = () => {
     const placeholderGovernanceModels: GovernanceModel[] = []; 
     openSolutionDialog(solution, placeholderGovernanceModels, variationsData);
+  };
+
+  const openSolutionCases = () => {
+    openSolutionCasesDialog(solution);
   };
 
   return (
@@ -164,42 +171,41 @@ export function SolutionCard({
 
           {/* Two-column details layout */}
           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left column */}
-            <div className="space-y-3 text-xs">
+            {/* Left column: labels replaced by icons */}
+            <div className="space-y-3 text-sm text-gray-700">
               {solution.minimumAantalPersonen && (
-                <div className="text-gray-700">
-                  <div className="font-medium mb-1">Minimum aantal personen:</div>
+                <div className="flex items-start">
+                  <UsersIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <div>{solution.minimumAantalPersonen}</div>
                 </div>
               )}
               {solution.minimaleInvestering && (
-                <div className="text-gray-700">
-                  <div className="font-medium mb-1">Minimale investering:</div>
+                <div className="flex items-start">
+                  <BanknotesIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <div>{solution.minimaleInvestering}</div>
                 </div>
               )}
               {solution.afstand && (
-                <div className="text-gray-700">
-                  <div className="font-medium mb-1">Afstand:</div>
+                <div className="flex items-start">
+                  <MapPinIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
                   <div>{solution.afstand}</div>
                 </div>
               )}
             </div>
 
             {/* Right column */}
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-sm">
               {activeTrafficTypes && activeTrafficTypes.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-700 mb-1">Geschikt voor vervoer:</p>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
                     {activeTrafficTypes.map(activeType => {
                       const isMatch = solution.typeVervoer?.includes(activeType);
                       return (
                         <div key={activeType} className="flex items-center">
                           <div 
-                            className={`w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-1`}
+                            className={`w-3 h-3 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-1.5`}
                           ></div>
-                          <span className="text-xs text-gray-600 capitalize">{activeType.replace(/-/g, ' ')}</span>
+                          <span className="text-sm text-gray-600 capitalize">{activeType.replace(/-/g, ' ')}</span>
                         </div>
                       );
                     })}
@@ -209,34 +215,32 @@ export function SolutionCard({
 
               {activeReasonFilters.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-700 mb-1">Bijdrage aan selectie:</p>
                   {activeReasonFilters.map(reasonId => renderScoreIndicator(reasonId))}
                 </div>
               )}
 
               {solution.ophalen && solution.ophalen.length > 0 && userPickupPreference && (
                 <div>
-                  <p className="text-xs font-medium text-gray-700 mb-1">Deel van de woon-werkreis:</p>
                   <div className="space-y-1">
                     {solution.ophalen.map((ophalenOptie, index) => {
                       let optionMatches = false;
                       if (userPickupPreference && ophalenOptie) {
                         if (userPickupPreference === 'thuis' && ophalenOptie.toLowerCase().includes('thuis')) {
                           optionMatches = true;
-                        } else if (userPickupPreference === 'locatie' && ophalenOptie.toLowerCase().includes('locatie')) {
+                        } else if (userPickupPreference === 'locatie' && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('locatie'))) {
                           optionMatches = true;
                         }
                       }
                       return (
                         <div key={index} className="flex items-center">
                           <div 
-                            className={`w-2.5 h-2.5 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} mr-1`}
+                            className={`w-3 h-3 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} mr-1.5`}
                           ></div>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-sm text-gray-600">
                             {ophalenOptie && ophalenOptie.toLowerCase().includes('thuis')
                               ? 'Voor de hele reis'
-                              : ophalenOptie && ophalenOptie.toLowerCase().includes('locatie')
-                              ? 'Voor een gedeelte van de reis'
+                              : ophalenOptie && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('locatie'))
+                              ? 'Voor het laatste deel van de reis'
                               : ophalenOptie}
                           </span>
                         </div>
@@ -280,41 +284,57 @@ export function SolutionCard({
           </div>
 
           {onMoreInfo && (
-            <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation(); 
-                  handleShowMoreInfo();
-                }}
-                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
-              >
-                <InformationCircleIcon className="h-3.5 w-3.5 mr-1" />
-                Meer informatie & Varianten
-              </button>
-              <div onClick={(e) => e.stopPropagation()} /* Prevent card click */>
+            <div className="grid grid-cols-3 items-center mt-3 pt-2 border-t border-gray-100">
+              <div className="justify-self-start">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation(); 
+                    handleShowMoreInfo();
+                  }}
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                >
+                  <InformationCircleIcon className="h-3.5 w-3.5 mr-1" />
+                  Meer informatie
+                </button>
+              </div>
+              <div className="justify-self-center">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openSolutionCases();
+                  }}
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                >
+                  <BookOpenIcon className="h-3.5 w-3.5 mr-1" />
+                  Bekijk voorbeeldcases
+                </button>
+              </div>
+              <div className="justify-self-end" onClick={(e) => e.stopPropagation()}>
                 <MobilitySolutionFactsheetButton
                   solution={solution}
                   className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
                   buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
                 >
                   <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
-                  {`Download factsheet ${solution.title}`}
+                  Download factsheet
                 </MobilitySolutionFactsheetButton>
               </div>
             </div>
           )}
         </div>
 
-        <div className="absolute top-2 right-2 mt-[22px]">
-          <input
-            type="checkbox"
-            className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded shadow-sm"
-            checked={isSelected}
-            onChange={() => { /* Outer div handles toggle */ }}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        <button
+          type="button"
+          aria-pressed={isSelected}
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(solution.id); }}
+          className={`absolute top-2 right-2 mt-[22px] h-5 w-5 rounded border ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'} flex items-center justify-center shadow-sm`}
+        >
+          {isSelected && (
+            <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414-1.414L8 11.172 4.707 7.879A1 1 0 103.293 9.293l4 4a1 1 0 001.414 0l8-8z" clipRule="evenodd"/></svg>
+          )}
+        </button>
       </div>
     </div>
   );

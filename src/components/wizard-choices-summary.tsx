@@ -20,7 +20,7 @@ const getStepFromPathname = (pathname: string): number => {
   if (/^\/wizard\/implementatievarianten$/.test(path)) return 3; // was 2b
   if (/^\/wizard\/governance-modellen$/.test(path)) return 4;   // was 3
   if (/^\/wizard\/implementatieplan$/.test(path)) return 5;     // was 4
-  if (/^\/wizard\/samenvatting$/.test(path)) return 6;
+  if (/^\/wizard\/vervolgstappen$/.test(path)) return 6;
 
   // Legacy numeric routes fallback
   const legacy = path.match(/\/wizard\/(?:stap-(\d+[ab]?)|(bedrijventerrein)|(samenvatting))/);
@@ -131,7 +131,7 @@ export function WizardChoicesSummary({ variationsData }: WizardChoicesSummaryPro
               )}
                {businessParkInfo.employeePickupPreference && (
                 <li>
-                  Deel van de woon-werkreis: {businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor een gedeelte van de reis'}
+                  Deel van de woon-werkreis: {businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis'}
                 </li>
               )}
             </ul>
