@@ -92,7 +92,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
           )}
 
           {solution.uitvoering && (
-            <div className="mb-10 rounded-lg bg-white">
+            <div className="mb-10 rounded-lg bg-white p-6">
               <h2 className="text-3xl font-semibold mb-6">Uitvoering</h2>
               <div className="prose max-w-none">
                  <MarkdownContent content={processMarkdownText(solution.uitvoering)} />
@@ -100,7 +100,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             </div>
           )}
           {solution.inputBusinesscase && (
-            <div className="mb-10 rounded-lg bg-white">
+            <div className="mb-10 rounded-lg bg-white p-6">
               <h2 className="text-3xl font-semibold mb-6">Input voor uw businesscase</h2>
               <div className="prose max-w-none">
                  <MarkdownContent content={processMarkdownText(solution.inputBusinesscase)} />
@@ -108,13 +108,13 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             </div>
           )}
           {solution.collectiefVsIndiviueel && (
-            <div className="bg-white rounded-lg mb-10">
+            <div className="bg-white rounded-lg mb-10 p-6">
               <h2 className="font-semibold text-3xl mb-3">Collectief versus Individueel</h2>
               <MarkdownContent content={processMarkdownText(solution.collectiefVsIndiviueel)} />
             </div>
           )}
           
-          <div className="mb-10 rounded-lg bg-white">
+          <div className="mb-10 rounded-lg">
             <h2 className="text-3xl font-semibold mb-6">Implementatievarianten</h2>
             {variations && variations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -122,7 +122,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                   const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
                   
                   return (
-                    <div key={index} className="border border-gray-200 rounded-lg p-6 shadow-sm bg-white">
+                    <div key={index} className="border border-gray-200 rounded-lg p-6 shadow-sm">
                       <h3 className="text-xl font-semibold mb-3 text-teal-700">{displayTitle}</h3>
                       {variation.samenvatting ? (
                         <div className="prose prose-sm max-w-none">

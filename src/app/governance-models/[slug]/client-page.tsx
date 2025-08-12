@@ -124,14 +124,14 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
             
           {/* Original Description section - re-added */}
           {model.description && (model.summary ? model.description !== model.summary : true) && (
-            <div className="mb-4 rounded-lg bg-white px-1 py-2"> {/* Reduced margin & padding */}
+            <div className="mb-6 rounded-lg bg-white p-6">
               <h2 className="font-semibold text-xl mb-2">Beschrijving</h2>
               <MarkdownContent content={processMarkdownText(model.description)} />
             </div>
           )}
 
           {model.aansprakelijkheid && (
-            <div className="mb-4 rounded-lg bg-white px-1 py-2"> {/* Reduced margin & padding */}
+            <div className="mb-6 rounded-lg bg-white p-6">
               <h2 className="font-semibold text-xl mb-2">Aansprakelijkheid</h2>
               <MarkdownContent content={processMarkdownText(model.aansprakelijkheid || '')} />
             </div>
@@ -178,7 +178,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           )}
 
           {model.benodigdhedenOprichting && Array.isArray(model.benodigdhedenOprichting) && model.benodigdhedenOprichting.length > 0 && (
-            <div className="mb-4 rounded-lg bg-white px-1 py-2"> 
+            <div className="mb-6 rounded-lg bg-white p-6"> 
               <h2 className="font-semibold text-xl mb-2">Benodigdheden voor oprichting</h2>
               <div className="">
                 {model.benodigdhedenOprichting.map((item: string, index: number) => (
@@ -192,7 +192,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
           {/* Links */}
           {(Array.isArray(links) && links.length > 0 || typeof links === 'string' && links) && (
-            <div className="mb-4 rounded-lg bg-white px-1 py-2"> {/* Reduced margin & padding */}
+            <div className="mb-6 rounded-lg bg-white p-6">
               <h2 className="font-semibold text-xl mb-2">Relevante links</h2>
               
               {Array.isArray(links) && links.length > 0 && (
@@ -335,7 +335,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
           {/* Doorlooptijd */}
           {doorlooptijd && (
-            <div className="mb-4 rounded-lg bg-white px-1 py-2"> {/* Reduced margin & padding */}
+            <div className="mb-6 rounded-lg bg-white p-6">
               <h2 className="font-semibold text-xl mb-2">Doorlooptijd</h2>
               <MarkdownContent content={processMarkdownText(doorlooptijd)} />
             </div>
