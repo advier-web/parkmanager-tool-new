@@ -219,7 +219,7 @@ export default function Step3Page() {
             <h2 className="text-2xl font-bold mb-4">Governance modellen</h2>
             <p className="text-gray-600 mb-6">
               Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen collectieve vervoersoplossing. 
-              De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten.
+              De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten. Let wel op: ieder governance model is maatwerk, binnen een governance model zijn veel verschillen mogelijk. Het is aan te raden met een lokale jurist te kijken naar de opzet van het gekozen governance model.
             </p>
             {isLoading && <p>Aanbevelingen laden...</p>}
           </div>
@@ -248,6 +248,7 @@ export default function Step3Page() {
                 isCurrent={true}
                 relevantVariations={relevantVariations}
                 selectedVariants={selectedVariants}
+                primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
               />
             </div>
           )}
@@ -269,7 +270,8 @@ export default function Step3Page() {
                     onMoreInfo={handleShowMoreInfo}
                     isRecommended={true}
                     relevantVariations={relevantVariations}
-                    selectedVariants={selectedVariants}
+                     selectedVariants={selectedVariants}
+                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
                   />
                 ))}
               </div>
@@ -295,7 +297,8 @@ export default function Step3Page() {
                     onMoreInfo={handleShowMoreInfo}
                     isConditionalRecommended={true}
                     relevantVariations={relevantVariations}
-                    selectedVariants={selectedVariants}
+                     selectedVariants={selectedVariants}
+                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
                   />
                 ))}
               </div>
@@ -320,7 +323,8 @@ export default function Step3Page() {
                     onSelect={handleSelectModel}
                     onMoreInfo={handleShowMoreInfo}
                     relevantVariations={relevantVariations}
-                    selectedVariants={selectedVariants}
+                     selectedVariants={selectedVariants}
+                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
                   />
                 ))}
               </div>
@@ -363,7 +367,7 @@ export default function Step3Page() {
       
       <WizardNavigation
         previousStep="/wizard/implementatievarianten"
-        nextStep="/wizard/implementatieplan"
+        nextStep="/wizard/vervolgstappen"
         isNextDisabled={!selectedGovernanceModel}
       />
     </div>

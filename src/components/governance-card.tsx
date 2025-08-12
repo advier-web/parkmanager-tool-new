@@ -17,6 +17,7 @@ interface GovernanceCardProps {
   onMoreInfo?: (model: GovernanceModel) => void;
   relevantVariations?: ImplementationVariation[];
   selectedVariants: SelectedVariantMap;
+  primaryVariantId?: string; // Id van de geselecteerde variant voor de (enige) gekozen oplossing
 }
 
 // Rename original component to avoid conflict and for clarity
@@ -29,7 +30,8 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
   isCurrent = false,
   onMoreInfo,
   relevantVariations,
-  selectedVariants
+  selectedVariants,
+  primaryVariantId
 }) => {
   // Calculate variant specific texts, filtering by currently selected variants
   const currentlySelectedVariantIds = useMemo(() => Object.values(selectedVariants), [selectedVariants]);
@@ -41,20 +43,16 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
     });
   }, [relevantVariations, currentlySelectedVariantIds]);
 
-  const variantSpecificTexts = useMemo(() => {
-    return variationsToDisplay?.map(variation => {
-        const fieldName = governanceTitleToFieldName(model.title);
-        if (!fieldName) {
-          return null;
-        }
-        const text = (variation as any)[fieldName]; 
-        if (!text || typeof text !== 'string') {
-           return null;
-        }
-        const displayVariationTitle = stripSolutionPrefixFromVariantTitle(variation.title);
-        return { variationTitle: displayVariationTitle, text };
-      }).filter(item => item !== null) as { variationTitle: string; text: string }[] | undefined;
-  }, [variationsToDisplay, model.title]);
+  const variantSpecificText = useMemo(() => {
+    const fieldName = governanceTitleToFieldName(model.title);
+    if (!fieldName) return undefined;
+    // Kies bij voorkeur de variant die bij de huidige (enige) gekozen oplossing hoort
+    const preferredId = primaryVariantId || (Object.values(selectedVariants).find(Boolean) as string | undefined);
+    const selectedVariation = variationsToDisplay?.find(v => v.id === preferredId) || variationsToDisplay?.[0];
+    const text = selectedVariation ? (selectedVariation as any)[fieldName] : undefined;
+    if (!text || typeof text !== 'string') return undefined;
+    return text as string;
+  }, [variationsToDisplay, model.title, selectedVariants]);
 
   const buttonChildren = useMemo(() => (
     <>
@@ -127,18 +125,16 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
           </div>
           
           <div className="text-gray-600 mt-2 mb-4">
-            {/* General model summary - Fix potential undefined */}
+            {/* Altijd eerst de algemene samenvatting */}
             <MarkdownContent content={processMarkdownText(model.summary || model.description || '')} />
-            
-            {/* Variant specific relevance text */}
-            {variantSpecificTexts && variantSpecificTexts.length > 0 && (
+
+            {/* Daarna – indien aanwezig – alleen de variant-specifieke tekst (zonder algemene paragrafen) */}
+            {variantSpecificText && (
               <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-100 space-y-2">
-                 <h4 className="text-sm font-semibold text-gray-700 mb-1">Relevantie voor geselecteerde implementatievariant:</h4>
-                 {variantSpecificTexts.map(({ variationTitle, text }, index) => (
-                  <div key={index} className="text-sm text-gray-700">
-                    <div className="pl-2 prose prose-sm max-w-none"><MarkdownContent content={processMarkdownText(text)} /></div>
-                  </div>
-                 ))}
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">Relevantie voor geselecteerde implementatievariant:</h4>
+                <div className="text-sm text-gray-700">
+                  <div className="pl-2 prose prose-sm max-w-none"><MarkdownContent content={processMarkdownText(variantSpecificText)} /></div>
+                </div>
               </div>
             )}
           </div>

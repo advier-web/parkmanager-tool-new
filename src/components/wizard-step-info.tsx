@@ -101,7 +101,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
          <h3 className="text-lg font-semibold mb-2">Kies een variant</h3>
          <p className="text-gray-600 text-sm">
             Selecteer per gekozen collectieve vervoersoplossing de gewenste implementatievariant. 
-            Deze keuze beïnvloedt het uiteindelijke advies en implementatieplan.
+            Deze keuze beïnvloedt het uiteindelijke advies en de vervolgstappen.
          </p>
        </div>
      </>
@@ -124,24 +124,7 @@ const stepInfoContent: Record<string, React.ReactNode> = {
        </div>
      </>
   ),
-  'stap-4': (
-     <>
-       <div>
-         <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
-         <p className="text-gray-600 text-sm">
-            Het implementatieplan geeft u een duidelijk overzicht van de stappen die nodig zijn om uw gekozen 
-            collectieve vervoersoplossing en governance model te realiseren. Dit helpt u bij een gestructureerde aanpak.
-         </p>
-       </div>
-       <div>
-         <h3 className="text-lg font-semibold mb-2">Governance model</h3>
-         <p className="text-gray-600 text-sm">
-           Als u hetzelfde governance model heeft gekozen als uw huidige model, 
-           zijn er geen extra implementatiestappen nodig voor het governance aspect.
-         </p>
-       </div>
-     </>
-  ),
+  // stap-4 (Implementatieplan) verwijderd
   samenvatting: (
     <>
        <div>

@@ -19,8 +19,7 @@ const getStepFromPathname = (pathname: string): number => {
   if (/^\/wizard\/oplossingen$/.test(path)) return 2;
   if (/^\/wizard\/implementatievarianten$/.test(path)) return 3; // was 2b
   if (/^\/wizard\/governance-modellen$/.test(path)) return 4;   // was 3
-  if (/^\/wizard\/implementatieplan$/.test(path)) return 5;     // was 4
-  if (/^\/wizard\/vervolgstappen$/.test(path)) return 6;
+  if (/^\/wizard\/vervolgstappen$/.test(path)) return 5;
 
   // Legacy numeric routes fallback
   const legacy = path.match(/\/wizard\/(?:stap-(\d+[ab]?)|(bedrijventerrein)|(samenvatting))/);

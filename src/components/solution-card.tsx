@@ -1,10 +1,11 @@
 import { MobilitySolution, BusinessParkReason, TrafficType, GovernanceModel, ImplementationVariation } from '../domain/models';
-import { InformationCircleIcon, UsersIcon, BanknotesIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, CurrencyEuroIcon, MapPinIcon, EyeIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { useDialog } from '../contexts/dialog-context';
 import MobilitySolutionFactsheetButton from './mobility-solution-factsheet-button';
-import { ArrowDownTrayIcon, DocumentArrowDownIcon, BookOpenIcon } from '@heroicons/react/24/solid';
+import { DocumentArrowDownIcon, BookOpenIcon } from '@heroicons/react/24/solid';
 
 interface SolutionCardProps {
   solution: MobilitySolution;
@@ -175,19 +176,19 @@ export function SolutionCard({
             <div className="space-y-3 text-sm text-gray-700">
               {solution.minimumAantalPersonen && (
                 <div className="flex items-start">
-                  <UsersIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
+                  <UserGroupIcon className="h-4 w-4 text-blue-500 mr-2 mt-0.5" />
                   <div>{solution.minimumAantalPersonen}</div>
                 </div>
               )}
               {solution.minimaleInvestering && (
                 <div className="flex items-start">
-                  <BanknotesIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
-                  <div>{solution.minimaleInvestering}</div>
+                  <CurrencyEuroIcon className="h-4 w-4 text-emerald-600 mr-2 mt-0.5" />
+                  <div className="text-gray-800">{solution.minimaleInvestering}</div>
                 </div>
               )}
               {solution.afstand && (
                 <div className="flex items-start">
-                  <MapPinIcon className="h-4 w-4 text-gray-400 mr-2 mt-0.5" />
+                  <MapPinIcon className="h-4 w-4 text-rose-500 mr-2 mt-0.5" />
                   <div>{solution.afstand}</div>
                 </div>
               )}
@@ -234,7 +235,7 @@ export function SolutionCard({
                       return (
                         <div key={index} className="flex items-center">
                           <div 
-                            className={`w-3 h-3 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} mr-1.5`}
+                            className={`w-3 h-3 rounded-full ${optionMatches ? 'bg-emerald-500' : 'bg-rose-500'} mr-1.5`}
                           ></div>
                           <span className="text-sm text-gray-600">
                             {ophalenOptie && ophalenOptie.toLowerCase().includes('thuis')
@@ -284,40 +285,40 @@ export function SolutionCard({
           </div>
 
           {onMoreInfo && (
-            <div className="grid grid-cols-3 items-center mt-3 pt-2 border-t border-gray-100">
-              <div className="justify-self-start">
+              <div className="flex items-center gap-6 mt-3 pt-3 border-t border-gray-100">
+              <div>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation(); 
                     handleShowMoreInfo();
                   }}
-                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
                 >
-                  <InformationCircleIcon className="h-3.5 w-3.5 mr-1" />
+                  <InformationCircleIcon className="h-5 w-5 mr-1" />
                   Meer informatie
                 </button>
               </div>
-              <div className="justify-self-center">
+              <div>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     openSolutionCases();
                   }}
-                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
                 >
-                  <BookOpenIcon className="h-3.5 w-3.5 mr-1" />
-                  Bekijk voorbeeldcases
+                  <EyeIcon className="h-5 w-5 mr-1" />
+                  Bekijk cases
                 </button>
               </div>
-              <div className="justify-self-end" onClick={(e) => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <MobilitySolutionFactsheetButton
                   solution={solution}
-                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
-                  buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal cursor-pointer text-sm"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
+                    buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 p-0 shadow-none font-normal cursor-pointer text-sm"
                 >
-                  <DocumentArrowDownIcon className="h-3.5 w-3.5 mr-1" />
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-1 translate-y-[1px]" />
                   Download factsheet
                 </MobilitySolutionFactsheetButton>
               </div>

@@ -50,7 +50,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   }
 
   return (
-    <div className={className}>
+    <span className={className}>
       {isClient ? (
         <PDFDownloadLink
           document={pdfDocument}
@@ -77,7 +77,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
           Factsheet laden...
         </Button>
       )}
-    </div>
+    </span>
   );
 };
 

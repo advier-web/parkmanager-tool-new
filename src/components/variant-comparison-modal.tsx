@@ -1,5 +1,16 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import {
+  MODAL_OVERLAY_BASE,
+  MODAL_OVERLAY_ENTER,
+  MODAL_OVERLAY_LEAVE,
+  MODAL_PANEL_ENTER,
+  MODAL_PANEL_ENTER_FROM,
+  MODAL_PANEL_ENTER_TO,
+  MODAL_PANEL_LEAVE,
+  MODAL_PANEL_LEAVE_FROM,
+  MODAL_PANEL_LEAVE_TO,
+} from '@/components/ui/modal-anim';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
@@ -31,28 +42,20 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        <Transition.Child as={Fragment} enter={`${MODAL_OVERLAY_ENTER}`} leave={`${MODAL_OVERLAY_LEAVE}`}>
+          <div className={`${MODAL_OVERLAY_BASE}`} />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enter={`${MODAL_PANEL_ENTER}`}
+              enterFrom={`${MODAL_PANEL_ENTER_FROM}`}
+              enterTo={`${MODAL_PANEL_ENTER_TO}`}
+              leave={`${MODAL_PANEL_LEAVE}`}
+              leaveFrom={`${MODAL_PANEL_LEAVE_FROM}`}
+              leaveTo={`${MODAL_PANEL_LEAVE_TO}`}
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-7xl">
                 

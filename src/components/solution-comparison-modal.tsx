@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MobilitySolution, BusinessParkReason, TrafficType } from '../domain/models';
+import { buildNonHeadlessUiOverlayClasses, buildNonHeadlessUiPanelClasses } from '@/components/ui/modal-anim';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 
@@ -30,7 +31,33 @@ export function SolutionComparisonModal({
   userPickupPreference,
   contributingReasons
 }: SolutionComparisonModalProps) {
-  if (!isOpen) return null;
+  const ANIMATION_MS = 600;
+
+  const [shouldRender, setShouldRender] = useState<boolean>(isOpen);
+  const [isExiting, setIsExiting] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const exitTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (exitTimerRef.current) window.clearTimeout(exitTimerRef.current);
+      setShouldRender(true);
+      setIsExiting(false);
+      setIsVisible(false);
+      // Trigger enter transition on next frame
+      requestAnimationFrame(() => setIsVisible(true));
+    } else if (shouldRender) {
+      setIsExiting(true);
+      setIsVisible(false);
+      exitTimerRef.current = window.setTimeout(() => {
+        setShouldRender(false);
+        setIsExiting(false);
+      }, ANIMATION_MS);
+    }
+    return () => {
+      if (exitTimerRef.current) window.clearTimeout(exitTimerRef.current);
+    };
+  }, [isOpen, shouldRender]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds);
   const toggleSelected = (id: string) => {
@@ -92,9 +119,15 @@ export function SolutionComparisonModal({
     );
   };
 
+  const overlayClasses = buildNonHeadlessUiOverlayClasses(isVisible);
+  const panelClasses = buildNonHeadlessUiPanelClasses(isVisible, 'relative bg-white rounded-lg w-full max-w-7xl max-h-[90vh] flex flex-col shadow-2xl');
+
+  if (!shouldRender) return null;
+
   return (
-    <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-7xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className={overlayClasses} />
+      <div className={panelClasses}>
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div>

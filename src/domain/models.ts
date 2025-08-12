@@ -177,7 +177,7 @@ export interface GovernanceModel {
   // rechtsvormBeschrijving?: string; // Assuming this specific description field is also moved/obsolete
 }
 
-// Implementatieplan
+// Implementatieplan (verwijderd)
 export interface ImplementationPlan {
   id: string;
   title: string;
@@ -219,7 +219,7 @@ export interface WizardState {
   // Stap 3: Governance modellen
   selectedGovernanceModel: string | null;
   
-  // Stap 4: Implementatieplan
+  // Stap 4: Implementatieplan (verwijderd)
   selectedImplementationPlan: string | null;
   selectedVariants: SelectedVariantMap;
   

@@ -42,7 +42,7 @@ interface WizardStore extends WizardState {
   // Stap 3: Governance modellen
   setSelectedGovernanceModel: (modelId: string | null) => void;
   
-  // Stap 4: Implementatieplan
+  // Stap 4: Implementatieplan (verwijderd)
   setSelectedImplementationPlan: (planId: string | null) => void;
   setSelectedVariant: (solutionId: string, variant: string | null) => void;
   
@@ -99,7 +99,7 @@ export const useWizardStore = create<WizardStore>()(
       // Stap 3: Governance modellen
       setSelectedGovernanceModel: (modelId) => set({ selectedGovernanceModel: modelId }),
       
-      // Stap 4: Implementatieplan
+      // Stap 4: Implementatieplan (verwijderd)
       setSelectedImplementationPlan: (planId) => set({ selectedImplementationPlan: planId }),
       setSelectedVariant: (solutionId, variant) => set((state) => {
         const updatedSelectedVariants = {

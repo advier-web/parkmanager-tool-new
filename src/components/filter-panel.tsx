@@ -72,7 +72,7 @@ export function FilterPanel({
                   </span>
                   {selectedTrafficTypes.includes(type) && (
                     <span className="text-xs text-blue-600">
-                      Geselecteerd in stap 0
+                      Geselecteerd in stap 1
                     </span>
                   )}
                 </div>
@@ -109,7 +109,7 @@ export function FilterPanel({
                         </span>
                         {isSelected && (
                           <span className="text-xs text-blue-600">
-                            Geselecteerd in stap 1
+                            Geselecteerd in stap 2
                           </span>
                         )}
                       </div>

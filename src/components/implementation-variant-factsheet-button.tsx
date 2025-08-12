@@ -43,7 +43,7 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
   const fileName = `Factsheet_Variant_${variation.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
 
   return (
-    <div className={className}>
+    <span className={className}>
       {isClient && isArmed && pdfDocument ? (
         <PDFDownloadLink document={pdfDocument} fileName={fileName}>
           {({ loading }) => (
@@ -78,7 +78,7 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
           Factsheet laden...
         </Button>
       )}
-    </div>
+    </span>
   );
 };
 

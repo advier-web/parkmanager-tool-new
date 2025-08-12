@@ -8,11 +8,11 @@ export function SiteHeader() {
   const isWizardPage = pathname.startsWith('/wizard');
   
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto max-w-7xl px-6 py-6 flex justify-between items-center">
+    <header className="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
         <div>
-          <Link href="/" className="text-xl font-bold text-blue-600">
-            Parkmanagement tool
+          <Link href="/" className="text-xl font-bold text-black">
+            Parkmanager tool
           </Link>
         </div>
         <nav>
@@ -21,14 +21,14 @@ export function SiteHeader() {
               {isWizardPage ? (
                 <Link 
                   href="/" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md transition-colors text-base"
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-5 rounded-md transition-colors text-sm"
                 >
                   Terug naar homepage
                 </Link>
               ) : (
                 <Link 
                   href="/wizard" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md transition-colors text-base"
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-5 rounded-md transition-colors text-sm"
                 >
                   Start de wizard
                 </Link>

@@ -1,8 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import { useDialog } from '../contexts/dialog-context';
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import { Transition } from '@headlessui/react';
+import {
+  MODAL_OVERLAY_BASE,
+  MODAL_OVERLAY_ENTER,
+  MODAL_OVERLAY_LEAVE,
+  MODAL_PANEL_ENTER,
+  MODAL_PANEL_ENTER_FROM,
+  MODAL_PANEL_ENTER_TO,
+  MODAL_PANEL_LEAVE,
+  MODAL_PANEL_LEAVE_FROM,
+  MODAL_PANEL_LEAVE_TO,
+} from '@/components/ui/modal-anim';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { MarkdownWithAccordions } from './markdown-with-accordions';
 import { useEffect } from 'react';
@@ -28,15 +40,27 @@ export function SolutionDialog() {
     }
   }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
-  if (!isOpen) {
-    return null;
-  }
+  const ANIMATION_MS = 600;
+  if (!isOpen) return null;
 
   // Show business park reason information dialog
   if (dialogType === 'reason' && currentReason) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <Transition show={true} as={Fragment} appear>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Transition.Child as={Fragment} enter={`${MODAL_OVERLAY_ENTER}`} leave={`${MODAL_OVERLAY_LEAVE}`}>
+            <div className={`${MODAL_OVERLAY_BASE}`} />
+          </Transition.Child>
+          <Transition.Child
+            as={Fragment}
+            enter={`${MODAL_PANEL_ENTER}`}
+            enterFrom={`${MODAL_PANEL_ENTER_FROM}`}
+            enterTo={`${MODAL_PANEL_ENTER_TO}`}
+            leave={`${MODAL_PANEL_LEAVE}`}
+            leaveFrom={`${MODAL_PANEL_LEAVE_FROM}`}
+            leaveTo={`${MODAL_PANEL_LEAVE_TO}`}
+          >
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentReason.title}</h2>
             <button
@@ -63,8 +87,10 @@ export function SolutionDialog() {
               Sluiten
             </button>
           </div>
+            </div>
+          </Transition.Child>
         </div>
-      </div>
+      </Transition>
     );
   }
 
@@ -84,8 +110,21 @@ export function SolutionDialog() {
     // const investering = currentSolution.costs || '';
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <Transition show={true} as={Fragment} appear>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Transition.Child as={Fragment} enter={`${MODAL_OVERLAY_ENTER}`} leave={`${MODAL_OVERLAY_LEAVE}`}>
+            <div className={`${MODAL_OVERLAY_BASE}`} />
+          </Transition.Child>
+          <Transition.Child
+            as={Fragment}
+            enter={`${MODAL_PANEL_ENTER}`}
+            enterFrom={`${MODAL_PANEL_ENTER_FROM}`}
+            enterTo={`${MODAL_PANEL_ENTER_TO}`}
+            leave={`${MODAL_PANEL_LEAVE}`}
+            leaveFrom={`${MODAL_PANEL_LEAVE_FROM}`}
+            leaveTo={`${MODAL_PANEL_LEAVE_TO}`}
+          >
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentSolution.title}</h2>
@@ -192,8 +231,10 @@ export function SolutionDialog() {
               Sluiten
             </button>
           </div>
+            </div>
+          </Transition.Child>
         </div>
-      </div>
+      </Transition>
     );
   }
   
@@ -220,8 +261,21 @@ export function SolutionDialog() {
     // const contentfulFields = (currentGovernanceModel as any).fields || {}; // Keep this approach for direct field access if needed
     
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <Transition show={true} as={Fragment} appear>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Transition.Child as={Fragment} enter={`${MODAL_OVERLAY_ENTER}`} leave={`${MODAL_OVERLAY_LEAVE}`}>
+            <div className={`${MODAL_OVERLAY_BASE}`} />
+          </Transition.Child>
+          <Transition.Child
+            as={Fragment}
+            enter={`${MODAL_PANEL_ENTER}`}
+            enterFrom={`${MODAL_PANEL_ENTER_FROM}`}
+            enterTo={`${MODAL_PANEL_ENTER_TO}`}
+            leave={`${MODAL_PANEL_LEAVE}`}
+            leaveFrom={`${MODAL_PANEL_LEAVE_FROM}`}
+            leaveTo={`${MODAL_PANEL_LEAVE_TO}`}
+          >
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
             <h2 className="text-xl font-bold">{currentGovernanceModel.title}</h2>
             <button
@@ -293,8 +347,10 @@ export function SolutionDialog() {
               Sluiten
             </button>
           </div>
+            </div>
+          </Transition.Child>
         </div>
-      </div>
+      </Transition>
     );
   }
   
