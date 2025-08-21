@@ -384,11 +384,19 @@ export async function getImplementationVariationsForSolution(solutionId: string,
     const queryParams: any = {
       content_type: 'implementationvariations',
       'fields.mobiliteitsdienstVariant.sys.id': solutionId,
+      order: 'fields.order', // Ascending: 0 first
       limit: options.limit || 50,
       skip: options.skip || 0,
     };
     const response = await client.getEntries<any>(queryParams); // Using <any> as workaround
-    return response.items.map(transformImplementationVariation);
+    const items = response.items.map(transformImplementationVariation);
+    // Defensive client-side sort by order (ascending), fallback to title
+    return items.sort((a, b) => {
+      const ao = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER;
+      const bo = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER;
+      if (ao !== bo) return ao - bo;
+      return a.title.localeCompare(b.title);
+    });
   } catch (error) {
     console.error(`[CONTENTFUL] Error fetching implementation variations for solution ${solutionId}:`, error);
     return []; // Return empty array on error

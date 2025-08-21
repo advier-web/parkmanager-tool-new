@@ -30,6 +30,7 @@ export interface ImplementationVariation {
   title: string;
   mobiliteitsdienstVariantId?: string; // <-- ADDED: ID of the linked MobilitySolution
   samenvatting?: string | undefined; // Changed type back to string
+  order?: number; // Sorting priority from Contentful (0 highest)
   investering?: string; // Transformed from Rich Text
   realisatieplan?: string; // Transformed from Rich Text
   vervolgstappen?: string; // New follow-up steps for summary page

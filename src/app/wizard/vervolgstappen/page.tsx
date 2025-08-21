@@ -16,6 +16,9 @@ import { WizardNavigation } from '@/components/wizard-navigation';
 import MobilitySolutionFactsheetButton from '@/components/mobility-solution-factsheet-button';
 import ImplementationVariantFactsheetButton from '@/components/implementation-variant-factsheet-button';
 import GovernanceModelFactsheetButton from '@/components/governance-model-factsheet-button';
+import MobilitySolutionFactsheetPdf from '@/components/mobility-solution-factsheet-pdf';
+import ImplementationVariantFactsheetPdf from '@/components/implementation-variant-factsheet-pdf';
+import GovernanceModelFactsheetPdf from '@/components/governance-model-factsheet-pdf';
 
 // Import helpers from utils
 import { 
@@ -159,36 +162,20 @@ export default function VervolgstappenPage() {
         {/* Left Column - alleen keuzes */}
         <div className="lg:col-span-1 space-y-8 lg:sticky lg:top-28">
           <WizardChoicesSummary variationsData={selectedVariationsData} />
-          {/* Downloads sectie - compact lijstje */}
+          {/* Downloads sectie - compact lijstje met inline iconen */}
           <div className="bg-white rounded-lg p-6 shadow-even space-y-3">
             <h3 className="text-lg font-semibold mb-1">Downloads</h3>
             {/* Samenvatting */}
-            <div className="flex items-center gap-2">
-              <DocumentTextIcon className="w-4 h-4 text-blue-600" />
+            <div className="flex items-center gap-2 text-blue-600">
+              <DocumentTextIcon className="w-4 h-4 shrink-0" />
               {isClient ? (
                 <PDFDownloadLink
-                  document={(
-                    <SummaryPdfDocument 
-                      businessParkInfo={businessParkInfo} 
-                      businessParkName={businessParkName}
-                      currentGovernanceModelTitle={currentGovernanceModelTitle}
-                      selectedReasonTitles={selectedReasonTitles} 
-                      selectedSolutionsData={Object.values(selectedSolutionsData)}
-                      selectedVariants={selectedVariants}
-                      selectedGovernanceModelId={selectedGovernanceModelId} 
-                      governanceModels={models || []} 
-                      governanceTitleToFieldName={governanceTitleToFieldName}
-                      reasons={reasons || []}
-                      selectedReasons={selectedReasons}
-                      snakeToCamel={snakeToCamel}
-                      selectedVariationsData={selectedVariationsData}
-                    />
-                  )}
-                  fileName={`Vervolgstappen_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
+                  document={(<SummaryPdfDocument businessParkInfo={businessParkInfo} businessParkName={businessParkName} currentGovernanceModelTitle={currentGovernanceModelTitle} selectedReasonTitles={selectedReasonTitles} selectedSolutionsData={Object.values(selectedSolutionsData)} selectedVariants={selectedVariants} selectedGovernanceModelId={selectedGovernanceModelId} governanceModels={models || []} governanceTitleToFieldName={governanceTitleToFieldName} reasons={reasons || []} selectedReasons={selectedReasons} snakeToCamel={snakeToCamel} selectedVariationsData={selectedVariationsData} />)}
+                  fileName={`Adviesrapport_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
                 >
                   {({ loading }: { loading: boolean }) => (
-                    <span className="text-sm text-blue-600 underline underline-offset-2 cursor-pointer hover:text-blue-800 hover:underline transition-colors">
-                      {loading ? '...' : 'Vervolgstappen (PDF)'}
+                    <span className="text-sm underline underline-offset-2 hover:text-blue-800 hover:underline transition-colors">
+                      {loading ? '...' : 'Adviesrapport (PDF)'}
                     </span>
                   )}
                 </PDFDownloadLink>
@@ -199,43 +186,68 @@ export default function VervolgstappenPage() {
 
             {/* Oplossingen */}
             {Object.values(selectedSolutionsData).map(sol => (
-              <div key={`dl-sol-${sol.id}`} className="flex items-start gap-2">
-                <DocumentTextIcon className="w-4 h-4 text-blue-600" />
-                <MobilitySolutionFactsheetButton 
-                  solution={sol}
-                  buttonColorClassName="p-0 h-auto text-sm bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer block whitespace-normal break-words text-left leading-snug min-w-0 max-w-[220px] transition-colors"
-                >
-                  {`Factsheet: ${sol.title}`}
-                </MobilitySolutionFactsheetButton>
+              <div key={`dl-sol-${sol.id}`} className="flex items-center gap-2 text-blue-600">
+                <DocumentTextIcon className="w-4 h-4 shrink-0" />
+                {isClient ? (
+                  <PDFDownloadLink document={<MobilitySolutionFactsheetPdf solution={sol} />} fileName={`Factsheet_${sol.title.replace(/[^a-z0-9]/gi, '_')}.pdf`}>
+                    {({ loading }: { loading: boolean }) => (
+                      <span className="text-sm underline underline-offset-2 hover:text-blue-800 hover:underline transition-colors">
+                        {loading ? '...' : `Factsheet: ${sol.title}`}
+                      </span>
+                    )}
+                  </PDFDownloadLink>
+                ) : (
+                  <span className="text-sm text-gray-500">Laden…</span>
+                )}
               </div>
             ))}
 
             {/* Varianten */}
-            {Array.from(new Map(selectedVariationsData.map(v => [v.title, v])).values()).map(variation => (
-              <div key={`dl-var-${variation.id}`} className="flex items-start gap-2">
-                <DocumentTextIcon className="w-4 h-4 text-blue-600" />
-                <ImplementationVariantFactsheetButton 
-                  variation={variation}
-                  buttonColorClassName="p-0 h-auto text-sm bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer block whitespace-normal break-words text-left leading-snug min-w-0 max-w-[220px] transition-colors"
-                >
-                  {`Factsheet: ${stripSolutionPrefixFromVariantTitle(variation.title)}`}
-                </ImplementationVariantFactsheetButton>
-              </div>
-            ))}
+            {Array.from(new Map(selectedVariationsData.map(v => [v.title, v])).values()).map(variation => {
+              const display = stripSolutionPrefixFromVariantTitle(variation.title);
+              return (
+                <div key={`dl-var-${variation.id}`} className="flex items-center gap-2 text-blue-600">
+                  <DocumentTextIcon className="w-4 h-4 shrink-0" />
+                  {isClient ? (
+                    <PDFDownloadLink document={<ImplementationVariantFactsheetPdf variation={variation} />} fileName={`Factsheet_Variant_${variation.title.replace(/[^a-z0-9]/gi, '_')}.pdf`}>
+                      {({ loading }: { loading: boolean }) => (
+                        <span className="text-sm underline underline-offset-2 hover:text-blue-800 hover:underline transition-colors">
+                          {loading ? '...' : `Factsheet: ${display}`}
+                        </span>
+                      )}
+                    </PDFDownloadLink>
+                  ) : (
+                    <span className="text-sm text-gray-500">Laden…</span>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Governance model */}
             {selectedGovernanceModelData && (
-              <div className="flex items-start gap-2">
-                <DocumentTextIcon className="w-4 h-4 text-blue-600" />
-                <GovernanceModelFactsheetButton 
-                  governanceModel={selectedGovernanceModelData}
-                  selectedVariations={selectedVariationsData}
-                  governanceTitleToFieldName={governanceTitleToFieldName}
-                  stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-                  buttonColorClassName="p-0 h-auto text-sm bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer block whitespace-normal break-words text-left leading-snug min-w-0 max-w-[220px] transition-colors"
-                >
-                  {`Factsheet: ${selectedGovernanceModelData.title}`}
-                </GovernanceModelFactsheetButton>
+              <div className="flex items-center gap-2 text-blue-600">
+                <DocumentTextIcon className="w-4 h-4" />
+                {isClient ? (
+                  <PDFDownloadLink
+                    document={(
+                      <GovernanceModelFactsheetPdf
+                        model={selectedGovernanceModelData}
+                        variations={selectedVariationsData}
+                        governanceTitleToFieldName={governanceTitleToFieldName}
+                        stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                      />
+                    )}
+                    fileName={`Factsheet_Governance_Model_${(selectedGovernanceModelData.title || 'model').replace(/[^a-z0-9]/gi, '_')}.pdf`}
+                  >
+                    {({ loading }: { loading: boolean }) => (
+                      <span className="text-sm underline underline-offset-2 hover:text-blue-800 hover:underline transition-colors">
+                        {loading ? '...' : `Factsheet: ${selectedGovernanceModelData.title}`}
+                      </span>
+                    )}
+                  </PDFDownloadLink>
+                ) : (
+                  <span className="text-sm text-gray-500">Laden…</span>
+                )}
               </div>
             )}
           </div>
@@ -247,164 +259,232 @@ export default function VervolgstappenPage() {
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Vervolgstappen</h2>
             <p className="mb-6">
-              Op deze pagina vindt u een overzicht van de gemaakte keuzes, en concrete vervolgstappen . U kunt teruggaan naar eerdere stappen om wijzigingen aan te brengen.
+              Op deze pagina vindt u een overzicht van de gemaakte keuzes, en concrete vervolgstappen . U kunt teruggaan naar eerdere stappen om wijzigingen aan te brengen. Via onderstaande knop kunt u het adviesrapport in PDF downloaden.
             </p>
-            
-            {/* PDF download is verplaatst naar onderaan de pagina */}
+            {/* Centrale downloadknop voor Adviesrapport */}
+            {isClient && (
+              <PDFDownloadLink
+                document={(
+                  <SummaryPdfDocument 
+                    businessParkInfo={businessParkInfo} 
+                    businessParkName={businessParkName}
+                    currentGovernanceModelTitle={currentGovernanceModelTitle}
+                    selectedReasonTitles={selectedReasonTitles} 
+                    selectedSolutionsData={Object.values(selectedSolutionsData)}
+                    selectedVariants={selectedVariants}
+                    selectedGovernanceModelId={selectedGovernanceModelId} 
+                    governanceModels={models || []} 
+                    governanceTitleToFieldName={governanceTitleToFieldName}
+                    reasons={reasons || []}
+                    selectedReasons={selectedReasons}
+                    snakeToCamel={snakeToCamel}
+                    selectedVariationsData={selectedVariationsData}
+                  />
+                )}
+                fileName={`Adviesrapport_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
+              >
+                {({ loading }: { loading: boolean }) => (
+                  <Button className="mt-1 bg-blue-600 hover:bg-blue-700 text-white" variant="default">
+                    <DocumentTextIcon className="h-4 w-4" />
+                    {loading ? 'Even geduld…' : 'Download Adviesrapport'}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
           </div>
           
           {/* Geselecteerde Oplossingen & Varianten (incl. governance model info) */}
           <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-xl font-semibold mb-6">Geselecteerde governance model, vervoersoplossing & implementatievariant</h2>
+            {/* <h2 className="text-xl font-semibold mb-6">Geselecteerde governance model, vervoersoplossing & implementatievariant</h2> */}
+            {/* Indien huidig governance model 'niet geschikt' is voor gekozen variant(en) */}
+            {(() => {
+              const notSuitable = currentGovernanceModelId
+                ? selectedVariationsData.some(v =>
+                    Array.isArray(v.governanceModelsNietgeschikt) &&
+                    v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
+                  )
+                : false;
+              if (!notSuitable) return null;
+              return (
+                <div className="mb-6 text-gray-700">
+                  <h4 className="text-md font-semibold mb-2">Indien het huidige governance model niet volstaat:</h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Controleer of er in het kader van andere gemeenschappelijke voorzieningen (bijvoorbeeld energie) al een rechtsvorm wordt opgezet of aanwezig is waarbij kan worden aangesloten.</li>
+                    <li>Update het huidige governance model naar één van de geadviseerde rechtsvormen en laat u daarin begeleiden door een specialist (check governance model factsheet voor concrete eerste stappen).</li>
+                  </ul>
+                </div>
+              );
+            })()}
             {/* Governance model informatie */}
             {selectedGovernanceModelData && (
               <div className="mb-6">
                 {/* <h3 className="text-lg font-semibold mb-2">Governance model</h3> */}
-                <h3 className="text-2xl font-semibold mb-3 text-gray-800">{selectedGovernanceModelData.title}</h3>
-                {/* Samenvatting governance model indien beschikbaar */}
-                {selectedGovernanceModelData.summary && (
-                  <div className="prose prose-sm max-w-none text-gray-700 mb-3">
-                    <MarkdownContent content={selectedGovernanceModelData.summary} />
-                  </div>
-                )}
-                {/* Variant-specifieke relevantietekst */}
+                <h3 className="text-2xl font-semibold mb-3 text-gray-800">Gekozen governance model: {selectedGovernanceModelData.title}</h3>
                 {(() => {
-                  const rel = getVariantRelevance();
-                  if (!rel) return null;
-                  return (
-                    <div className="prose prose-sm max-w-none text-gray-700 mb-3">
-                      <MarkdownContent content={processMarkdownText(rel)} />
+                  const notSuitable = currentGovernanceModelId
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsNietgeschikt) &&
+                        v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
+                      )
+                    : false;
+
+                  if (!isSameGovernanceModel) {
+                    return (
+                      <p className="text-gray-700 mb-3">
+                        U heeft een ander governance model gekozen dan het huidige model. Het is belangrijk om eerst de governance-structuur op orde te hebben voordat u verder gaat met het implementeren van de collectieve vervoersoplossing.
+                      </p>
+                    );
+                  }
+
+                  if (isSameGovernanceModel && !notSuitable) {
+                    return (
+                      <p className="text-gray-700 mb-3">
+                        Het huidige governance model voldoet en u kunt verder met de implementatiestappen voor het implementeren van de collectieve vervoersoplossing.
+                      </p>
+                    );
+                  }
+
+                  return null;
+                })()}
+
+                {/* Implementatiestappen (toon alleen als huidig model niet simpelweg voldoet) */}
+                {(() => {
+                  const notSuitable = currentGovernanceModelId
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsNietgeschikt) &&
+                        v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
+                      )
+                    : false;
+                  const currentModelSufficient = isSameGovernanceModel && !notSuitable;
+                  if (currentModelSufficient) return null;
+                  const items = extractH2Headings(selectedGovernanceModelData.implementatie);
+                  return items.length > 0 ? (
+                    <div className="text-gray-700">
+                      <h4 className="text-md font-semibold mb-2">Implementatiestappen governance model</h4>
+                      <p className="text-gray-700 mb-4">
+                        Om het geselecteerde governance model succesvol te implementeren, moet u globaal de volgende stappepn doorvoeren..
+                      </p>
+                      {items.map((txt, idx) => (
+                        <div key={`imp-${idx}`}>{txt}</div>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-gray-700">Implementatiestappen voor het gekozen governance model worden later toegevoegd.</p>
                   );
                 })()}
-                {isSameGovernanceModel ? (
-                  <p className="text-gray-700">Het gekozen governance model is hetzelfde als uw huidige model. Er zijn geen aanvullende werkzaamheden nodig.</p>
-                ) : (
-                  (() => {
-                    const items = extractH2Headings(selectedGovernanceModelData.implementatie);
-                    return items.length > 0 ? (
-                      <div className="text-gray-700">
-                        <h4 className="text-md font-semibold mb-2">Implementatiestappen governance model</h4>
-                        {items.map((txt, idx) => (
-                          <div key={`imp-${idx}`}>{txt}</div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-700">Implementatiestappen voor het gekozen governance model worden later toegevoegd.</p>
-                    );
-                  })()
-                )}
                 {/* Link naar factsheet */}
-                <p className="text-sm text-gray-600 mt-4">
-                  Meer informatie over dit governance model en uitgebreide implementatiestappen vind u in de{' '}
-                  <GovernanceModelFactsheetButton
-                    governanceModel={selectedGovernanceModelData}
-                    selectedVariations={selectedVariationsData}
-                    governanceTitleToFieldName={governanceTitleToFieldName}
-                    stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
-                    className="inline-block p-0"
-                    buttonColorClassName="p-0 h-auto bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer"
-                  >
-                    factsheet {selectedGovernanceModelData.title}
-                  </GovernanceModelFactsheetButton>
-                  .
+                <p className="text-gray-700 mt-4">
+                  Meer informatie over dit governance model en uitgebreide implementatiestappen vindt u in de factsheet {selectedGovernanceModelData.title}.
                 </p>
+                <div className="mt-4">
+                  {isClient && (
+                    <PDFDownloadLink
+                      document={(
+                        <GovernanceModelFactsheetPdf
+                          model={selectedGovernanceModelData}
+                          variations={selectedVariationsData}
+                          governanceTitleToFieldName={governanceTitleToFieldName}
+                          stripSolutionPrefixFromVariantTitle={stripSolutionPrefixFromVariantTitle}
+                        />
+                      )}
+                      fileName={`Factsheet_Governance_Model_${(selectedGovernanceModelData.title || 'model').replace(/[^\s\w-]/gi, '_').replace(/\s+/g, '_')}.pdf`}
+                    >
+                      {({ loading }: { loading: boolean }) => (
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+                          <DocumentTextIcon className="h-4 w-4" />
+                          {loading ? 'Even geduld…' : `Download factsheet ${selectedGovernanceModelData.title}`}
+                        </Button>
+                      )}
+                    </PDFDownloadLink>
+                  )}
+                </div>
               </div>
             )}
-            {/* Divider between governance model and first solution */}
-            <div className="mt-6 pt-6 border-t border-gray-200" />
-            {isLoading && <p>Oplossingen en varianten laden...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {!isLoading && !error && Object.keys(selectedSolutionsData).length === 0 && (
+            {/* Algemene vervolgstappen verplaatst naar eigen sectie */}
+
+            {/* Einde governance container */}
+          </div>
+
+          {/* Losse kaarten per oplossing-variant combinatie */}
+          {isLoading && <p>Oplossingen en varianten laden...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {/* Algemene vervolgstappen eigen sectie */}
+          <div className="bg-white rounded-lg p-8 shadow-even">
+            <h3 className="text-2xl font-semibold mb-2">Algemene vervolgstappen</h3>
+            <p className="text-gray-700 mt-4 mb-4">
+                  Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:
+            </p>
+            <ul className="list-disc pl-5 space-y-1 text-gray-700">
+              <li>Check of bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.</li>
+              <li>Indien niet aanwezig, voer een bereikbaarheidsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.</li>
+              <li>Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.</li>
+              <li>Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen.</li>
+              <li>Bepaal het inkoop model.</li>
+              <li>Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!</li>
+            </ul>
+          </div>
+
+          {!isLoading && !error && Object.keys(selectedSolutionsData).length === 0 && (
+            <div className="bg-white rounded-lg p-8 shadow-even">
               <p>Geen oplossingen geselecteerd.</p>
-            )}
-            {!isLoading && !error && Object.keys(selectedSolutionsData).length > 0 && (
-              <>
-                {solutionsList.map((solution, idx) => {
-                  const solutionVariants = selectedVariationsData.filter(v => v.mobiliteitsdienstVariantId === solution.id);
-
+            </div>
+          )}
+          {!isLoading && !error && Object.keys(selectedSolutionsData).length > 0 && (
+            <>
+              {solutionsList.map((solution) => {
+                const solutionVariants = selectedVariationsData.filter(v => v.mobiliteitsdienstVariantId === solution.id);
+                return solutionVariants.map((variation) => {
+                  const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
                   return (
-                    <div key={solution.id} className={`mb-4 pb-2 ${idx < solutionsList.length - 1 ? 'border-b' : ''}`}>
-                      <h3 className="text-2xl font-semibold mb-3 text-gray-800">{solution.title}</h3>
-                      {solution.samenvattingLang && (
-                        <div className="prose prose-sm max-w-none mb-4 text-gray-700">
-                          <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
+                    <div key={`${solution.id}-${variation.id}`} className="bg-white rounded-lg p-8 shadow-even">
+                      <h3 className="text-2xl font-semibold mb-3 text-gray-800">{solution.title} - {displayVariantTitle}</h3>
+                      {variation.samenvatting && (
+                        <div className="prose prose-sm max-w-none mb-3 text-gray-700">
+                          <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
                         </div>
                       )}
-
-                      {/* Extra solution meta: moeilijkheidsgraad & doorlooptijd */}
-                      {(solution.moeilijkheidsgraad || solution.doorlooptijd) && (
-                        <div className="flex flex-wrap gap-4 text-gray-700 mb-2">
-                          {/* {solution.moeilijkheidsgraad && (
-                            <div className="flex items-center">
-                              <WrenchScrewdriverIcon className="h-4 w-4 text-amber-600 mr-1" />
-                              <span>Moeilijkheidsgraad: {solution.moeilijkheidsgraad}</span>
-                            </div>
-                          )} */}
-                          {solution.doorlooptijd && (
-                            <div className="flex items-center">
-                              <ClockIcon className="h-4 w-4 text-indigo-600 mr-1" />
-                              <span>Doorlooptijd: {solution.doorlooptijd}</span>
-                            </div>
-                          )}
+                      {variation.vervolgstappen && (
+                        <div className="prose prose-sm max-w-none mb-3 text-gray-700">
+                          <MarkdownContent content={processMarkdownText(variation.vervolgstappen)} />
                         </div>
                       )}
-
-                      {/* Verwijderd: automatische highlights onder oplossing */}
-
-                      {/* Inline factsheet link voor oplossing */}
-                      <p className="text-sm text-gray-600 mt-4">
-                        Meer informatie over deze vervoersoplossing vindt u in de{' '}
-                        <MobilitySolutionFactsheetButton
-                          solution={solution}
-                          className="inline-block p-0"
-                          buttonColorClassName="p-0 h-auto bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer"
-                        >
-                          factsheet {solution.title}
-                        </MobilitySolutionFactsheetButton>
+                      <p className="text-gray-700 mt-4">
+                        Meer informatie over deze vervoersoplossing vindt u in de factsheet {solution.title} en over deze implementatievariant in de factsheet {displayVariantTitle}.
                       </p>
-
-                      {solutionVariants.map(variation => {
-                        const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
-                        return (
-                          <div key={variation.id} className="mt-4 pt-4 border-t border-gray-200 mb-2 pb-1">
-                            <h3 className="text-2xl font-semibold mb-3 text-gray-800">{displayVariantTitle}</h3>
-                            {variation.samenvatting && (
-                              <div className="prose prose-sm max-w-none mb-3 text-gray-700">
-                                <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
-                              </div>
+                      <div className="flex flex-wrap gap-3 mt-4">
+                        {isClient && (
+                          <PDFDownloadLink
+                            document={<MobilitySolutionFactsheetPdf solution={solution} />}
+                            fileName={`Factsheet_${solution.title.replace(/[^a-z0-9]/gi, '_')}.pdf`}
+                          >
+                            {({ loading }) => (
+                              <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+                                <DocumentTextIcon className="h-4 w-4" />
+                                {loading ? 'Even geduld…' : `Download factsheet ${solution.title}`}
+                              </Button>
                             )}
-                            {variation.vervolgstappen && (
-                              <div className="prose prose-sm max-w-none mb-3 text-gray-700">
-                                <MarkdownContent content={processMarkdownText(variation.vervolgstappen)} />
-                              </div>
+                          </PDFDownloadLink>
+                        )}
+                        {isClient && (
+                          <PDFDownloadLink
+                            document={<ImplementationVariantFactsheetPdf variation={variation} />}
+                            fileName={`Factsheet_Variant_${variation.title.replace(/[^a-z0-9]/gi, '_')}.pdf`}
+                          >
+                            {({ loading }) => (
+                              <Button className="bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+                                <DocumentTextIcon className="h-4 w-4" />
+                                {loading ? 'Even geduld…' : `Download factsheet ${displayVariantTitle}`}
+                              </Button>
                             )}
-                            {/* Inline factsheet link voor implementatievariant */}
-                            <p className="text-sm text-gray-600 mt-4">
-                              Meer informatie over deze implementatievariant vindt u in de{' '}
-                              <ImplementationVariantFactsheetButton
-                                variation={variation}
-                                className="inline-block p-0"
-                                buttonColorClassName="p-0 h-auto bg-transparent hover:bg-transparent text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:underline cursor-pointer"
-                              >
-                                factsheet {displayVariantTitle}
-                              </ImplementationVariantFactsheetButton>
-                            </p>
-                            {/* Verwijderd: automatische highlights onder variant */}
-                          </div>
-                        );
-                      })} 
-                      {solutionVariants.length === 0 && (
-                        <p className="text-sm text-gray-600 mt-6 pt-6 border-t border-gray-200">Geen specifieke variant gekozen voor deze oplossing.</p>
-                      )}
+                          </PDFDownloadLink>
+                        )}
+                      </div>
                     </div>
                   );
-                })} 
-
-                {/* Geaggregeerde vervolgstappen onderaan verwijderd om dubbele weergave te voorkomen */}
-              </>
-            )}
-          </div>
+                });
+              })}
+            </>
+          )}
 
           {/* COVER Subsidie sectie - altijd zichtbaar */}
           <div className="bg-white rounded-lg p-8 shadow-even">

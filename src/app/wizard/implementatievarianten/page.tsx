@@ -35,7 +35,14 @@ export default function SelectImplementationVariantPage() {
       try {
         for (const solutionId of selectedSolutions) {
           const solution = await getMobilitySolutionById(solutionId);
-          const variations = await getImplementationVariationsForSolution(solutionId);
+          let variations = await getImplementationVariationsForSolution(solutionId);
+          // Extra safeguard: sort by numeric 'order' (0 highest), then by title
+          variations = [...variations].sort((a, b) => {
+            const ao = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER;
+            const bo = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER;
+            if (ao !== bo) return ao - bo;
+            return a.title.localeCompare(b.title);
+          });
           fetchedData[solutionId] = { solution, variations };
         }
         setData(fetchedData);

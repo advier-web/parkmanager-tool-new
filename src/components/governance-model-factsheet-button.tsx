@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/components/ui/button';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { GovernanceModel, ImplementationVariation } from '@/domain/models';
 import GovernanceModelFactsheetPdf from './governance-model-factsheet-pdf'; // Path to the PDF document component
 
@@ -46,34 +46,19 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
 
   if (!isClient) {
     return (
-      <Button variant="default" disabled className={`${className} bg-blue-600 text-white opacity-75`}>
-        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-75`}>
+        <DocumentTextIcon className="h-4 w-4" />
         PDF laden...
       </Button>
     );
   }
 
   return (
-    <PDFDownloadLink
-      document={pdfDocument}
-      fileName={fileName}
-    >
-      {({ blob, url, loading, error }) => (
-        <Button 
-          variant="default" 
-          className={`${className} ${buttonColorClassName}`} // Use buttonColorClassName
-          disabled={loading}
-        >
-          {children ? (
-            <>
-              {loading ? 'Genereren...' : children}
-            </>
-          ) : (
-            <>
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              {loading ? 'PDF genereren...' : `Download Factsheet: ${governanceModel.title || 'Governance Model'}`}
-            </>
-          )}
+    <PDFDownloadLink document={pdfDocument} fileName={fileName}>
+      {({ loading }) => (
+        <Button variant="default" className={`${className} ${buttonColorClassName}`} disabled={loading}>
+          <DocumentTextIcon className="h-4 w-4" />
+          {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${governanceModel.title || 'Governance Model'}`)}
         </Button>
       )}
     </PDFDownloadLink>

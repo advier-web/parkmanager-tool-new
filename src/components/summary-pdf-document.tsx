@@ -470,7 +470,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerSection}>
-          <Text style={styles.mainTitle}>Vervolgstappen</Text>
+          <Text style={styles.mainTitle}>Adviesrapport</Text>
         </View>
 
         {/* == Section 1: Uw Keuzes == */}
@@ -534,85 +534,58 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           </View>
         </View>
 
-        {/* == Section 2: Geselecteerde Oplossingen & Varianten == */}
-        <View style={styles.section}>
-          <Text style={styles.h2}>Geselecteerde Oplossingen & Varianten</Text>
-          {selectedSolutionsData.map((solution, index) => {
-            const variantIdForSolution = selectedVariants[solution.id];
-            const chosenVariant = findVariantById(variantIdForSolution);
-            const relevantUserReasons = reasons.filter(r => selectedReasonIds.includes(r.id) && r.identifier);
-
-            return (
-              <View key={solution.id} style={index === selectedSolutionsData.length - 1 ? styles.lastSolutionBlock : styles.solutionBlock}>
-                <Text style={styles.h3}>{solution.title}</Text>
-                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-desc-${solution.id}`)}
-
-                {relevantUserReasons.length > 0 && (
-                  <View style={styles.contributionBlock}>
-                    <Text style={styles.h4}>Bijdrage aan geselecteerde aanleidingen:</Text>
-                    {relevantUserReasons.map(reason => {
-                      const explanationFieldName = reason.identifier ? snakeToCamelHelper(reason.identifier) + 'Toelichting' : ''; // Use helper and add suffix
-                      const explanationText = (solution as any)[explanationFieldName];
-                      return (
-                        <View key={reason.id} style={styles.contributionItem}>
-                          <Text style={styles.label}>{reason.title}:</Text>
-                          {explanationText ? (
-                            <View style={{ marginLeft: 10 }}>{renderRichText(explanationText, `reason-expl-${solution.id}-${reason.id}`)}</View>
-                          ) : (
-                            <Text style={styles.subtleText}>(Geen specifieke toelichting beschikbaar)</Text>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-
-                {chosenVariant && (
-                  <View style={styles.variantBlock}>
-                    <Text style={styles.h4}>Geselecteerde implementatievariant: {stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
-                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                  </View>
-                )}
-                 {!chosenVariant && Object.keys(selectedVariants).includes(solution.id) && selectedVariants[solution.id] && ( // Case where variantId is selected but data not found (should be rare)
-                  <View style={styles.variantBlock}>
-                    <Text style={styles.h4}>Geselecteerde implementatievariant:</Text>
-                    <Text style={styles.subtleText}>(Details voor variant ID {selectedVariants[solution.id]} konden niet geladen worden)</Text>
-                  </View>
-                )}
-                 {/* Consider adding a note if no variant was selected for this solution AT ALL, if applicable based on app logic */}
-
-              </View>
-            );
-          })}
-        </View>
-
-        {/* == Section 3: Gekozen Governance Model == */}
+        {/* == Section 2: Governance model == */}
         {selectedGovModel && (
-          <View style={styles.lastSection}>
-            <Text style={styles.h2}>Gekozen Governance Model</Text>
+          <View style={styles.section}>
+            <Text style={styles.h2}>Governancemodel</Text>
             <Text style={styles.h3}>{selectedGovModel.title}</Text>
-            {renderRichText(selectedGovModel.description || selectedGovModel.summary, `gov-desc-${selectedGovModel.id}`)}
-            
-            {selectedVariationsData && selectedVariationsData.length > 0 && (
-              <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: '#f0f0f0' }}>
-                <Text style={styles.h4}>Relevantie voor geselecteerde varianten:</Text>
-                {selectedVariationsData.map(variation => {
-                  const fieldName = governanceTitleToFieldName(selectedGovModel.title); // Use helper
-                  if (!fieldName) return null;
-                  
-                  const text = (variation as any)[fieldName];
-                  if (!text) return null;
-
-                  return (
-                    <View key={variation.id} style={{ marginBottom: 8, marginLeft: 10 }}>
-                      <Text style={styles.label}>Relevantie voor variant "{stripSolutionPrefixFromVariantTitle(variation.title)}":</Text>
-                      {renderRichText(text, `gov-var-rel-${variation.id}`)}
-                    </View>
-                  );
-                })}
+            {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
+            {selectedGovModel.implementatie && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={styles.h4}>Implementatie</Text>
+                {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
               </View>
             )}
           </View>
+        )}
+
+        {/* == Section 3: Vervoersoplossing == */}
+        {selectedSolutionsData && selectedSolutionsData.length > 0 && (
+          (() => {
+            const solution = selectedSolutionsData[0];
+            const variantIdForSolution = selectedVariants[solution.id];
+            const chosenVariant = findVariantById(variantIdForSolution);
+            return (
+              <>
+                <View style={styles.section}>
+                  <Text style={styles.h2}>Vervoersoplossing</Text>
+                  <Text style={styles.h3}>{solution.title}</Text>
+                  {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
+                  {solution.uitvoering && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={styles.h4}>Uitvoering</Text>
+                      {renderRichText(solution.uitvoering, `sol-uitv-${solution.id}`)}
+                    </View>
+                  )}
+                </View>
+
+                {/* == Section 4: Implementatievariant == */}
+                {chosenVariant && (
+                  <View style={styles.lastSection}>
+                    <Text style={styles.h2}>Implementatievariant</Text>
+                    <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
+                    {chosenVariant.vervolgstappen && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={styles.h4}>Vervolgstappen</Text>
+                        {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
+                      </View>
+                    )}
+                  </View>
+                )}
+              </>
+            );
+          })()
         )}
         
         {/* Potential Footer for page numbers or generated date */}

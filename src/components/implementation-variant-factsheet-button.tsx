@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import ImplementationVariantFactsheetPdf from './implementation-variant-factsheet-pdf';
 import { Button } from '@/components/ui/button';
-import { DocumentArrowDownIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { ImplementationVariation } from '@/domain/models';
 
 interface ImplementationVariantFactsheetButtonProps {
@@ -34,7 +34,7 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
   if (!variation) {
     return (
       <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+        <DocumentTextIcon className="h-4 w-4" />
         Factsheet Variant (niet beschikbaar)
       </Button>
     );
@@ -47,16 +47,9 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
       {isClient && isArmed && pdfDocument ? (
         <PDFDownloadLink document={pdfDocument} fileName={fileName}>
           {({ loading }) => (
-            <Button variant="default" disabled={loading} className={buttonColorClassName}>
-              {children ? (
-                <>
-                  {loading ? 'Genereren...' : children}
-                </>
-              ) : (
-                <>
-                  {loading ? 'Factsheet genereren...' : `Download Factsheet: ${variation.title}`}
-                </>
-              )}
+            <Button variant="default" className={buttonColorClassName} disabled={loading}>
+              <DocumentTextIcon className="h-4 w-4" />
+              {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${variation.title}`)}
             </Button>
           )}
         </PDFDownloadLink>
@@ -70,11 +63,12 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
             setIsArmed(true);
           }}
         >
-          {children || `Download Factsheet: ${variation.title}`}
+          <DocumentTextIcon className="h-4 w-4" />
+          {children || `Download factsheet ${variation.title}`}
         </Button>
       ) : (
         <Button variant="default" disabled className={buttonColorClassName}>
-          <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+          <DocumentTextIcon className="h-4 w-4" />
           Factsheet laden...
         </Button>
       )}

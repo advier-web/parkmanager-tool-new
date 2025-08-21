@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import MobilitySolutionFactsheetPdf from './mobility-solution-factsheet-pdf';
 import { Button } from '@/components/ui/button';
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { MobilitySolution } from '@/domain/models';
 
 interface MobilitySolutionFactsheetButtonProps {
@@ -32,7 +32,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   if (!solution) {
     return (
       <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+        <DocumentTextIcon className="h-4 w-4" />
         Factsheet Oplossing (niet beschikbaar)
       </Button>
     );
@@ -43,41 +43,26 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   if (!pdfDocument) {
     return (
       <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+        <DocumentTextIcon className="h-4 w-4" />
         Factsheet (document niet beschikbaar)
       </Button>
     );
   }
 
-  return (
-    <span className={className}>
-      {isClient ? (
-        <PDFDownloadLink
-          document={pdfDocument}
-          fileName={fileName}
-        >
-          {({ loading }) => (
-            <Button variant="default" disabled={loading} className={buttonColorClassName}>
-              {children ? (
-                <>
-                  {loading ? 'Genereren...' : children}
-                </>
-              ) : (
-                <>
-                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                  {loading ? 'Factsheet genereren...' : `Download Factsheet: ${solution.title}`}
-                </>
-              )}
-            </Button>
-          )}
-        </PDFDownloadLink>
-      ) : (
-        <Button variant="default" disabled className={buttonColorClassName}>
-          <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-          Factsheet laden...
+  return isClient ? (
+    <PDFDownloadLink document={pdfDocument} fileName={fileName}>
+      {({ loading }) => (
+        <Button variant="default" className={`${className} ${buttonColorClassName}`} disabled={loading}>
+          <DocumentTextIcon className="h-4 w-4" />
+          {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${solution.title}`)}
         </Button>
       )}
-    </span>
+    </PDFDownloadLink>
+  ) : (
+    <Button variant="default" disabled className={`${className} ${buttonColorClassName}`}>
+      <DocumentTextIcon className="h-4 w-4" />
+      Factsheet laden...
+    </Button>
   );
 };
 

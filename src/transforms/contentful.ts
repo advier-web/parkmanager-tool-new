@@ -132,6 +132,7 @@ export function transformImplementationVariation(entry: Entry<any>): Implementat
       title: typeof fields.title === 'string' ? fields.title : 'Unnamed Variation',
       // Extract the ID from the linked mobiliteitsdienstVariant field safely
       mobiliteitsdienstVariantId: getLinkedEntryId(fields.mobiliteitsdienstVariant),
+      order: typeof fields.order === 'number' ? fields.order : undefined,
       samenvatting: typeof fields.samenvatting === 'string' ? fields.samenvatting : undefined,
       investering: typeof fields.investering === 'string' ? fields.investering : undefined,
       realisatieplan: typeof fields.realisatieplan === 'string' ? fields.realisatieplan : undefined,
