@@ -466,11 +466,25 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
     </View>
   );
 
+  // Introductietekst voor pagina 1
+  const introParagraphs: string[] = [
+    'Dit adviesrapport is een compacte samenvatting van de keuzes die u in de wizard heeft gemaakt. Het brengt de belangrijkste uitgangspunten en geselecteerde opties overzichtelijk bij elkaar en helpt u om de vervolgstappen te plannen en te onderbouwen.',
+    'Het advies richt zich op collectieve vervoersoplossingen: voorzieningen waarmee meerdere organisaties of doelgroepen samen vervoer organiseren en financieren. Door capaciteit te bundelen ontstaan efficiëntere, betaalbaardere en duurzamere reisopties. De aanpak werkt het best wanneer bedrijven, parkmanagement en aanbieders afspraken vastleggen in een passend governance- en inkoopmodel.'
+  ];
+
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.headerSection}>
           <Text style={styles.mainTitle}>Adviesrapport</Text>
+        </View>
+
+        {/* Intro */}
+        <View style={styles.section}>
+          <Text style={styles.h2}>Over dit advies</Text>
+          {introParagraphs.map((p, i) => (
+            <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
+          ))}
         </View>
 
         {/* == Section 1: Uw Keuzes == */}
@@ -534,9 +548,16 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           </View>
         </View>
 
-        {/* == Section 2: Governance model == */}
+        {/* Potential Footer for page numbers or generated date */}
+        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
+          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </Text>
+
+      </Page>
+      {/* Page 2: Governance model only */}
+      <Page size="A4" orientation="landscape" style={styles.page}>
         {selectedGovModel && (
-          <View style={styles.section}>
+          <View style={styles.lastSection}>
             <Text style={styles.h2}>Governancemodel</Text>
             <Text style={styles.h3}>{selectedGovModel.title}</Text>
             {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
@@ -548,51 +569,51 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             )}
           </View>
         )}
-
-        {/* == Section 3: Vervoersoplossing == */}
-        {selectedSolutionsData && selectedSolutionsData.length > 0 && (
-          (() => {
-            const solution = selectedSolutionsData[0];
-            const variantIdForSolution = selectedVariants[solution.id];
-            const chosenVariant = findVariantById(variantIdForSolution);
-            return (
-              <>
-                <View style={styles.section}>
-                  <Text style={styles.h2}>Vervoersoplossing</Text>
-                  <Text style={styles.h3}>{solution.title}</Text>
-                  {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
-                  {solution.uitvoering && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={styles.h4}>Uitvoering</Text>
-                      {renderRichText(solution.uitvoering, `sol-uitv-${solution.id}`)}
-                    </View>
-                  )}
-                </View>
-
-                {/* == Section 4: Implementatievariant == */}
-                {chosenVariant && (
-                  <View style={styles.lastSection}>
-                    <Text style={styles.h2}>Implementatievariant</Text>
-                    <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
-                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                    {chosenVariant.vervolgstappen && (
-                      <View style={{ marginTop: 10 }}>
-                        <Text style={styles.h4}>Vervolgstappen</Text>
-                        {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
-                      </View>
-                    )}
-                  </View>
-                )}
-              </>
-            );
-          })()
-        )}
-        
-        {/* Potential Footer for page numbers or generated date */}
         <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
           Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </Text>
+      </Page>
 
+      {/* Page 3: Solution + Variant (without 'uitvoering', with attention points) */}
+      <Page size="A4" orientation="landscape" style={styles.page}>
+        {selectedSolutionsData && selectedSolutionsData.length > 0 && (() => {
+          const solution = selectedSolutionsData[0];
+          const variantIdForSolution = selectedVariants[solution.id];
+          const chosenVariant = findVariantById(variantIdForSolution);
+          return (
+            <>
+              <View style={styles.section}>
+                <Text style={styles.h2}>Vervoersoplossing</Text>
+                <Text style={styles.h3}>{solution.title}</Text>
+                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
+                {/* 'Uitvoering' verwijderd op verzoek */}
+              </View>
+
+              {chosenVariant && (
+                <View style={styles.lastSection}>
+                  <Text style={styles.h2}>Implementatievariant</Text>
+                  <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                  {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
+                  {chosenVariant.realisatieplanAandachtspunten && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={styles.h4}>Realisatieplan – aandachtspunten</Text>
+                      {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
+                    </View>
+                  )}
+                  {chosenVariant.vervolgstappen && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={styles.h4}>Vervolgstappen</Text>
+                      {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
+                    </View>
+                  )}
+                </View>
+              )}
+            </>
+          );
+        })()}
+        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
+          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </Text>
       </Page>
     </Document>
   );

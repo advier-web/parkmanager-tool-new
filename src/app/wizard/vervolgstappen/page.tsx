@@ -362,7 +362,7 @@ export default function VervolgstappenPage() {
                     <div className="text-gray-700">
                       <h4 className="text-md font-semibold mb-2">Implementatiestappen governance model</h4>
                       <p className="text-gray-700 mb-4">
-                        Om het geselecteerde governance model succesvol te implementeren, moet u globaal de volgende stappepn doorvoeren..
+                        Om het geselecteerde governance model succesvol te implementeren, moet u globaal de volgende stappen doorvoeren. Voor een gedetailleerde uitleg, raadpleeg de factsheet via de downloadknop.
                       </p>
                       {items.map((txt, idx) => (
                         <div key={`imp-${idx}`}>{txt}</div>
@@ -374,7 +374,7 @@ export default function VervolgstappenPage() {
                 })()}
                 {/* Link naar factsheet */}
                 <p className="text-gray-700 mt-4">
-                  Meer informatie over dit governance model en uitgebreide implementatiestappen vindt u in de factsheet {selectedGovernanceModelData.title}.
+                  Meer informatie over dit governance model vindt u in de factsheet {selectedGovernanceModelData.title}.
                 </p>
                 <div className="mt-4">
                   {isClient && (
@@ -415,11 +415,10 @@ export default function VervolgstappenPage() {
                   Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:
             </p>
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
-              <li>Check of bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.</li>
-              <li>Indien niet aanwezig, voer een bereikbaarheidsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.</li>
-              <li>Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.</li>
-              <li>Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen.</li>
-              <li>Bepaal het inkoop model.</li>
+              <li>Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.</li>
+              <li>Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.</li>
+              <li>Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.</li>
+              <li>Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.</li>
               <li>Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!</li>
             </ul>
           </div>
