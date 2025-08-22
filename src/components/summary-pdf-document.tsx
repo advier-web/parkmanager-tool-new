@@ -599,7 +599,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           const variantIdForSolution = selectedVariants[solution.id];
           const chosenVariant = findVariantById(variantIdForSolution);
           return (
-            <>
+            <View>
               <View style={styles.section}>
                 <View style={styles.twoColRow}>
                   <View style={styles.twoColLeft}>
@@ -630,7 +630,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
                   </View>
                 </View>
               </View>
-            </>
+            </View>
           );
         })()}
         {/* Footer intentionally removed to simplify rendering */}
