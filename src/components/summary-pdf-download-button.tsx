@@ -1,0 +1,114 @@
+"use client";
+
+import React from 'react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { Button } from '@/components/ui/button';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import SummaryPdfDocument from './summary-pdf-document';
+import { BusinessParkInfo, GovernanceModel, ImplementationVariation, MobilitySolution } from '@/domain/models';
+import { SelectedVariantMap } from '@/lib/store';
+
+interface SummaryPdfDownloadButtonProps {
+  businessParkInfo: BusinessParkInfo;
+  businessParkName: string;
+  currentGovernanceModelTitle: string;
+  selectedReasonTitles: string[];
+  selectedSolutionsData: MobilitySolution[];
+  selectedVariants: SelectedVariantMap;
+  selectedGovernanceModelId: string | null;
+  governanceModels: GovernanceModel[];
+  governanceTitleToFieldName: (title: string | undefined) => string | null;
+  reasons: Array<{ id: string; title: string; identifier?: string }>;
+  selectedReasons: string[];
+  snakeToCamel: (str: string) => string;
+  selectedVariationsData?: ImplementationVariation[];
+  fileName: string;
+  className?: string;
+  buttonClassName?: string;
+  label?: string;
+}
+
+export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButtonProps) {
+  const {
+    businessParkInfo,
+    businessParkName,
+    currentGovernanceModelTitle,
+    selectedReasonTitles,
+    selectedSolutionsData,
+    selectedVariants,
+    selectedGovernanceModelId,
+    governanceModels,
+    governanceTitleToFieldName,
+    reasons,
+    selectedReasons,
+    snakeToCamel,
+    selectedVariationsData = [],
+    fileName,
+    className = '',
+    buttonClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
+    label = 'Download Adviesrapport',
+  } = props;
+
+  const [isClient, setIsClient] = React.useState(false);
+  const [isArmed, setIsArmed] = React.useState(false);
+
+  React.useEffect(() => setIsClient(true), []);
+
+  if (!isClient) {
+    return (
+      <Button variant="default" disabled className={buttonClassName + ' ' + className}>
+        <DocumentTextIcon className="h-4 w-4" />
+        Laden…
+      </Button>
+    );
+  }
+
+  if (!isArmed) {
+    return (
+      <Button
+        variant="default"
+        className={buttonClassName + ' ' + className}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsArmed(true);
+        }}
+      >
+        <DocumentTextIcon className="h-4 w-4" />
+        {label}
+      </Button>
+    );
+  }
+
+  return (
+    <PDFDownloadLink
+      document={(
+        <SummaryPdfDocument
+          businessParkInfo={businessParkInfo}
+          businessParkName={businessParkName}
+          currentGovernanceModelTitle={currentGovernanceModelTitle}
+          selectedReasonTitles={selectedReasonTitles}
+          selectedSolutionsData={selectedSolutionsData}
+          selectedVariants={selectedVariants}
+          selectedGovernanceModelId={selectedGovernanceModelId}
+          governanceModels={governanceModels}
+          governanceTitleToFieldName={governanceTitleToFieldName}
+          reasons={reasons}
+          selectedReasons={selectedReasons}
+          snakeToCamel={snakeToCamel}
+          selectedVariationsData={selectedVariationsData}
+        />
+      )}
+      fileName={fileName}
+    >
+      {({ loading }: { loading: boolean }) => (
+        <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
+          <DocumentTextIcon className="h-4 w-4" />
+          {loading ? 'Even geduld…' : label}
+        </Button>
+      )}
+    </PDFDownloadLink>
+  );
+}
+
+

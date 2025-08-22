@@ -172,27 +172,37 @@ export function SolutionCard({
           </div>
 
           {/* Two-column details layout */}
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-3 pt-3 border-t border-gray-100 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left column: labels replaced by icons */}
             <div className="space-y-3 text-sm text-gray-700">
               {solution.minimumAantalPersonen && (
                 <div className="flex items-start">
                   <UserGroupIcon className="h-4 w-4 text-blue-500 mr-2 mt-0.5" />
-                  <div>{solution.minimumAantalPersonen}</div>
+                  <div>
+                    <span className="font-semibold mr-1">Minimum aantal personen:</span>
+                    <span>{solution.minimumAantalPersonen}</span>
+                  </div>
                 </div>
               )}
               {solution.minimaleInvestering && (
                 <div className="flex items-start">
                   <CurrencyEuroIcon className="h-4 w-4 text-emerald-600 mr-2 mt-0.5" />
-                  <div className="text-gray-800">{solution.minimaleInvestering}</div>
+                  <div className="text-gray-800">
+                    <span className="font-semibold mr-1">Investering:</span>
+                    <span>{solution.minimaleInvestering}</span>
+                  </div>
                 </div>
               )}
-              {solution.afstand && (
+              {solution.afhankelijkheidExternePartijen && (
                 <div className="flex items-start">
-                  <MapPinIcon className="h-4 w-4 text-rose-500 mr-2 mt-0.5" />
-                  <div>{solution.afstand}</div>
+                  <svg className="h-4 w-4 text-blue-600 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a4 4 0 00-4 4v2H5a3 3 0 000 6h3v-2H5a1 1 0 110-2h1v2a4 4 0 008 0v-2h1a3 3 0 100-6h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4zm2 2h1a1 1 0 110 2h-1v-2z" /></svg>
+                  <div className="text-gray-800">
+                    <span className="font-semibold mr-1">Afhankelijkheid externe partijen:</span>
+                    <span>{solution.afhankelijkheidExternePartijen}</span>
+                  </div>
                 </div>
               )}
+              {/* Afstand veld verwijderd uit app */}
             </div>
 
             {/* Right column */}
@@ -286,7 +296,7 @@ export function SolutionCard({
           </div>
 
           {onMoreInfo && (
-              <div className="flex items-center gap-6 mt-3 pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-6 mt-3">
               <div>
                 <button
                   type="button"

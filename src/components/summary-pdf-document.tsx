@@ -81,11 +81,9 @@ const styles = StyleSheet.create({
     lineHeight: 1.1,
   },
   section: { // For major sections like "Uw keuzes"
-    marginBottom: 15, // Consistent with factsheets
-    paddingBottom: 10, // Consistent with factsheets
-    borderBottomWidth: 1, // Consistent with factsheets
-    borderBottomColor: '#eaeaea', // Consistent with factsheets
-    borderBottomStyle: 'solid',
+    marginBottom: 15,
+    paddingBottom: 0,
+    borderBottomWidth: 0,
   },
   lastSection: { // No border for the last section
     marginBottom: 15, // Consistent margin
@@ -93,7 +91,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   h2: { // Section titles like "Uw keuzes", "Geselecteerde Oplossingen & Varianten"
-    fontSize: 12.5, // Consistent with factsheet sectionTitle
+    fontSize: 11.5, // iets kleiner zoals gevraagd
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     color: '#000000', // Consistent with factsheet sectionTitle
@@ -337,64 +335,32 @@ const renderInlineFormatting = (line: string, keyPrefix: string) => {
   });
 };
 
-// Main renderer: Handles blocks (paragraphs, headings, lists, tables)
+// Fallback-safe text renderer: strips html and renders as paragraphs only
+const safeRenderText = (text: string | null | undefined, baseKey: string) => {
+  if (!text) return null;
+  const stripped = cleanText(String(text).replace(/<[^>]+>/g, ' '));
+  const paras = stripped.split(/\n{2,}|\r\n{2,}/).map(s => s.trim()).filter(Boolean);
+  return (
+    <View key={`${baseKey}-safe`}>
+      {paras.map((p, i) => (
+        <Text key={`${baseKey}-p-${i}`} style={styles.paragraph}>{p}</Text>
+      ))}
+    </View>
+  );
+};
+
+// Main renderer: Handles basic markdown (headings, lists, italics) safely
 const renderRichText = (text: string | null | undefined, baseKey: string) => {
   if (!text) return null;
   const cleanedText = cleanText(text);
   const blocks = cleanedText.split(/\n{2,}/); // Split into blocks by double+ newlines
   let elementKey = 0;
 
-  const elements = blocks.flatMap((block, blockIndex) => {
+  const elements = blocks.reduce<React.ReactElement[]>((acc, block, blockIndex) => {
     const blockKey = `${baseKey}-block-${blockIndex}`;
     const lines = block.trim().split('\n');
     
-    // --- Handle Tables ---
-    if (lines.length > 1 && lines[0].includes('|') && lines[1].includes('---')) {
-        const headerLine = lines[0];
-        const dataLines = lines.slice(2);
-        
-        // Split headers, trim, and remove potential empty strings from start/end pipes
-        const headers = headerLine.split('|').map(h => h.trim()).slice(1, -1); 
-        const numColumns = headers.length;
-
-        if (numColumns > 0) { // Proceed only if we have valid headers
-            const dataRows = dataLines.map(rowLine => {
-                // Split data row, trim, remove start/end pipe fragments
-                const cells = rowLine.split('|').map(c => c.trim()).slice(1, -1);
-                // Normalize cell count: Pad with empty strings or truncate
-                const normalizedCells = Array(numColumns).fill('');
-                for (let i = 0; i < numColumns; i++) {
-                    normalizedCells[i] = cells[i] || ''; // Use cell value or empty string
-                }
-                return normalizedCells;
-            });
-
-            elementKey++;
-            return (
-                <View key={`${blockKey}-table-${elementKey}`} style={styles.table}>
-                    {/* Header Row - Apply last col style */}
-                    <View style={styles.tableRow}>
-                        {headers.map((header, hIndex) => (
-                            <View key={`h-${hIndex}`} style={hIndex === numColumns - 1 ? styles.tableColHeaderLast : styles.tableColHeader}>
-                                <Text style={styles.tableCell}>{renderInlineFormatting(header, `${blockKey}-th-${hIndex}`)}</Text>
-                            </View>
-                        ))}
-                    </View>
-                    {/* Data Rows - Apply last col style and right align text in last cell */}
-                    {dataRows.map((row, rIndex) => (
-                        <View key={`r-${rIndex}`} style={styles.tableRow}>
-                            {row.map((cell, cIndex) => (
-                                <View key={`c-${rIndex}-${cIndex}`} style={cIndex === numColumns - 1 ? styles.tableColLast : styles.tableCol}>
-                                    <Text style={cIndex === numColumns - 1 ? styles.tableCellRight : styles.tableCell}>{renderInlineFormatting(cell, `${blockKey}-td-${rIndex}-${cIndex}`)}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    ))}
-                </View>
-            );
-        } 
-        // If table detection fails basic validation, fall through
-    }
+    // Omit table handling for stability
 
     // --- Handle Other Block Types (Headings, Lists, Paragraphs) ---
     const renderedLines = lines.map((line, lineIndex) => {
@@ -425,12 +391,127 @@ const renderRichText = (text: string | null | undefined, baseKey: string) => {
       return null; // Skip empty lines within a block
     });
     
-    return renderedLines.filter(el => el !== null);
-  });
+    const filtered = renderedLines.filter(el => el !== null);
+    if (filtered.length > 0) {
+      acc.push(
+        <View key={`${blockKey}-container`}>
+          {filtered}
+        </View>
+      );
+    }
+    return acc;
+  }, []);
 
-  return <>{elements}</>; // Render all parsed elements
+  // Ensure a single root element
+  return <View>{elements}</View>;
 };
 
+// Split text into two approx-equal halves by block length (best-effort for 2-column flow)
+function splitTextForColumns(text?: string): { left: string; right: string } {
+  if (!text || typeof text !== 'string') return { left: '', right: '' };
+  const blocks = cleanText(text).split(/\n{2,}/).filter(Boolean);
+  const totalLen = blocks.reduce((n, b) => n + b.length, 0);
+  let acc = 0;
+  const pivot = blocks.findIndex((b) => {
+    acc += b.length;
+    return acc >= totalLen / 2;
+  });
+  const p = pivot < 0 ? blocks.length : pivot + 1;
+  return {
+    left: blocks.slice(0, p).join('\n\n'),
+    right: blocks.slice(p).join('\n\n'),
+  };
+}
+
+// Paginate a long text into N pages of two columns (approximate), preserving blocks
+function paginateTwoColumns(text?: string, approxCharsPerColumn: number = 2200): Array<{ left: string; right: string }> {
+  if (!text || typeof text !== 'string') return [];
+  const blocks = cleanText(text).split(/\n{2,}/).filter(Boolean);
+  const takeChunk = (fromIndex: number): { chunk: string; nextIndex: number } => {
+    let accLen = 0;
+    let i = fromIndex;
+    const chosen: string[] = [];
+    while (i < blocks.length && accLen + blocks[i].length <= approxCharsPerColumn) {
+      chosen.push(blocks[i]);
+      accLen += blocks[i].length;
+      i++;
+    }
+    if (i < blocks.length && chosen.length === 0) {
+      // Single block too large; split at sentence boundary near approxCharsPerColumn
+      const b = blocks[i];
+      const slicePoint = Math.max(
+        b.lastIndexOf('. ', approxCharsPerColumn),
+        b.lastIndexOf('\n', approxCharsPerColumn),
+        b.lastIndexOf(' ', approxCharsPerColumn / 1.1)
+      );
+      if (slicePoint > 0) {
+        chosen.push(b.slice(0, slicePoint + 1));
+        blocks[i] = b.slice(slicePoint + 1).trim();
+      } else {
+        chosen.push(b.slice(0, approxCharsPerColumn));
+        blocks[i] = b.slice(approxCharsPerColumn).trim();
+      }
+    }
+    return { chunk: chosen.join('\n\n'), nextIndex: i };
+  };
+
+  const pages: Array<{ left: string; right: string }> = [];
+  let idx = 0;
+  while (idx < blocks.length) {
+    const leftRes = takeChunk(idx);
+    idx = leftRes.nextIndex;
+    const rightRes = takeChunk(idx);
+    idx = rightRes.nextIndex;
+    pages.push({ left: leftRes.chunk, right: rightRes.chunk });
+  }
+  return pages;
+}
+
+// Improved pagination using line estimation per column (more even fill)
+function paginateTwoColumnsByLines(text?: string, maxLinesPerColumn: number = 38, maxCharsPerLine: number = 85): Array<{ left: string; right: string }> {
+  if (!text || typeof text !== 'string') return [];
+  const paras = cleanText(text).split(/\n{2,}/).filter(Boolean);
+
+  const estimateLines = (p: string) => {
+    const words = p.replace(/\s+/g, ' ').trim().split(' ');
+    let lines = 0;
+    let cur = 0;
+    for (const w of words) {
+      const len = w.length + 1; // include space
+      if (cur + len > maxCharsPerLine) {
+        lines += 1;
+        cur = len;
+      } else {
+        cur += len;
+      }
+    }
+    if (cur > 0) lines += 1;
+    return Math.max(lines, 1);
+  };
+
+  const pages: Array<{ left: string; right: string }> = [];
+  let idx = 0;
+  while (idx < paras.length) {
+    // Fill left
+    let leftLines = 0;
+    const leftParts: string[] = [];
+    while (idx < paras.length && leftLines + estimateLines(paras[idx]) <= maxLinesPerColumn) {
+      leftParts.push(paras[idx]);
+      leftLines += estimateLines(paras[idx]);
+      idx++;
+    }
+    // Fill right
+    let rightLines = 0;
+    const rightParts: string[] = [];
+    while (idx < paras.length && rightLines + estimateLines(paras[idx]) <= maxLinesPerColumn) {
+      rightParts.push(paras[idx]);
+      rightLines += estimateLines(paras[idx]);
+      idx++;
+    }
+    pages.push({ left: leftParts.join('\n\n'), right: rightParts.join('\n\n') });
+  }
+  return pages;
+}
 const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   businessParkInfo,
   businessParkName,
@@ -485,103 +566,77 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
 
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={styles.page}>
+      <Page size="A4" style={styles.page}>
         <View style={styles.headerSection}>
           <Text style={styles.mainTitle}>Adviesrapport</Text>
         </View>
 
-        {/* Two-column layout: left intro, right choices */}
+        {/* Page 1 - single column stacked content */}
         <View style={styles.section}>
-          <View style={styles.twoColRow}>
-            <View style={styles.twoColLeft}>
-              <Text style={styles.h2}>Over dit advies</Text>
-              {introParagraphs.map((p, i) => (
-                <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
-              ))}
+          <Text style={styles.h2}>Over dit advies</Text>
+          {introParagraphs.map((p, i) => (
+            <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
+          ))}
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.h2}>Uw Keuzes</Text>
+          <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
+          {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
+          {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
+          {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
+            <View style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>Verkeerstypen:</Text>
+              {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
             </View>
-            <View style={styles.twoColRight}>
-              <Text style={styles.h2}>Uw Keuzes</Text>
-              <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
-              <View style={styles.gridContainer}>
-                <View style={styles.gridColumn}>
-                  {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
-                  {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
-                    <View style={{ marginBottom: 6 }}>
-                      <Text style={styles.label}>Verkeerstypen:</Text>
-                      {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
-                    </View>
-                  )}
-                  {renderLabelValue("Bereikbaarheid met auto", businessParkInfo.carAccessibility, "bp")}
-                  {renderLabelValue("Bereikbaarheid met trein", businessParkInfo.trainAccessibility, "bp")}
-                  {renderLabelValue("Bereikbaarheid met bus", businessParkInfo.busAccessibility, "bp")}
-                </View>
-                <View style={styles.gridColumnLast}>
-                  {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
-                  {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
-                  {businessParkInfo.employeePickupPreference && renderLabelValue(
-                    "Deel van de woon-werkreis",
-                    businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
-                    "bp"
-                  )}
-                  {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}
-                  {businessParkInfo.averageDistance && renderLabelValue("Gemiddelde woon-werk afstand", businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`, "bp")}
-                </View>
-              </View>
-
-              <Text style={styles.h3}>Selecties</Text>
-              <View style={styles.gridContainer}>
-                <View style={styles.gridColumn}>
-                  {selectedReasonTitles.length > 0 && (
-                    <View style={{ marginBottom: 6 }}>
-                      <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
-                      {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
-                    </View>
-                  )}
-                  {selectedSolutionsData.length > 0 && (
-                    <View style={{ marginBottom: 6 }}>
-                      <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
-                      {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
-                    </View>
-                  )}
-                </View>
-                <View style={styles.gridColumnLast}>
-                  {selectedVariationsData.length > 0 && (
-                    <View style={{ marginBottom: 6 }}>
-                      <Text style={styles.label}>Gekozen implementatievarianten:</Text>
-                      {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
-                    </View>
-                  )}
-                  {selectedGovModel && (
-                    renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
-                  )}
-                </View>
-              </View>
+          )}
+          {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
+          {businessParkInfo.employeePickupPreference && renderLabelValue(
+            "Deel van de woon-werkreis",
+            businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
+            "bp"
+          )}
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.h3}>Selecties</Text>
+          {selectedReasonTitles.length > 0 && (
+            <View style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
+              {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
             </View>
-          </View>
+          )}
+          {selectedSolutionsData.length > 0 && (
+            <View style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
+              {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
+            </View>
+          )}
+          {selectedVariationsData.length > 0 && (
+            <View style={{ marginBottom: 6 }}>
+              <Text style={styles.label}>Gekozen implementatievarianten:</Text>
+              {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
+            </View>
+          )}
+          {selectedGovModel && (
+            renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
+          )}
         </View>
 
         {/* Footer intentionally removed to simplify rendering */}
 
       </Page>
       {/* Page 2: Governance model only */}
-      <Page size="A4" orientation="landscape" style={styles.page}>
+      <Page size="A4" style={styles.page}>
         {selectedGovModel ? (
           <View style={styles.section}>
-            <Text style={styles.h2}>Governancemodel</Text>
-            <View style={styles.twoColRow}>
-              <View style={styles.twoColLeft}>
-                <Text style={styles.h3}>{selectedGovModel.title}</Text>
-                {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
+            <Text style={styles.h2}>Gekozen Governance model</Text>
+            <Text style={styles.h3}>{selectedGovModel.title}</Text>
+            {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
+            {selectedGovModel.implementatie && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={styles.h3}>Implementatie</Text>
+                {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
               </View>
-              <View style={styles.twoColRight}>
-                {selectedGovModel.implementatie && (
-                  <View>
-                    <Text style={styles.h3}>Implementatie</Text>
-                    {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
-                  </View>
-                )}
-              </View>
-            </View>
+            )}
           </View>
         ) : (
           <View style={styles.section}>
@@ -589,11 +644,23 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             <Text style={styles.paragraph}>Geen governance model geselecteerd.</Text>
           </View>
         )}
-        {/* Footer intentionally removed to simplify rendering */}
       </Page>
-
-      {/* Page 3: Solution + Variant (without 'uitvoering', with attention points) */}
-      <Page size="A4" orientation="landscape" style={styles.page}>
+      {/* Algemene vervolgstappen na governance */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.h2}>Algemene vervolgstappen</Text>
+          {renderRichText(
+            [
+              'Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:',
+              '- Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.',
+              "- Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.",
+              '- Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.',
+              '- Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.',
+              '- Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!'
+            ].join('\n\n'),
+            'alg-vsvgstp'
+          )}
+        </View>
         {selectedSolutionsData && selectedSolutionsData.length > 0 && (() => {
           const solution = selectedSolutionsData[0];
           const variantIdForSolution = selectedVariants[solution.id];
@@ -601,40 +668,35 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           return (
             <View>
               <View style={styles.section}>
-                <View style={styles.twoColRow}>
-                  <View style={styles.twoColLeft}>
-                    <Text style={styles.h2}>Gekozen vervoersoplossing</Text>
-                    <Text style={styles.h3}>{solution.title}</Text>
-                    {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
-                  </View>
-                  <View style={styles.twoColRight}>
-                    {chosenVariant && (
-                      <View>
-                        <Text style={styles.h2}>Gekozen implementatievariant</Text>
-                        <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
-                        {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                        {chosenVariant.realisatieplanAandachtspunten && (
-                          <View style={{ marginTop: 10 }}>
-                            <Text style={styles.h3}>Realisatieplan – aandachtspunten</Text>
-                            {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
-                          </View>
-                        )}
-                        {chosenVariant.vervolgstappen && (
-                          <View style={{ marginTop: 10 }}>
-                            <Text style={styles.h1}>Vervolgstappen</Text>
-                            {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
-                          </View>
-                        )}
+                <Text style={styles.h2}>Gekozen vervoersoplossing</Text>
+                <Text style={styles.h3}>{solution.title}</Text>
+                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
+
+                {chosenVariant && (
+                  <View style={{ marginTop: 12 }}>
+                    <Text style={styles.h2}>Gekozen implementatievariant</Text>
+                    <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
+                    {chosenVariant.realisatieplanAandachtspunten && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={styles.h3}>Realisatieplan – aandachtspunten</Text>
+                        {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
+                      </View>
+                    )}
+                    {chosenVariant.vervolgstappen && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={styles.h1}>Vervolgstappen</Text>
+                        {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
                       </View>
                     )}
                   </View>
-                </View>
+                )}
               </View>
             </View>
           );
         })()}
-        {/* Footer intentionally removed to simplify rendering */}
       </Page>
+      {/* Removed extra variant continuation pages to avoid duplicated content */}
     </Document>
   );
 };

@@ -7,6 +7,8 @@ import { useBusinessParkReasons, useMobilitySolutions, useGovernanceModels, useI
 import { MarkdownContent, processMarkdownText } from '../../../components/markdown-content';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import SummaryPdfDocument from '../../../components/summary-pdf-document';
+import SummaryPdfDownloadButton from '@/components/summary-pdf-download-button';
+import { Document as PdfDocument, Page as PdfPage, View as PdfView, Text as PdfText } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import { ArrowDownTrayIcon, DocumentTextIcon, ClockIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
 import { ImplementationVariation, GovernanceModel, MobilitySolution } from '@/domain/models';
@@ -169,16 +171,25 @@ export default function VervolgstappenPage() {
             <div className="flex items-center gap-2 text-blue-600">
               <DocumentTextIcon className="w-4 h-4 shrink-0" />
               {isClient ? (
-                <PDFDownloadLink
-                  document={(<SummaryPdfDocument businessParkInfo={businessParkInfo} businessParkName={businessParkName} currentGovernanceModelTitle={currentGovernanceModelTitle} selectedReasonTitles={selectedReasonTitles} selectedSolutionsData={Object.values(selectedSolutionsData)} selectedVariants={selectedVariants} selectedGovernanceModelId={selectedGovernanceModelId} governanceModels={models || []} governanceTitleToFieldName={governanceTitleToFieldName} reasons={reasons || []} selectedReasons={selectedReasons} snakeToCamel={snakeToCamel} selectedVariationsData={selectedVariationsData} />)}
+                <SummaryPdfDownloadButton
+                  businessParkInfo={businessParkInfo}
+                  businessParkName={businessParkName}
+                  currentGovernanceModelTitle={currentGovernanceModelTitle}
+                  selectedReasonTitles={selectedReasonTitles}
+                  selectedSolutionsData={Object.values(selectedSolutionsData)}
+                  selectedVariants={selectedVariants}
+                  selectedGovernanceModelId={selectedGovernanceModelId}
+                  governanceModels={models || []}
+                  governanceTitleToFieldName={governanceTitleToFieldName}
+                  reasons={reasons || []}
+                  selectedReasons={selectedReasons}
+                  snakeToCamel={snakeToCamel}
+                  selectedVariationsData={selectedVariationsData}
                   fileName={`Adviesrapport_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
-                >
-                  {({ loading }: { loading: boolean }) => (
-                    <span className="text-sm underline underline-offset-2 hover:text-blue-800 hover:underline transition-colors">
-                      {loading ? '...' : 'Adviesrapport (PDF)'}
-                    </span>
-                  )}
-                </PDFDownloadLink>
+                  className="!px-0 !py-0 bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 shadow-none font-normal text-sm"
+                  buttonClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal text-sm"
+                  label="Adviesrapport (PDF)"
+                />
               ) : (
                 <span className="text-sm text-gray-500">Laden…</span>
               )}
@@ -263,33 +274,23 @@ export default function VervolgstappenPage() {
             </p>
             {/* Centrale downloadknop voor Adviesrapport */}
             {isClient && (
-              <PDFDownloadLink
-                document={(
-                  <SummaryPdfDocument 
-                    businessParkInfo={businessParkInfo} 
-                    businessParkName={businessParkName}
-                    currentGovernanceModelTitle={currentGovernanceModelTitle}
-                    selectedReasonTitles={selectedReasonTitles} 
-                    selectedSolutionsData={Object.values(selectedSolutionsData)}
-                    selectedVariants={selectedVariants}
-                    selectedGovernanceModelId={selectedGovernanceModelId} 
-                    governanceModels={models || []} 
-                    governanceTitleToFieldName={governanceTitleToFieldName}
-                    reasons={reasons || []}
-                    selectedReasons={selectedReasons}
-                    snakeToCamel={snakeToCamel}
-                    selectedVariationsData={selectedVariationsData}
-                  />
-                )}
+              <SummaryPdfDownloadButton
+                businessParkInfo={businessParkInfo}
+                businessParkName={businessParkName}
+                currentGovernanceModelTitle={currentGovernanceModelTitle}
+                selectedReasonTitles={selectedReasonTitles}
+                selectedSolutionsData={Object.values(selectedSolutionsData)}
+                selectedVariants={selectedVariants}
+                selectedGovernanceModelId={selectedGovernanceModelId}
+                governanceModels={models || []}
+                governanceTitleToFieldName={governanceTitleToFieldName}
+                reasons={reasons || []}
+                selectedReasons={selectedReasons}
+                snakeToCamel={snakeToCamel}
+                selectedVariationsData={selectedVariationsData}
                 fileName={`Adviesrapport_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
-              >
-                {({ loading }: { loading: boolean }) => (
-                  <Button className="mt-1 bg-blue-600 hover:bg-blue-700 text-white" variant="default">
-                    <DocumentTextIcon className="h-4 w-4" />
-                    {loading ? 'Even geduld…' : 'Download Adviesrapport'}
-                  </Button>
-                )}
-              </PDFDownloadLink>
+                label="Download Adviesrapport"
+              />
             )}
           </div>
           
@@ -488,32 +489,51 @@ export default function VervolgstappenPage() {
           {/* COVER Subsidie sectie - altijd zichtbaar */}
           <div className="bg-white rounded-lg p-8 shadow-even">
               <h2 className="text-xl font-semibold mb-2">Subsidie: COVER (Collectieven mkb Verduurzaming Reisgedrag)</h2>
-              <p className="text-gray-700 mb-4">Deze subsidie kan helpen bij het financieren van activiteiten die het zakelijke- en bezoekersverkeer verduurzamen.</p>
-              <div className="space-y-3 text-gray-800">
+              <p className="text-gray-700 mb-4">De COVER subsidie is bedoeld voor organisaties die het mkb vertegenwoordigen, zoals parkmanagers. Met behulp van de subsidie kunnen stappen gezet worden naar blijvend duurzaam reisgedrag van werknemers. De subsidie dekt maximaal 75% van de kosten van het project waar de subsidie voor is aangevraagd, met een maximumbedrag van €100.000.
+              Er zitten een aantal voorwaarden aan het aanvragen van de COVER subsidie.</p>
+              <div className="space-y-3 text-gray-800">                
                 <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
-                  <summary className="font-medium cursor-pointer select-none">Waarvoor te gebruiken</summary>
+                  <summary className="font-medium cursor-pointer select-none">Uw organisatie...</summary>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
-                    <li>Projecten en activiteiten die blijvend duurzaam reisgedrag stimuleren.</li>
-                    <li>Voorbeelden: raamovereenkomsten met vervoeraanbieders, besloten vervoer op bedrijventerreinen (opstart), last-mile vervoer vanaf OV, CAO-afspraken, mobiliteitsbudget.</li>
-                    <li>Niet voor logistiek verkeer; gericht op zakelijk verkeer en bezoekers.</li>
-                    <li>De subsidie is niet voor exploitatiekosten bedoelt.</li>
+                    <li>Treedt op namens een groep werkgever.</li>
+                    <li>Is een rechtspersoon.</li>
+                    <li>Vertegenwoordigt het mkb - uw achterban bestaat voor minimaal 50% uit werkgevers met minder dan 250 werknemers.</li>
+                    <li>Vraagt minimaal € 10.000 aan voor uw project of activiteit.</li>
+                    <li>Heeft de afgelopen 3 jaar maximaal € 300.000 De-minimissteun (staatssteun) ontvangen.</li>
                   </ul>
                 </details>
                 <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
-                  <summary className="font-medium cursor-pointer select-none">Wie komt in aanmerking</summary>
+                  <summary className="font-medium cursor-pointer select-none">Uw project of activiteit...</summary>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
-                    <li>Een rechtspersoon die optreedt namens een groep werkgevers in het mkb.</li>
-                    <li>De achterban bestaat voor ≥ 50% uit mkb-werkgevers.</li>
-                    <li>Minimale subsidieaanvraag: €10.000.</li>
+                    <li>Richt zich op het wegnemen van belemmeringen bij de uitvoer van duurzame werkmobiliteit van werknemers.</li>
+                    <li>Vraagt per kilogram bespaarde CO2 niet meer dan € 0,75 subsidie.</li>
+                    <li>Heeft een berekening hoeveel kilogram CO2 u ermee vermindert.</li>
+                    <li>Heeft een structureel, blijvend resultaat.</li>
+                    <li>Is omschreven in het verplichte format van het projectplan.</li>
+                    <li>Heeft een begroting.</li>
+                    <li>Is afgerond binnen 24 maanden nadat uw subsidie is toegekend.</li>
                   </ul>
                 </details>
                 <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
-                  <summary className="font-medium cursor-pointer select-none">Belangrijkste randvoorwaarden</summary>
+                  <summary className="font-medium cursor-pointer select-none">Aan te leveren documenten</summary>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
-                    <li>Subsidie tot max. 75% van de kosten, met plafond van €100.000 per project.</li>
-                    <li>Maximaal €0,75 subsidie per bespaarde kg CO₂; onderbouwde CO₂-berekening vereist.</li>
-                    <li>Resultaat is structureel/blijvend; projectduur maximaal 24 maanden.</li>
-                    <li>De-minimissteun afgelopen 3 jaar: ≤ €300.000.</li>
+                    <p>Voor de aanvraag van de subsidie dient u de volgende documenten ingevuld aan te leveren:</p>
+                    <li>Projectplan COVER</li>
+                    <li>MBerekening CO2-besparing COVER</li>
+                    <li>ROnderbouwing voor blijvend resultaat</li>
+                    <li>Modelbegroting project/activiteiten</li>
+                    <li>
+                      Voor al deze benodigdheden kunt u formats vinden op de{' '}
+                      <a
+                        className="text-blue-600 underline"
+                        href="https://www.rvo.nl/subsidies-financiering/cover#uw-aanvraag-voorbereiden"
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
+                        website van de RVO
+                      </a>
+                      .
+                    </li>
                   </ul>
                 </details>
               </div>

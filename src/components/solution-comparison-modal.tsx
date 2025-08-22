@@ -248,29 +248,71 @@ export function SolutionComparisonModal({
               ))}
             </div>
 
-            {/* Doorlooptijd Row */}
+            {/* wanneerRelevant Row */}
             <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
-              <div className="flex items-center">
-                <h3 className="font-medium text-gray-900">Doorlooptijd</h3>
+              <div className="flex items-start">
+                <h3 className="font-medium text-gray-900">Wanneer relevant</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-leadtime`} className="border-l border-gray-200 pl-4 flex items-center">
+                <div key={`${solution.id}-wanneer`} className="border-l border-gray-200 pl-4">
                   <div className="text-sm text-gray-700">
-                    {solution.doorlooptijd || '-'}
+                    {solution.wanneerRelevant || '-'}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Afstand Row */}
+            {/* schaalbaarheid Row */}
             <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-start">
-                <h3 className="font-medium text-gray-900">Afstand</h3>
+                <h3 className="font-medium text-gray-900">Schaalbaarheid</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-distance`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-schaalbaarheid`} className="border-l border-gray-200 pl-4">
                   <div className="text-sm text-gray-700">
-                    {solution.afstand || '-'}
+                    {solution.schaalbaarheid || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* impact Row */}
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-start">
+                <h3 className="font-medium text-gray-900">Impact</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-impact`} className="border-l border-gray-200 pl-4">
+                  <div className="text-sm text-gray-700">
+                    {solution.impact || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ruimtebeslag Row */}
+            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-start">
+                <h3 className="font-medium text-gray-900">Ruimtebeslag</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-ruimtebeslag`} className="border-l border-gray-200 pl-4">
+                  <div className="text-sm text-gray-700">
+                    {solution.ruimtebeslag || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* afhankelijkheid externe partijen Row */}
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-start">
+                <h3 className="font-medium text-gray-900">Afhankelijkheid externe partijen</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-extern`} className="border-l border-gray-200 pl-4">
+                  <div className="text-sm text-gray-700">
+                    {solution.afhankelijkheidExternePartijen || '-'}
                   </div>
                 </div>
               ))}

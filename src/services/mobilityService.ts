@@ -150,7 +150,7 @@ export const getGovernanceModelForPdf = async (governanceModelId: string): Promi
     disadvantages: data.disadvantages || [],
     benodigdhedenOprichting: Array.isArray(data.benodigdhedenOprichting) ? data.benodigdhedenOprichting : [data.benodigdhedenOprichting].filter(Boolean),
     links: Array.isArray(data.links) ? data.links : [data.links].filter(Boolean),
-    doorlooptijdLang: data.doorlooptijdLang || data.doorlooptijd || '',
+    doorlooptijdLang: data.doorlooptijdLang || '',
     implementatie: data.implementatie || ''
   };
 };

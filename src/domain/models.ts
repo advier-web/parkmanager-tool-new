@@ -126,6 +126,11 @@ export interface MobilitySolution {
   // Newly added fields in Contentful (MobilityService)
   moeilijkheidsgraad?: string; // Qualitative difficulty level
   doorlooptijd?: string; // Expected lead time
+  wanneerRelevant?: string;
+  schaalbaarheid?: string;
+  impact?: string;
+  ruimtebeslag?: string;
+  afhankelijkheidExternePartijen?: string;
 
   // Toelichtingen (Explanations) - keep these if they are generic
   parkeerBereikbaarheidsproblemenToelichting?: string;
