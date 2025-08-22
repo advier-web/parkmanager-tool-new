@@ -206,6 +206,34 @@ export function SolutionComparisonModal({
               ))}
             </div>
 
+            {/* wanneerRelevant Row */}
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-start">
+                <h3 className="font-medium text-gray-900">Wanneer relevant</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-wanneer`} className="border-l border-gray-200 pl-4">
+                  <div className="text-sm text-gray-700">
+                    {solution.wanneerRelevant || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Minimale investering Row */}
+            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="flex items-center">
+                <h3 className="font-medium text-gray-900">Minimale investering</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center">
+                  <div className="text-sm text-gray-700">
+                    {solution.minimaleInvestering || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>            
+
             {/* Minimum aantal personen Row */}
             <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-center">
@@ -220,20 +248,6 @@ export function SolutionComparisonModal({
               ))}
             </div>
 
-            {/* Minimale investering Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
-              <div className="flex items-center">
-                <h3 className="font-medium text-gray-900">Minimale investering</h3>
-              </div>
-              {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center">
-                  <div className="text-sm text-gray-700">
-                    {solution.minimaleInvestering || '-'}
-                  </div>
-                </div>
-              ))}
-            </div>
-
             {/* Moeilijkheidsgraad Row */}
             <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
               <div className="flex items-center">
@@ -243,20 +257,6 @@ export function SolutionComparisonModal({
                 <div key={`${solution.id}-difficulty`} className="border-l border-gray-200 pl-4 flex items-center">
                   <div className="text-sm text-gray-700">
                     {solution.moeilijkheidsgraad || '-'}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* wanneerRelevant Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
-              <div className="flex items-start">
-                <h3 className="font-medium text-gray-900">Wanneer relevant</h3>
-              </div>
-              {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-wanneer`} className="border-l border-gray-200 pl-4">
-                  <div className="text-sm text-gray-700">
-                    {solution.wanneerRelevant || '-'}
                   </div>
                 </div>
               ))}
