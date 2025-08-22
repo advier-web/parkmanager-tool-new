@@ -35,6 +35,17 @@ const styles = StyleSheet.create({
     lineHeight: 1.5, // Consistent line height
     color: '#000000', // Consistent base text color
   },
+  twoColRow: {
+    flexDirection: 'row',
+  },
+  twoColLeft: {
+    width: '50%',
+    paddingRight: 12,
+  },
+  twoColRight: {
+    width: '50%',
+    paddingLeft: 12,
+  },
   // Header for "Vervolgstappen" and "Mobiliteitsplan Bedrijventerrein X"
   headerSection: { 
     marginBottom: 25, // Consistent with factsheets headerContainer
@@ -479,71 +490,72 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           <Text style={styles.mainTitle}>Adviesrapport</Text>
         </View>
 
-        {/* Intro */}
+        {/* Two-column layout: left intro, right choices */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Over dit advies</Text>
-          {introParagraphs.map((p, i) => (
-            <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
-          ))}
-        </View>
-
-        {/* == Section 1: Uw Keuzes == */}
-        <View style={styles.section}>
-          <Text style={styles.h2}>Uw Keuzes</Text>
-          
-          <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
-          <View style={styles.gridContainer}>
-            <View style={styles.gridColumn}>
-              {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
-              {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
-                <View style={{ marginBottom: 6 }}>
-                  <Text style={styles.label}>Verkeerstypen:</Text>
-                  {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
+          <View style={styles.twoColRow}>
+            <View style={styles.twoColLeft}>
+              <Text style={styles.h2}>Over dit advies</Text>
+              {introParagraphs.map((p, i) => (
+                <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
+              ))}
+            </View>
+            <View style={styles.twoColRight}>
+              <Text style={styles.h2}>Uw Keuzes</Text>
+              <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
+              <View style={styles.gridContainer}>
+                <View style={styles.gridColumn}>
+                  {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
+                  {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
+                    <View style={{ marginBottom: 6 }}>
+                      <Text style={styles.label}>Verkeerstypen:</Text>
+                      {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
+                    </View>
+                  )}
+                  {renderLabelValue("Bereikbaarheid met auto", businessParkInfo.carAccessibility, "bp")}
+                  {renderLabelValue("Bereikbaarheid met trein", businessParkInfo.trainAccessibility, "bp")}
+                  {renderLabelValue("Bereikbaarheid met bus", businessParkInfo.busAccessibility, "bp")}
                 </View>
-              )}
-              {renderLabelValue("Bereikbaarheid met auto", businessParkInfo.carAccessibility, "bp")}
-              {renderLabelValue("Bereikbaarheid met trein", businessParkInfo.trainAccessibility, "bp")}
-              {renderLabelValue("Bereikbaarheid met bus", businessParkInfo.busAccessibility, "bp")}
-            </View>
-            <View style={styles.gridColumnLast}>
-              {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
-              {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
-              {businessParkInfo.employeePickupPreference && renderLabelValue(
-                "Deel van de woon-werkreis",
-                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
-                "bp"
-              )}
-              {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}
-              {businessParkInfo.averageDistance && renderLabelValue("Gemiddelde woon-werk afstand", businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`, "bp")}
-            </View>
-          </View>
+                <View style={styles.gridColumnLast}>
+                  {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
+                  {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
+                  {businessParkInfo.employeePickupPreference && renderLabelValue(
+                    "Deel van de woon-werkreis",
+                    businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
+                    "bp"
+                  )}
+                  {renderLabelValue("Voldoende parkeerplaatsen", businessParkInfo.sufficientParking, "bp")}
+                  {businessParkInfo.averageDistance && renderLabelValue("Gemiddelde woon-werk afstand", businessParkInfo.averageDistance === '25+' ? 'Meer dan 25 km' : `${businessParkInfo.averageDistance} km`, "bp")}
+                </View>
+              </View>
 
-          <Text style={styles.h3}>Selecties</Text>
-           <View style={styles.gridContainer}>
-             <View style={styles.gridColumn}>
-                {selectedReasonTitles.length > 0 && (
+              <Text style={styles.h3}>Selecties</Text>
+              <View style={styles.gridContainer}>
+                <View style={styles.gridColumn}>
+                  {selectedReasonTitles.length > 0 && (
                     <View style={{ marginBottom: 6 }}>
-                    <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
-                    {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
+                      <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
+                      {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
                     </View>
-                )}
-                {selectedSolutionsData.length > 0 && (
+                  )}
+                  {selectedSolutionsData.length > 0 && (
                     <View style={{ marginBottom: 6 }}>
-                    <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
-                    {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
+                      <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
+                      {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
                     </View>
-                )}
-            </View>
-            <View style={styles.gridColumnLast}>
-                {selectedVariationsData.length > 0 && (
+                  )}
+                </View>
+                <View style={styles.gridColumnLast}>
+                  {selectedVariationsData.length > 0 && (
                     <View style={{ marginBottom: 6 }}>
-                        <Text style={styles.label}>Gekozen implementatievarianten:</Text>
-                        {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
+                      <Text style={styles.label}>Gekozen implementatievarianten:</Text>
+                      {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
                     </View>
-                )}
-                {selectedGovModel && (
+                  )}
+                  {selectedGovModel && (
                     renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
-                )}
+                  )}
+                </View>
+              </View>
             </View>
           </View>
         </View>
@@ -556,17 +568,28 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
       </Page>
       {/* Page 2: Governance model only */}
       <Page size="A4" orientation="landscape" style={styles.page}>
-        {selectedGovModel && (
-          <View style={styles.lastSection}>
+        {selectedGovModel ? (
+          <View style={styles.section}>
             <Text style={styles.h2}>Governancemodel</Text>
-            <Text style={styles.h3}>{selectedGovModel.title}</Text>
-            {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
-            {selectedGovModel.implementatie && (
-              <View style={{ marginTop: 10 }}>
-                <Text style={styles.h4}>Implementatie</Text>
-                {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
+            <View style={styles.twoColRow}>
+              <View style={styles.twoColLeft}>
+                <Text style={styles.h3}>{selectedGovModel.title}</Text>
+                {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
               </View>
-            )}
+              <View style={styles.twoColRight}>
+                {selectedGovModel.implementatie && (
+                  <View>
+                    <Text style={styles.h3}>Implementatie</Text>
+                    {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.h2}>Governancemodel</Text>
+            <Text style={styles.paragraph}>Geen governance model geselecteerd.</Text>
           </View>
         )}
         <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
@@ -583,31 +606,35 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           return (
             <>
               <View style={styles.section}>
-                <Text style={styles.h2}>Vervoersoplossing</Text>
-                <Text style={styles.h3}>{solution.title}</Text>
-                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
-                {/* 'Uitvoering' verwijderd op verzoek */}
-              </View>
-
-              {chosenVariant && (
-                <View style={styles.lastSection}>
-                  <Text style={styles.h2}>Implementatievariant</Text>
-                  <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
-                  {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                  {chosenVariant.realisatieplanAandachtspunten && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={styles.h4}>Realisatieplan – aandachtspunten</Text>
-                      {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
-                    </View>
-                  )}
-                  {chosenVariant.vervolgstappen && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={styles.h4}>Vervolgstappen</Text>
-                      {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
-                    </View>
-                  )}
+                <View style={styles.twoColRow}>
+                  <View style={styles.twoColLeft}>
+                    <Text style={styles.h2}>Gekozen vervoersoplossing</Text>
+                    <Text style={styles.h3}>{solution.title}</Text>
+                    {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
+                  </View>
+                  <View style={styles.twoColRight}>
+                    {chosenVariant && (
+                      <View>
+                        <Text style={styles.h2}>Gekozen implementatievariant</Text>
+                        <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                        {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
+                        {chosenVariant.realisatieplanAandachtspunten && (
+                          <View style={{ marginTop: 10 }}>
+                            <Text style={styles.h3}>Realisatieplan – aandachtspunten</Text>
+                            {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
+                          </View>
+                        )}
+                        {chosenVariant.vervolgstappen && (
+                          <View style={{ marginTop: 10 }}>
+                            <Text style={styles.h1}>Vervolgstappen</Text>
+                            {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </View>
                 </View>
-              )}
+              </View>
             </>
           );
         })()}
