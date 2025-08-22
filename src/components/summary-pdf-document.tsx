@@ -560,10 +560,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           </View>
         </View>
 
-        {/* Potential Footer for page numbers or generated date */}
-        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
-          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-        </Text>
+        {/* Footer intentionally removed to simplify rendering */}
 
       </Page>
       {/* Page 2: Governance model only */}
@@ -592,9 +589,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             <Text style={styles.paragraph}>Geen governance model geselecteerd.</Text>
           </View>
         )}
-        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
-          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-        </Text>
+        {/* Footer intentionally removed to simplify rendering */}
       </Page>
 
       {/* Page 3: Solution + Variant (without 'uitvoering', with attention points) */}
@@ -638,9 +633,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             </>
           );
         })()}
-        <Text style={{ position: 'absolute', fontSize: 8, bottom: 15, left: 30, right: 30, textAlign: 'center', color: 'grey' }} fixed>
-          Pagina <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-        </Text>
+        {/* Footer intentionally removed to simplify rendering */}
       </Page>
     </Document>
   );
