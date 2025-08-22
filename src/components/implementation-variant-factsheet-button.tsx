@@ -48,8 +48,14 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
         <PDFDownloadLink document={pdfDocument} fileName={fileName}>
           {({ loading }) => (
             <Button variant="default" className={buttonColorClassName} disabled={loading}>
-              <DocumentTextIcon className="h-4 w-4" />
-              {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${variation.title}`)}
+              {children
+                ? (loading ? 'Even geduld…' : children)
+                : (
+                  <>
+                    <DocumentTextIcon className="h-4 w-4" />
+                    {loading ? 'Even geduld…' : `Download factsheet ${variation.title}`}
+                  </>
+                )}
             </Button>
           )}
         </PDFDownloadLink>
@@ -63,8 +69,12 @@ const ImplementationVariantFactsheetButtonComponent: React.FC<ImplementationVari
             setIsArmed(true);
           }}
         >
-          <DocumentTextIcon className="h-4 w-4" />
-          {children || `Download factsheet ${variation.title}`}
+          {children || (
+            <>
+              <DocumentTextIcon className="h-4 w-4" />
+              {`Download factsheet ${variation.title}`}
+            </>
+          )}
         </Button>
       ) : (
         <Button variant="default" disabled className={buttonColorClassName}>

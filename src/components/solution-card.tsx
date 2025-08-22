@@ -1,6 +1,7 @@
 import { MobilitySolution, BusinessParkReason, TrafficType, GovernanceModel, ImplementationVariation } from '../domain/models';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
-import { UserGroupIcon, CurrencyEuroIcon, MapPinIcon, EyeIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
+import { UserGroupIcon, CurrencyEuroIcon, MapPinIcon, EyeIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { useDialog } from '../contexts/dialog-context';
@@ -316,9 +317,9 @@ export function SolutionCard({
                 <MobilitySolutionFactsheetButton
                   solution={solution}
                     className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
-                    buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 p-0 shadow-none font-normal cursor-pointer text-sm"
+                    buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 p-0 shadow-none font-normal cursor-pointer text-sm h-auto has-[>svg]:px-0 gap-1.5"
                 >
-                  <ArrowDownTrayIcon className="h-5 w-5 mr-1 translate-y-[1px]" />
+                  <DocumentTextIcon className="h-5 w-5 mr-1" />
                   Download factsheet
                 </MobilitySolutionFactsheetButton>
               </div>

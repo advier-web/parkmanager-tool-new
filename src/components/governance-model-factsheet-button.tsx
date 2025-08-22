@@ -57,8 +57,14 @@ const GovernanceModelFactsheetButton: React.FC<GovernanceModelFactsheetButtonPro
     <PDFDownloadLink document={pdfDocument} fileName={fileName}>
       {({ loading }) => (
         <Button variant="default" className={`${className} ${buttonColorClassName}`} disabled={loading}>
-          <DocumentTextIcon className="h-4 w-4" />
-          {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${governanceModel.title || 'Governance Model'}`)}
+          {children
+            ? (loading ? 'Even geduld…' : children)
+            : (
+              <>
+                <DocumentTextIcon className="h-4 w-4" />
+                {loading ? 'Even geduld…' : `Download factsheet ${governanceModel.title || 'Governance Model'}`}
+              </>
+            )}
         </Button>
       )}
     </PDFDownloadLink>

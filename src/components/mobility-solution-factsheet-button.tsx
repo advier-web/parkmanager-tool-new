@@ -53,8 +53,14 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
     <PDFDownloadLink document={pdfDocument} fileName={fileName}>
       {({ loading }) => (
         <Button variant="default" className={`${className} ${buttonColorClassName}`} disabled={loading}>
-          <DocumentTextIcon className="h-4 w-4" />
-          {children ? (loading ? 'Even geduld…' : children) : (loading ? 'Even geduld…' : `Download factsheet ${solution.title}`)}
+          {children
+            ? (loading ? 'Even geduld…' : children)
+            : (
+              <>
+                <DocumentTextIcon className="h-4 w-4" />
+                {loading ? 'Even geduld…' : `Download factsheet ${solution.title}`}
+              </>
+            )}
         </Button>
       )}
     </PDFDownloadLink>
