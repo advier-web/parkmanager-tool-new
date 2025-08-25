@@ -169,7 +169,6 @@ export default function VervolgstappenPage() {
             <h3 className="text-lg font-semibold mb-1">Downloads</h3>
             {/* Samenvatting */}
             <div className="flex items-center gap-2 text-blue-600">
-              <DocumentTextIcon className="w-4 h-4 shrink-0" />
               {isClient ? (
                 <SummaryPdfDownloadButton
                   businessParkInfo={businessParkInfo}

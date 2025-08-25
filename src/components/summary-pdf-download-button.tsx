@@ -74,7 +74,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
           setIsArmed(true);
         }}
       >
-        <DocumentTextIcon className="h-4 w-4" />
+        {/* Icon intentionally omitted here to avoid duplicate icon when the parent already renders one */}
         {label}
       </Button>
     );
@@ -103,7 +103,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
     >
       {({ loading }: { loading: boolean }) => (
         <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
-          <DocumentTextIcon className="h-4 w-4" />
+          {/* Icon intentionally omitted here to avoid duplicate icon when the parent already renders one */}
           {loading ? 'Even geduld…' : label}
         </Button>
       )}
