@@ -291,29 +291,7 @@ const GovernanceModelFactsheetPdfComponent: React.FC<GovernanceModelFactsheetPdf
           </View>
         )}
 
-        {variations && variations.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Relevantie voor Geselecteerde Varianten</Text>
-            {variations.map(variation => {
-              const fieldName = governanceTitleToFieldName(model.title);
-              if (!fieldName) return null;
-              
-              const relevanceText = (variation as any)[fieldName];
-              if (!relevanceText) return null;
-
-              const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
-
-              return (
-                <View key={variation.id} style={{ marginTop: 10 }}>
-                  <Text style={styles.subSectionTitle}>
-                    Relevantie voor variant: "{displayVariantTitle}"
-                  </Text>
-                  {renderContent(relevanceText)}
-                </View>
-              );
-            })}
-          </View>
-        )}
+        {/* Relevantie sectie verwijderd op verzoek */}
       </Page>
     </Document>
   );

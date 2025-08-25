@@ -347,7 +347,7 @@ export function SolutionDialog() {
             {/* Use the typed variables */} 
             {typedModel.description && (
               <div>
-                <h3 className="text-xl font-bold mb-2">Beschrijving</h3>
+                {/* <h3 className="text-xl font-bold mb-2">Beschrijving</h3> */}
                 <MarkdownContent variant="modal" content={processMarkdownText(typedModel.description)} />
               </div>
             )}
