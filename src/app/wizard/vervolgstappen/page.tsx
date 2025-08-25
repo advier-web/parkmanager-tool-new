@@ -169,6 +169,7 @@ export default function VervolgstappenPage() {
             <h3 className="text-lg font-semibold mb-1">Downloads</h3>
             {/* Samenvatting */}
             <div className="flex items-center gap-2 text-blue-600">
+              <DocumentTextIcon className="w-4 h-4 shrink-0" />
               {isClient ? (
                 <SummaryPdfDownloadButton
                   businessParkInfo={businessParkInfo}
@@ -188,6 +189,7 @@ export default function VervolgstappenPage() {
                   className="!px-0 !py-0 bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 shadow-none font-normal text-sm"
                   buttonClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal text-sm"
                   label="Adviesrapport (PDF)"
+                  showIcon={false}
                 />
               ) : (
                 <span className="text-sm text-gray-500">Laden…</span>
@@ -518,8 +520,8 @@ export default function VervolgstappenPage() {
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
                     <p>Voor de aanvraag van de subsidie dient u de volgende documenten ingevuld aan te leveren:</p>
                     <li>Projectplan COVER</li>
-                    <li>MBerekening CO2-besparing COVER</li>
-                    <li>ROnderbouwing voor blijvend resultaat</li>
+                    <li>Berekening CO2-besparing COVER</li>
+                    <li>Onderbouwing voor blijvend resultaat</li>
                     <li>Modelbegroting project/activiteiten</li>
                     <li>
                       Voor al deze benodigdheden kunt u formats vinden op de{' '}

@@ -26,6 +26,7 @@ interface SummaryPdfDownloadButtonProps {
   className?: string;
   buttonClassName?: string;
   label?: string;
+  showIcon?: boolean;
 }
 
 export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButtonProps) {
@@ -48,6 +49,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
     buttonClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
     label = 'Download Adviesrapport',
   } = props;
+  const { showIcon = true } = props;
 
   const [isClient, setIsClient] = React.useState(false);
   const [isArmed, setIsArmed] = React.useState(false);
@@ -57,7 +59,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
   if (!isClient) {
     return (
       <Button variant="default" disabled className={buttonClassName + ' ' + className}>
-        <DocumentTextIcon className="h-4 w-4" />
+        {showIcon && <DocumentTextIcon className="h-4 w-4" />}
         Laden…
       </Button>
     );
@@ -74,7 +76,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
           setIsArmed(true);
         }}
       >
-        {/* Icon intentionally omitted here to avoid duplicate icon when the parent already renders one */}
+        {showIcon && <DocumentTextIcon className="h-4 w-4" />}
         {label}
       </Button>
     );
@@ -103,7 +105,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
     >
       {({ loading }: { loading: boolean }) => (
         <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
-          {/* Icon intentionally omitted here to avoid duplicate icon when the parent already renders one */}
+          {showIcon && <DocumentTextIcon className="h-4 w-4" />}
           {loading ? 'Even geduld…' : label}
         </Button>
       )}
