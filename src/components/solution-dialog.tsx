@@ -391,8 +391,64 @@ export function SolutionDialog() {
                 )}
               </div>
             )}
-            {/* REMOVED Links section */}
-            {/* REMOVED Doorlooptijd section */}
+            {/* Doorlooptijd */}
+            {doorlooptijdLang && (
+              <div>
+                <h3 className="text-xl font-bold mb-2">Doorlooptijd</h3>
+                <MarkdownContent variant="modal" content={processMarkdownText(doorlooptijdLang)} />
+              </div>
+            )}
+            {/* Links */}
+            {((Array.isArray(links) && links.length > 0) || (typeof links === 'string' && links)) && (
+              <div>
+                <h3 className="text-xl font-bold mb-2">Relevante links</h3>
+                {Array.isArray(links) ? (
+                  <ul className="list-none space-y-2">
+                    {links.map((link: any, index: number) => {
+                      // Markdown style [title](url)
+                      if (typeof link === 'string' && /\[.+\]\(.+\)/.test(link)) {
+                        const m = link.match(/\[(.+)\]\((.+)\)/);
+                        if (m && m.length === 3) {
+                          const title = m[1];
+                          const url = m[2];
+                          return (
+                            <li key={index}>
+                              <a className="text-teal-600 hover:underline" href={url} target="_blank" rel="noopener noreferrer">{title}</a>
+                            </li>
+                          );
+                        }
+                      }
+                      // Direct URL string
+                      if (typeof link === 'string' && /^https?:\/\//.test(link)) {
+                        return (
+                          <li key={index}>
+                            <a className="text-teal-600 hover:underline" href={link} target="_blank" rel="noopener noreferrer">{link}</a>
+                          </li>
+                        );
+                      }
+                      // Object with url and optional title
+                      if (link && typeof link === 'object' && 'url' in link) {
+                        const url = (link as any).url as string;
+                        const title = (link as any).title || url;
+                        return (
+                          <li key={index}>
+                            <a className="text-teal-600 hover:underline" href={url} target="_blank" rel="noopener noreferrer">{title}</a>
+                          </li>
+                        );
+                      }
+                      // Fallback: render as markdown text
+                      return (
+                        <li key={index}>
+                          <MarkdownContent variant="modal" content={processMarkdownText(String(link))} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <MarkdownContent variant="modal" content={processMarkdownText(String(links))} />
+                )}
+              </div>
+            )}
             {/* ... Potentially render other fields from typedModel ... */}
           </div>
           
