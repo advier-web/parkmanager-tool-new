@@ -100,7 +100,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Geschatte jaarlijkse kosten Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    {/* <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Geschatte jaarlijkse kosten</h3>
                       </div>
@@ -111,10 +111,10 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div>
+                    </div> */}
 
                     {/* Kosten per km per persoon Row */}
-                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    {/* <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Kosten per km per persoon</h3>
                       </div>
@@ -125,10 +125,10 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div>
+                    </div> */}
 
                     {/* Kosten per rit Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    {/* <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Kosten per rit</h3>
                       </div>
@@ -139,7 +139,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div>
+                    </div> */}
 
                     {/* Verantwoordelijkheid, Contractvormen, Voordelen en Nadelen zijn verwijderd uit de vergelijking */}
 

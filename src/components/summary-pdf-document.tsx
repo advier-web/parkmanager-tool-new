@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000000', 
     marginTop: 10, 
-    marginBottom: 1, // Consistent with factsheet h1
+    marginBottom: 14, // nog wat extra ruimte onder H1
     lineHeight: 1.1,
   },
   section: { // For major sections like "Uw keuzes"
@@ -91,21 +91,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   h2: { // Section titles like "Uw keuzes", "Geselecteerde Oplossingen & Varianten"
-    fontSize: 11.5, // iets kleiner zoals gevraagd
+    fontSize: 12.5, // match factsheets
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     color: '#000000', // Consistent with factsheet sectionTitle
-    marginBottom: 8, // Adjusted for visual hierarchy below section, allow more space than factsheet's 2mb
+    marginBottom: 9, // iets meer lucht onder H2
     lineHeight: 1.2, // Consistent with factsheet sectionTitle
     // Removed its own borderBottom, as the parent <View style={styles.section}> has it
   },
   h3: { // Sub-section titles like "Bedrijventerrein Informatie", or Solution Titles
-    fontSize: 12, // Slightly smaller than h2, similar to factsheet h3 for renderRichText
+    fontSize: 11, // match factsheets
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     color: '#000000',
     marginTop: 6, // Added marginTop for spacing, consistent with factsheet h3
-    marginBottom: 5, // Adjusted from 8, factsheet h3 has 3
+    marginBottom: 5, // consistent
     lineHeight: 1.1,
   },
   h4: { // Further sub-titles, e.g., for variant name or reason title in contribution block
@@ -561,7 +561,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   // Introductietekst voor pagina 1
   const introParagraphs: string[] = [
     'Dit adviesrapport is een compacte samenvatting van de keuzes die u in de wizard heeft gemaakt. Het brengt de belangrijkste uitgangspunten en geselecteerde opties overzichtelijk bij elkaar en helpt u om de vervolgstappen te plannen en te onderbouwen.',
-    'Het advies richt zich op collectieve vervoersoplossingen: voorzieningen waarmee meerdere organisaties of doelgroepen samen vervoer organiseren en financieren. Door capaciteit te bundelen ontstaan efficiëntere, betaalbaardere en duurzamere reisopties. De aanpak werkt het best wanneer bedrijven, parkmanagement en aanbieders afspraken vastleggen in een passend governance- en inkoopmodel.'
+    'Het advies richt zich op collectieve vervoersoplossingen: voorzieningen waarmee meerdere organisaties of doelgroepen samen vervoer organiseren en financieren. Let op: dit is géén volledige mobiliteitsscan en ook geen individueel bedrijfsadvies; de uitkomst is bedoeld als gerichte shortlist en startpunt voor verdere uitwerking.'
   ];
 
   return (
@@ -573,52 +573,56 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
 
         {/* Page 1 - single column stacked content */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Over dit advies</Text>
+          <Text style={styles.h1}>Over dit advies</Text>
           {introParagraphs.map((p, i) => (
             <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
           ))}
         </View>
         <View style={styles.section}>
-          <Text style={styles.h2}>Uw Keuzes</Text>
-          <Text style={styles.h3}>Bedrijventerrein Informatie & Locatiekenmerken</Text>
-          {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
-          {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
-          {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={styles.label}>Verkeerstypen:</Text>
-              {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
+          <Text style={styles.h1}>Uw Keuzes</Text>
+          <View style={styles.twoColRow}>
+            <View style={styles.twoColLeft}>
+              <Text style={styles.h3}>Bedrijventerrein Informatie</Text>
+              {renderLabelValue("Aantal bedrijven", businessParkInfo.numberOfCompanies, "bp")}
+              {renderLabelValue("Aantal werknemers", businessParkInfo.numberOfEmployees, "bp")}
+              {businessParkInfo.trafficTypes && businessParkInfo.trafficTypes.length > 0 && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={styles.label}>Verkeerstypen:</Text>
+                  {businessParkInfo.trafficTypes.map((type, i) => renderListItem(type, `traffic-${i}`))}
+                </View>
+              )}
+              {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
+              {businessParkInfo.employeePickupPreference && renderLabelValue(
+                "Deel van de woon-werkreis",
+                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
+                "bp"
+              )}
             </View>
-          )}
-          {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
-          {businessParkInfo.employeePickupPreference && renderLabelValue(
-            "Deel van de woon-werkreis",
-            businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
-            "bp"
-          )}
-        </View>
-        <View style={styles.section}>
-          <Text style={styles.h3}>Selecties</Text>
-          {selectedReasonTitles.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
-              {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
+            <View style={styles.twoColRight}>
+              <Text style={styles.h3}>Selecties</Text>
+              {selectedReasonTitles.length > 0 && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={styles.label}>Geselecteerde aanleidingen:</Text>
+                  {selectedReasonTitles.map((title, i) => renderListItem(title, `reason-${i}`))}
+                </View>
+              )}
+              {selectedSolutionsData.length > 0 && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
+                  {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
+                </View>
+              )}
+              {selectedVariationsData.length > 0 && (
+                <View style={{ marginBottom: 6 }}>
+                  <Text style={styles.label}>Gekozen implementatievariant:</Text>
+                  {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
+                </View>
+              )}
+              {selectedGovModel && (
+                renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
+              )}
             </View>
-          )}
-          {selectedSolutionsData.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={styles.label}>Geselecteerde collectieve mobiliteitsoplossing:</Text>
-              {selectedSolutionsData.map((sol, i) => renderListItem(sol.title, `solution-title-${i}`))}
-            </View>
-          )}
-          {selectedVariationsData.length > 0 && (
-            <View style={{ marginBottom: 6 }}>
-              <Text style={styles.label}>Gekozen implementatievarianten:</Text>
-              {selectedVariationsData.map((v, i) => renderListItem(stripSolutionPrefixFromVariantTitle(v.title), `variant-title-${i}`))}
-            </View>
-          )}
-          {selectedGovModel && (
-            renderLabelValue("Geselecteerde governance model", selectedGovModel.title, "gov")
-          )}
+          </View>
         </View>
 
         {/* Footer intentionally removed to simplify rendering */}
@@ -628,39 +632,39 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
       <Page size="A4" style={styles.page}>
         {selectedGovModel ? (
           <View style={styles.section}>
-            <Text style={styles.h2}>Gekozen Governance model</Text>
-            <Text style={styles.h3}>{selectedGovModel.title}</Text>
+            <Text style={styles.h1}>{selectedGovModel.title}</Text>
             {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
             {selectedGovModel.implementatie && (
               <View style={{ marginTop: 8 }}>
-                <Text style={styles.h3}>Implementatie</Text>
+                <Text style={styles.h1}>Implementatie</Text>
                 {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
               </View>
             )}
+            {/* Algemene vervolgstappen direct onder governance implementatie */}
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.h1}>Algemene vervolgstappen</Text>
+              {renderRichText(
+                [
+                  'Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:',
+                  '- Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.',
+                  "- Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.",
+                  '- Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.',
+                  '- Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.',
+                  '- Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!'
+                ].join('\n\n'),
+                'alg-vsvgstp-inline'
+              )}
+            </View>
           </View>
         ) : (
           <View style={styles.section}>
-            <Text style={styles.h2}>Governancemodel</Text>
+            <Text style={styles.h1}>Governancemodel</Text>
             <Text style={styles.paragraph}>Geen governance model geselecteerd.</Text>
           </View>
         )}
       </Page>
-      {/* Algemene vervolgstappen na governance */}
+      {/* Vervolgpagina met oplossing en variant */}
       <Page size="A4" style={styles.page}>
-        <View style={styles.section}>
-          <Text style={styles.h2}>Algemene vervolgstappen</Text>
-          {renderRichText(
-            [
-              'Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:',
-              '- Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.',
-              "- Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.",
-              '- Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.',
-              '- Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.',
-              '- Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!'
-            ].join('\n\n'),
-            'alg-vsvgstp'
-          )}
-        </View>
         {selectedSolutionsData && selectedSolutionsData.length > 0 && (() => {
           const solution = selectedSolutionsData[0];
           const variantIdForSolution = selectedVariants[solution.id];
@@ -668,21 +672,14 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           return (
             <View>
               <View style={styles.section}>
-                <Text style={styles.h2}>Gekozen vervoersoplossing</Text>
-                <Text style={styles.h3}>{solution.title}</Text>
+                <Text style={styles.h1}>{solution.title}</Text>
                 {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
 
                 {chosenVariant && (
                   <View style={{ marginTop: 12 }}>
-                    <Text style={styles.h2}>Gekozen implementatievariant</Text>
-                    <Text style={styles.h3}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
+                    <Text style={styles.h1}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
                     {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                    {chosenVariant.realisatieplanAandachtspunten && (
-                      <View style={{ marginTop: 10 }}>
-                        <Text style={styles.h3}>Realisatieplan – aandachtspunten</Text>
-                        {renderRichText(chosenVariant.realisatieplanAandachtspunten, `var-att-${chosenVariant.id}`)}
-                      </View>
-                    )}
+                    {/* Realisatieplan – aandachtspunten verwijderd */}
                     {chosenVariant.vervolgstappen && (
                       <View style={{ marginTop: 10 }}>
                         <Text style={styles.h1}>Vervolgstappen</Text>

@@ -75,11 +75,55 @@ export function ImplementationVariantDialog({ variation, isOpen, onClose }: Impl
                     <Dialog.Title as="h3" className="text-2xl font-semibold leading-6 text-gray-900 mb-6">
                       {variation.title}
                     </Dialog.Title>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      {/* Top meta block in two columns, aligned with factsheet */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          {variation.controleEnFlexibiliteit && (
+                            <div>
+                              <div className="font-semibold">Controle en flexibiliteit:</div>
+                              <div className="text-gray-700">{variation.controleEnFlexibiliteit}</div>
+                            </div>
+                          )}
+                          {variation.kostenEnSchaalvoordelen && (
+                            <div>
+                              <div className="font-semibold">Kosten en schaalvoordelen:</div>
+                              <div className="text-gray-700">{variation.kostenEnSchaalvoordelen}</div>
+                            </div>
+                          )}
+                          {variation.juridischeEnComplianceRisicos && (
+                            <div>
+                              <div className="font-semibold">Juridische en compliance-risico’s:</div>
+                              <div className="text-gray-700">{variation.juridischeEnComplianceRisicos}</div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {variation.maatwerk && (
+                            <div>
+                              <div className="font-semibold">Maatwerk:</div>
+                              <div className="text-gray-700">{variation.maatwerk}</div>
+                            </div>
+                          )}
+                          {variation.operationeleComplexiteit && (
+                            <div>
+                              <div className="font-semibold">Operationele complexiteit:</div>
+                              <div className="text-gray-700">{variation.operationeleComplexiteit}</div>
+                            </div>
+                          )}
+                          {variation.risicoVanOnvoldoendeGebruik && (
+                            <div>
+                              <div className="font-semibold">Risico van onvoldoende gebruik:</div>
+                              <div className="text-gray-700">{variation.risicoVanOnvoldoendeGebruik}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Samenvatting</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Hoe werkt het</h3>
                         <div className="mt-2 prose prose-sm max-w-none">
-                          <MarkdownContent content={processMarkdownText(variation.samenvatting || '')} />
+                          <MarkdownContent variant="modal" content={processMarkdownText(variation.samenvatting || '')} />
                         </div>
                       </div>
 
@@ -120,14 +164,7 @@ export function ImplementationVariantDialog({ variation, isOpen, onClose }: Impl
                           </div>
                         </div>
                       )}
-                      {variation.realisatieplan && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Realisatieplan</h3>
-                          <div className="mt-2 prose prose-sm max-w-none">
-                            <MarkdownContent content={processMarkdownText(variation.realisatieplan)} />
-                          </div>
-                        </div>
-                      )}
+                      {/* Realisatieplan niet meer tonen */}
                     </div>
                   </div>
                 </div>

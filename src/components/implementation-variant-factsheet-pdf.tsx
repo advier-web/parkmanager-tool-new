@@ -42,6 +42,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     lineHeight: 1.4,
   },
+  twoColRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  twoColLeft: {
+    width: '50%',
+    paddingRight: 10,
+  },
+  twoColRight: {
+    width: '50%',
+    paddingLeft: 10,
+  },
   section: {
     marginBottom: 15,
     paddingBottom: 10,
@@ -49,9 +61,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eaeaea',
   },
   sectionTitle: {
-    fontSize: 12.5,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 6,
     color: '#000000',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
@@ -61,7 +73,7 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
   },
   h1Style: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 10,
@@ -69,7 +81,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.1,
   },
   h2Style: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 8,
@@ -77,23 +89,15 @@ const styles = StyleSheet.create({
     lineHeight: 1.1,
   },
   h3Style: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 6,
     marginBottom: 3,
     lineHeight: 1.1,
   },
-  ulStyle: {
-    marginTop: 5,
-    marginBottom: 5,
-    paddingLeft: 15,
-  },
-  liStyle: {
-    fontSize: 9,
-    marginBottom: 3,
-    lineHeight: 1.5,
-  },
+  ulStyle: { marginTop: 4, marginBottom: 5, paddingLeft: 6 },
+  liStyle: { fontSize: 9, marginBottom: 4, lineHeight: 1.45, marginLeft: 0 },
   strongStyle: {
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
@@ -158,13 +162,14 @@ const styles = StyleSheet.create({
 
 const htmlTagStyles = {
   p: { fontSize: 9, marginBottom: 5, lineHeight: 1.5, textAlign: 'left', marginTop: 0 },
-  h1: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 1, lineHeight: 1.1 },
-  h2: { fontSize: 14, fontWeight: 'bold', marginTop: 8, marginBottom: 1, lineHeight: 1.1 },
-  h3: { fontSize: 12, fontWeight: 'bold', marginTop: 6, marginBottom: 3, lineHeight: 1.1 },
-  ul: { marginTop: 5, marginBottom: 5, paddingLeft: 15 },
-  li: { fontSize: 9, marginBottom: 3, lineHeight: 1.5 },
+  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1 },
+  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1 },
+  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1 },
+  ul: { marginTop: 4, marginBottom: 5, paddingLeft: 6 },
+  li: { fontSize: 9, marginBottom: 4, lineHeight: 1.45 },
   strong: { fontWeight: 'bold', fontFamily: 'Open Sans' },
   em: { fontStyle: 'italic' },
+  a: { color: '#2563eb', textDecoration: 'underline' },
   table: { width: '100%', border: '1px solid #ccc', marginBottom: 10, borderCollapse: 'collapse' },
   thead: { backgroundColor: '#f0f0f0' },
   th: { border: '1px solid #ccc', padding: 4, fontWeight: 'bold', textAlign: 'left', fontSize: 8.5, display: 'table-cell' },
@@ -195,7 +200,8 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
 
   // Regexes for block elements
   const headerRegex = /^(#{1,3}) +(.*)/; // Ensure space after #
-  const listRegex = /^\s*([-*+]) +(.*)/; // Ensure space after marker
+  const listRegex = /^\s*([-*+]) +(.*)/; // Unordered list
+  const orderedListRegex = /^\s*(\d+)\. +(.*)/; // Ordered list
   const preformattedRegex = /^```([a-zA-Z]*)\n([\s\S]*?)\n```/;
   const horizontalRuleRegex = /^[-*_]{3,}\s*$/;
   // Regex for table rows (simplified: must start and end with |, and contain at least one more | for columns)
@@ -326,7 +332,40 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
       }
     }
 
-    // 4. Check for Header (was 3)
+    // 4. Ordered and unordered lists
+    let listBuffer = '';
+    let listOpen = false;
+    let currentType: 'ul' | 'ol' | null = null;
+    while (true) {
+      const bullet = remainingText.match(listRegex);
+      const ordered = remainingText.match(orderedListRegex);
+      if (bullet || ordered) {
+        const type: 'ul' | 'ol' = ordered ? 'ol' : 'ul';
+        if (!listOpen) { 
+          if (type === 'ol' && ordered) {
+            listBuffer = `<ol start="${ordered[1]}">`;
+          } else {
+            listBuffer = `<${type}>`;
+          }
+          listOpen = true; currentType = type; 
+        }
+        else if (currentType !== type) { break; }
+        const text = processInlineMarkdown((ordered ? ordered[2] : bullet![2]).trim());
+        listBuffer += `<li>${text}</li>`;
+        const consume = ordered ? ordered[0] : bullet![0];
+        remainingText = remainingText.substring(consume.length).trimStart();
+        const stillSame = type === 'ul' ? remainingText.match(listRegex) : remainingText.match(orderedListRegex);
+        if (!stillSame) { break; }
+      } else { break; }
+    }
+    if (listOpen && currentType) {
+      listBuffer += `</${currentType}>`;
+      blocks.push(listBuffer);
+      matched = true;
+      continue;
+    }
+
+    // 5. Check for Header (was 3)
     const headerMatch = remainingText.match(headerRegex);
     if (headerMatch) {
       const level = headerMatch[1].length;
@@ -443,9 +482,54 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
           </Text>
         </View>
 
+        {/* Meta blok in twee kolommen (vergelijkbaar met oplossingen factsheet) */}
+        <View style={styles.twoColRow}>
+          <View style={styles.twoColLeft}>
+            {variation.controleEnFlexibiliteit && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Controle en flexibiliteit:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.controleEnFlexibiliteit}</Text>
+              </View>
+            )}
+            {variation.kostenEnSchaalvoordelen && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Kosten en schaalvoordelen:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.kostenEnSchaalvoordelen}</Text>
+              </View>
+            )}
+            {variation.juridischeEnComplianceRisicos && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Juridische en compliance-risico’s:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.juridischeEnComplianceRisicos}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.twoColRight}>
+            {variation.maatwerk && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Maatwerk:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.maatwerk}</Text>
+              </View>
+            )}
+            {variation.operationeleComplexiteit && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Operationele complexiteit:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.operationeleComplexiteit}</Text>
+              </View>
+            )}
+            {variation.risicoVanOnvoldoendeGebruik && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Risico van onvoldoende gebruik:</Text>
+                <Text style={{ marginTop: 2 }}>{variation.risicoVanOnvoldoendeGebruik}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
         {variation.samenvatting && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Samenvatting</Text>
+            <Text style={styles.sectionTitle}>Hoe werkt het</Text>
             {renderContent(variation.samenvatting)}
           </View>
         )}
@@ -484,12 +568,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
           </View>
         )}
 
-        {variation.realisatieplan && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Realisatieplan</Text>
-            {renderContent(variation.realisatieplan)}
-          </View>
-        )}
+        {/* 'realisatieplan' is verwijderd op verzoek */}
 
         {variation.realisatieplanLeveranciers && (
           <View style={styles.section}>
@@ -530,6 +609,13 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Checklist</Text>
             {renderContent(variation.realisatieplanChecklist)}
+          </View>
+        )}
+
+        {variation.vervolgstappen && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vervolgstappen</Text>
+            {renderContent(variation.vervolgstappen)}
           </View>
         )}
       </Page>

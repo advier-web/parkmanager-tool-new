@@ -74,7 +74,7 @@ export function SolutionDialog() {
           <div className="p-6">
             {/* Reason description */}
             <section className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Beschrijving</h2>
+              {/* <h2 className="text-xl font-bold mb-2">Beschrijving</h2> */}
               <MarkdownContent content={currentReason.description} />
             </section>
           </div>
@@ -139,10 +139,67 @@ export function SolutionDialog() {
           {/* Content Area */}
           <div className="p-6 space-y-6"> 
 
+            {/* Top meta fields */}
+            {!showOnlyCases && (
+              <section className="text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentSolution.wanneerRelevant && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Wanneer relevant:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.wanneerRelevant}</div>
+                    </div>
+                  )}
+                  {currentSolution.minimaleInvestering && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Investering:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.minimaleInvestering}</div>
+                    </div>
+                  )}
+                  {currentSolution.minimumAantalPersonen && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.minimumAantalPersonen}</div>
+                    </div>
+                  )}
+                  {currentSolution.schaalbaarheid && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Schaalbaarheid:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.schaalbaarheid}</div>
+                    </div>
+                  )}
+                  {currentSolution.moeilijkheidsgraad && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Moeilijkheidsgraad:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.moeilijkheidsgraad}</div>
+                    </div>
+                  )}
+                  {currentSolution.impact && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Impact:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.impact}</div>
+                    </div>
+                  )}
+                  {currentSolution.ruimtebeslag && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Ruimtebeslag:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.ruimtebeslag}</div>
+                    </div>
+                  )}
+                  {currentSolution.afhankelijkheidExternePartijen && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.afhankelijkheidExternePartijen}</div>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 border-b border-gray-200" />
+              </section>
+            )}
+
             {/* Beschrijving */}
             {!showOnlyCases && description && (
               <section>
-                <h1 className="text-2xl font-bold mb-2">Beschrijving</h1>
+                {/* <h1 className="text-2xl font-bold mb-2">Beschrijving</h1> */}
                 <MarkdownWithAccordions content={description} />
               </section>
             )}
@@ -372,10 +429,53 @@ export function SolutionDialog() {
           </div>
           {/* Content Area */}
           <div className="p-6 space-y-6">
+            {/* Top meta fields (aligned with factsheet) */}
+            <section className="text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {variant.controleEnFlexibiliteit && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Controle en flexibiliteit:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.controleEnFlexibiliteit}</div>
+                  </div>
+                )}
+                {variant.maatwerk && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Maatwerk:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.maatwerk}</div>
+                  </div>
+                )}
+                {variant.kostenEnSchaalvoordelen && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Kosten en schaalvoordelen:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.kostenEnSchaalvoordelen}</div>
+                  </div>
+                )}
+                {variant.operationeleComplexiteit && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Operationele complexiteit:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.operationeleComplexiteit}</div>
+                  </div>
+                )}
+                {variant.juridischeEnComplianceRisicos && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Juridische en compliance-risico’s:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.juridischeEnComplianceRisicos}</div>
+                  </div>
+                )}
+                {variant.risicoVanOnvoldoendeGebruik && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Risico van onvoldoende gebruik:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.risicoVanOnvoldoendeGebruik}</div>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 border-b border-gray-200" />
+            </section>
+
             {variant.samenvatting && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Vervolgstappen</h2>
-                <MarkdownContent content={processMarkdownText(variant.samenvatting)} />
+                <h2 className="text-xl font-bold mb-2">Hoe werkt het</h2>
+                <MarkdownContent variant="modal" content={processMarkdownText(variant.samenvatting)} />
               </section>
             )}
             {variant.investering && (

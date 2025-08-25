@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eaeaea',
   },
   sectionTitle: {
-    fontSize: 12.5,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 6,
     color: '#000000',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
@@ -71,11 +71,11 @@ const styles = StyleSheet.create({
 
 const htmlTagStyles = {
   p: { fontSize: 9, marginBottom: 5, lineHeight: 1.5, textAlign: 'left', marginTop: 0 },
-  h1: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 1, lineHeight: 1.1 },
-  h2: { fontSize: 14, fontWeight: 'bold', marginTop: 8, marginBottom: 1, lineHeight: 1.1 },
-  h3: { fontSize: 12, fontWeight: 'bold', marginTop: 6, marginBottom: 3, lineHeight: 1.1 },
-  ul: { marginTop: 5, marginBottom: 5, paddingLeft: 15 },
-  li: { fontSize: 9, marginBottom: 3, lineHeight: 1.5 },
+  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1 },
+  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1 },
+  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1 },
+  ul: { marginTop: 4, marginBottom: 5, paddingLeft: 6 },
+  li: { fontSize: 9, marginBottom: 4, lineHeight: 1.45 },
   strong: { fontWeight: 'bold', fontFamily: 'Open Sans' },
   em: { fontStyle: 'italic' },
 };
@@ -99,6 +99,7 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
   let remainingText = markdownText.trim().replace(/\r\n/g, '\n');
   const headerRegex = /^(#{1,3}) +(.*)/;
   const listRegex = /^\s*([-*+]) +(.*)/;
+  const orderedListRegex = /^\s*(\d+)\. +(.*)/; // Ordered list support
   const preformattedRegex = /^```([a-zA-Z]*)\n([\s\S]*?)\n```/;
   const horizontalRuleRegex = /^[-*_]{3,}\s*$/;
 
@@ -125,17 +126,31 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
     }
     let currentListHtml = '';
     let inList = false;
+    let listType: 'ul' | 'ol' | null = null;
     while(true){
-        const listItemMatch = remainingText.match(listRegex);
-        if(listItemMatch){
-            if(!inList){ currentListHtml = '<ul>'; inList = true; }
-            currentListHtml += `<li>${processInlineMarkdown(listItemMatch[2].trim())}</li>`;
-            remainingText = remainingText.substring(listItemMatch[0].length).trimStart();
-            if(!remainingText.match(listRegex)){ break; }
+        const bulletMatch = remainingText.match(listRegex);
+        const orderedMatch = remainingText.match(orderedListRegex);
+        if(bulletMatch || orderedMatch){
+            const nextType: 'ul' | 'ol' = orderedMatch ? 'ol' : 'ul';
+            if(!inList){ 
+                if(nextType === 'ol' && orderedMatch){
+                    currentListHtml = `<ol start="${orderedMatch[1]}">`;
+                } else {
+                    currentListHtml = `<${nextType}>`;
+                }
+                inList = true; listType = nextType; 
+            }
+            else if(listType !== nextType){ break; }
+            const itemText = processInlineMarkdown((orderedMatch ? orderedMatch[2] : bulletMatch![2]).trim());
+            currentListHtml += `<li>${itemText}</li>`;
+            const toConsume = orderedMatch ? orderedMatch[0] : bulletMatch![0];
+            remainingText = remainingText.substring(toConsume.length).trimStart();
+            const stillSameType = nextType === 'ul' ? remainingText.match(listRegex) : remainingText.match(orderedListRegex);
+            if(!stillSameType){ break; }
         } else { break; }
     }
-    if(inList){
-        currentListHtml += '</ul>';
+    if(inList && listType){
+        currentListHtml += `</${listType}>`;
         blocks.push(currentListHtml);
         matched = true; continue;
     }

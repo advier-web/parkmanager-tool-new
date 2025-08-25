@@ -30,6 +30,18 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     color: '#000000',
   },
+  twoColRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  twoColLeft: {
+    width: '50%',
+    paddingRight: 10,
+  },
+  twoColRight: {
+    width: '50%',
+    paddingLeft: 10,
+  },
   headerContainer: {
     marginBottom: 25,
     paddingBottom: 5,
@@ -49,9 +61,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eaeaea',
   },
   sectionTitle: {
-    fontSize: 12.5,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 6,
     color: '#000000',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
@@ -69,44 +81,45 @@ const styles = StyleSheet.create({
 const htmlTagStyles = {
   p: {
     fontSize: 9,
-    marginBottom: 5,
+    marginBottom: 6,
     lineHeight: 1.5,
     textAlign: 'left',
     marginTop: 0,
   },
   h1: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 10,
-    marginBottom: 1,
+    marginBottom: 6,
     lineHeight: 1.1,
   },
   h2: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 8,
-    marginBottom: 1,
+    marginBottom: 6,
     lineHeight: 1.1,
   },
   h3: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#000000',
     marginTop: 6,
-    marginBottom: 3,
+    marginBottom: 5,
     lineHeight: 1.1,
   },
   ul: {
-    marginTop: 5,
+    marginTop: 4,
     marginBottom: 5,
-    paddingLeft: 15,
+    paddingLeft: 6,
   },
   li: {
     fontSize: 9,
-    marginBottom: 3,
-    lineHeight: 1.5,
+    marginBottom: 4,
+    lineHeight: 1.45,
+    marginLeft: 0,
   },
   strong: {
     fontWeight: 'bold',
@@ -114,6 +127,10 @@ const htmlTagStyles = {
   },
   em: {
     fontStyle: 'italic',
+  },
+  a: {
+    color: '#2563eb',
+    textDecoration: 'underline',
   },
 };
 
@@ -124,6 +141,8 @@ interface MobilitySolutionFactsheetPdfProps {
 // Basic Markdown to HTML converter (copied from ImplementationVariantFactsheetPdf)
 const basicMarkdownToHtml = (text: string): string => {
   let html = text;
+  // Links: [label](url) -> <a href="url">label</a>
+  html = html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
   html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
   html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
   html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
@@ -131,7 +150,11 @@ const basicMarkdownToHtml = (text: string): string => {
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/^\s*[-*+] (.*$)/gim, '<ul><li>$1</li></ul>');
+  // Ordered lists: each item on its own line. Preserve numbering using start attribute.
+  html = html.replace(/^\s*(\d+)\. (.*$)/gim, (m, n, t) => `<ol start="${n}"><li>${t}</li></ol>`);
   html = html.replace(/<\/ul>\s*<ul>/gim, '');
+  html = html.replace(/<\/ol>\s*<ol([^>]*)>/gim, '</ol><ol$1>');
+  html = html.replace(/<\/ol>\s*<ol>/gim, '');
   html = html.split('\n').map(line => {
     if (line.match(/^<h[1-6]>.*<\/h[1-6]>$/) || line.match(/^<li>.*<\/li>$/) || line.match(/^<ul>.*<\/ul>$/) || line.match(/^<p>.*<\/p>$/) || line.trim() === '') {
       return line;
@@ -154,24 +177,101 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
       htmlToRender = basicMarkdownToHtml(content);
     }
     const cleanedHtml = htmlToRender.replace(/<p><\/p>/g, '');
-    return <Html stylesheet={htmlTagStyles}>{cleanedHtml || 'Niet gespecificeerd'}</Html>;
+    // Split into block-level chunks so large sections can flow across page breaks
+    const blockRegex = /<(h1|h2|h3|p|ul|ol|table|pre)[\s\S]*?<\/\1>/gi;
+    const blocks: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = blockRegex.exec(cleanedHtml)) !== null) {
+      // Push any text before the match as a paragraph
+      if (match.index > lastIndex) {
+        const stray = cleanedHtml.slice(lastIndex, match.index).trim();
+        if (stray) blocks.push(`<p>${stray}</p>`);
+      }
+      blocks.push(match[0]);
+      lastIndex = match.index + match[0].length;
+    }
+    const tail = cleanedHtml.slice(lastIndex).trim();
+    if (tail) blocks.push(`<p>${tail}</p>`);
+
+    return (
+      <View>
+        {blocks.map((b, i) => (
+          <Html key={i} stylesheet={htmlTagStyles}>{b}</Html>
+        ))}
+      </View>
+    );
   };
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerContainer}>
-          <Text style={{ ...styles.headerText, marginBottom: 2 }}>
-            Factsheet Mobiliteitsoplossing:
-          </Text>
           <Text style={styles.headerText}>
-            {solution.title || 'Onbekende Oplossing'}
+            {`Factsheet ${solution.title || 'Onbekende Oplossing'}`}
           </Text>
+        </View>
+
+        {/* Meta blok in twee kolommen */}
+        <View style={styles.twoColRow}>
+          <View style={styles.twoColLeft}>
+            {solution.wanneerRelevant && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Wanneer relevant:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.wanneerRelevant}</Text>
+              </View>
+            )}
+            {solution.minimumAantalPersonen && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Minimum aantal personen:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.minimumAantalPersonen}</Text>
+              </View>
+            )}
+            {solution.moeilijkheidsgraad && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Moeilijkheidsgraad:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.moeilijkheidsgraad}</Text>
+              </View>
+            )}
+            {solution.ruimtebeslag && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Ruimtebeslag:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.ruimtebeslag}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.twoColRight}>
+            {solution.minimaleInvestering && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Investering:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.minimaleInvestering}</Text>
+              </View>
+            )}
+            {solution.schaalbaarheid && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Schaalbaarheid:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.schaalbaarheid}</Text>
+              </View>
+            )}
+            {solution.impact && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Impact:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.impact}</Text>
+              </View>
+            )}
+            {solution.afhankelijkheidExternePartijen && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Afhankelijkheid externe partijen:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.afhankelijkheidExternePartijen}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {solution.description && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Beschrijving</Text>
+            {/* <Text style={styles.sectionTitle}>Beschrijving</Text> */}
             {renderContent(solution.description)}
           </View>
         )}
