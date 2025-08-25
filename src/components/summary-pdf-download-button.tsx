@@ -53,6 +53,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
 
   const [isClient, setIsClient] = React.useState(false);
   const [isArmed, setIsArmed] = React.useState(false);
+  const [autoTriggered, setAutoTriggered] = React.useState(false);
 
   React.useEffect(() => setIsClient(true), []);
 
@@ -82,6 +83,28 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
     );
   }
 
+  const AutoDownloader: React.FC<{ loading: boolean; url?: string | null }> = ({ loading, url }) => {
+    React.useEffect(() => {
+      if (!loading && url && !autoTriggered) {
+        setAutoTriggered(true);
+        // Programmatically trigger a download with the provided URL and filename
+        try {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          // Fallback: open in new tab
+          window.open(url, '_blank');
+        }
+      }
+    }, [loading, url]);
+    return null;
+  };
+
   return (
     <PDFDownloadLink
       document={(
@@ -103,11 +126,14 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
       )}
       fileName={fileName}
     >
-      {({ loading }: { loading: boolean }) => (
-        <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
-          {showIcon && <DocumentTextIcon className="h-4 w-4" />}
-          {loading ? 'Even geduld…' : label}
-        </Button>
+      {({ loading, url }: { loading: boolean; url?: string }) => (
+        <>
+          <AutoDownloader loading={loading} url={url} />
+          <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
+            {showIcon && <DocumentTextIcon className="h-4 w-4" />}
+            {loading ? 'Even geduld…' : label}
+          </Button>
+        </>
       )}
     </PDFDownloadLink>
   );
