@@ -528,6 +528,28 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   selectedVariationsData = []
 }) => {
   const selectedGovModel = governanceModels.find(gm => gm.id === selectedGovernanceModelId);
+  // Resolve current governance model ID from title (so we can compare/compute suitability)
+  const currentGovernanceModelIdResolved = React.useMemo(() => {
+    if (!currentGovernanceModelTitle) return null;
+    const found = governanceModels.find(gm => gm.title === currentGovernanceModelTitle);
+    return found ? found.id : null;
+  }, [governanceModels, currentGovernanceModelTitle]);
+
+  const isSameGovernanceModel = React.useMemo(() => {
+    return selectedGovernanceModelId && currentGovernanceModelIdResolved
+      ? selectedGovernanceModelId === currentGovernanceModelIdResolved
+      : false;
+  }, [selectedGovernanceModelId, currentGovernanceModelIdResolved]);
+
+  const isCurrentModelNotSuitable = React.useMemo(() => {
+    if (!currentGovernanceModelIdResolved || !Array.isArray(selectedVariationsData)) return false;
+    return selectedVariationsData.some(v =>
+      Array.isArray((v as any).governanceModelsNietgeschikt) &&
+      (v as any).governanceModelsNietgeschikt.some((g: any) => g?.sys?.id === currentGovernanceModelIdResolved)
+    );
+  }, [selectedVariationsData, currentGovernanceModelIdResolved]);
+
+  const currentModelSufficient = isSameGovernanceModel && !isCurrentModelNotSuitable;
 
   // Helper to find a selected variation object by its ID
   const findVariantById = (variantId: string | null | undefined) => {
@@ -634,13 +656,22 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           <View style={styles.section}>
             <Text style={styles.h1}>{selectedGovModel.title}</Text>
             {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
-            {selectedGovModel.implementatie && (
+
+            {/* If current model is sufficient, show a short notice instead of full implementatiestappen */}
+            {currentModelSufficient ? (
               <View style={{ marginTop: 8 }}>
-                <Text style={styles.h1}>Implementatie</Text>
-                {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
+                <Text style={styles.paragraph}>Het huidige governance model voldoet en u kunt verder met de implementatiestappen voor het implementeren van de collectieve vervoersoplossing.</Text>
               </View>
+            ) : (
+              selectedGovModel.implementatie && (
+                <View style={{ marginTop: 8 }}>
+                  <Text style={styles.h1}>Implementatie</Text>
+                  {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
+                </View>
+              )
             )}
-            {/* Algemene vervolgstappen direct onder governance implementatie */}
+
+            {/* Algemene vervolgstappen direct onder governance implementatie of melding */}
             <View style={{ marginTop: 12 }}>
               <Text style={styles.h1}>Algemene vervolgstappen</Text>
               {renderRichText(
