@@ -84,39 +84,40 @@ export default function Step3Page() {
   
   useEffect(() => {
     if (governanceModels && relevantVariations.length > 0) {
+      // Bepaal de actieve (primaire) variant: de variant die hoort bij de huidige selectie
+      const primaryVariantId = Object.values(selectedVariants).find(Boolean) as string | undefined;
+      const activeVariation = (primaryVariantId
+        ? relevantVariations.find(v => v.id === primaryVariantId)
+        : relevantVariations[0]) as ImplementationVariation | undefined;
+
       const recommendedIds: string[] = [];
       const conditionalIds: string[] = [];
       const unsuitableIds: string[] = [];
-      
-      relevantVariations.forEach(variation => {
-        if (variation.governanceModels) {
-          variation.governanceModels.forEach(ref => {
-            const modelId = ref.sys?.id;
-            if (modelId && !recommendedIds.includes(modelId)) {
-              recommendedIds.push(modelId);
-            }
-          });
-        }
-        if (variation.governanceModelsMits) {
-           variation.governanceModelsMits.forEach(ref => {
-            const modelId = ref.sys?.id;
-            if (modelId && !conditionalIds.includes(modelId) && !recommendedIds.includes(modelId)) {
-              conditionalIds.push(modelId);
-            }
-          });
-        }
-        if (variation.governanceModelsNietgeschikt) {
-           variation.governanceModelsNietgeschikt.forEach(ref => {
-            const modelId = ref.sys?.id;
-            if (modelId && !unsuitableIds.includes(modelId) && !recommendedIds.includes(modelId) && !conditionalIds.includes(modelId)) {
-              unsuitableIds.push(modelId);
-            }
-          });
-        }
-      });
-      
-      setRecommendedModels(recommendedIds);
-      setConditionalRecommendedModels(conditionalIds);
+
+      if (activeVariation) {
+        // Let op: classificatie gebeurt uitsluitend op basis van de geselecteerde implementatievariant
+        activeVariation.governanceModels?.forEach(ref => {
+          const modelId = ref.sys?.id;
+          if (modelId && !recommendedIds.includes(modelId)) recommendedIds.push(modelId);
+        });
+
+        activeVariation.governanceModelsMits?.forEach(ref => {
+          const modelId = ref.sys?.id;
+          if (modelId && !conditionalIds.includes(modelId)) conditionalIds.push(modelId);
+        });
+
+        activeVariation.governanceModelsNietgeschikt?.forEach(ref => {
+          const modelId = ref.sys?.id;
+          if (modelId && !unsuitableIds.includes(modelId)) unsuitableIds.push(modelId);
+        });
+      }
+
+      // Bij conflicten wint 'Ongeschikt' > 'Aanbevolen, mits' > 'Aanbevolen'
+      const resolvedRecommended = recommendedIds.filter(id => !unsuitableIds.includes(id) && !conditionalIds.includes(id));
+      const resolvedConditional = conditionalIds.filter(id => !unsuitableIds.includes(id));
+
+      setRecommendedModels(resolvedRecommended);
+      setConditionalRecommendedModels(resolvedConditional);
       setUnsuitableModels(unsuitableIds);
     } else {
        setRecommendedModels([]);

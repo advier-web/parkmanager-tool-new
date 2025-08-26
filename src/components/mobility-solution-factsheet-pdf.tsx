@@ -112,12 +112,17 @@ const htmlTagStyles = {
   },
   ul: {
     marginTop: 4,
-    marginBottom: 5,
+    marginBottom: 3,
+    paddingLeft: 6,
+  },
+  ol: {
+    marginTop: 2,
+    marginBottom: 2,
     paddingLeft: 6,
   },
   li: {
     fontSize: 9,
-    marginBottom: 4,
+    marginBottom: 2,
     lineHeight: 1.45,
     marginLeft: 0,
   },
@@ -151,7 +156,7 @@ const basicMarkdownToHtml = (text: string): string => {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
   html = html.replace(/^\s*[-*+] (.*$)/gim, '<ul><li>$1</li></ul>');
   // Ordered lists: each item on its own line. Preserve numbering using start attribute.
-  html = html.replace(/^\s*(\d+)\. (.*$)/gim, (m, n, t) => `<ol start="${n}"><li>${t}</li></ol>`);
+  html = html.replace(/^\s*(\d+)\. (.*$)/gim, (m, n, t) => `<ol start="${n}" style="margin:2px 0 2px 0; padding-left:6px;"><li style="margin:2px 0;">${t}</li></ol>`);
   html = html.replace(/<\/ul>\s*<ul>/gim, '');
   html = html.replace(/<\/ol>\s*<ol([^>]*)>/gim, '</ol><ol$1>');
   html = html.replace(/<\/ol>\s*<ol>/gim, '');
@@ -283,12 +288,7 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
           </View>
         )}
         
-        {solution.uitdagingenEnAanleidingen && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Uitdagingen en Aanleidingen</Text>
-            {renderContent(solution.uitdagingenEnAanleidingen)}
-          </View>
-        )}
+        {/* Uitdagingen en Aanleidingen verwijderd op verzoek */}
 
         {solution.inputBusinesscase && (
           <View style={styles.section}>

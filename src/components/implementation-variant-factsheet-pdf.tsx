@@ -563,7 +563,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
 
         {variation.investering && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Investering</Text>
+            <Text style={styles.sectionTitle}>Exploitatie</Text>
             {renderContent(variation.investering)}
           </View>
         )}

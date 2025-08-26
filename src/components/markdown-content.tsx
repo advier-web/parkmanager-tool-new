@@ -40,7 +40,7 @@ export function MarkdownContent({
                 variant === 'page'
                   ? 'text-2xl font-bold mb-2 mt-5'
                   : variant === 'modal'
-                  ? 'text-2xl font-bold mb-1 mt-3'
+                  ? 'text-3xl font-bold mb-2 mt-4'
                   : 'text-2xl font-bold mb-1 mt-3'
               }
             />
@@ -52,7 +52,7 @@ export function MarkdownContent({
                 variant === 'page'
                   ? 'text-xl font-bold mb-2 mt-6'
                   : variant === 'modal'
-                  ? 'text-xl font-bold mb-1 mt-3'
+                  ? 'text-2xl font-bold mb-2 mt-3'
                   : 'text-xl font-bold mb-1 mt-3'
               }
             />
@@ -64,7 +64,7 @@ export function MarkdownContent({
                 variant === 'page'
                   ? 'text-lg font-bold mb-2 mt-5'
                   : variant === 'modal'
-                  ? 'text-lg font-bold mb-1 mt-2'
+                  ? 'text-xl font-bold mb-1 mt-2'
                   : 'text-lg font-bold mb-1 mt-2'
               }
             />

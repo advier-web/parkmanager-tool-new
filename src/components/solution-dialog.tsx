@@ -102,7 +102,6 @@ export function SolutionDialog() {
     const uitvoering = currentSolution.uitvoering;
     const inputBusinesscase = currentSolution.inputBusinesscase;
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel;
-    const uitdagingenEnAanleidingen = (currentSolution as any).uitdagingenEnAanleidingen as string | undefined;
     const showOnlyCases = dialogType === 'solution-cases';
 
     // Remove unused variables
@@ -207,7 +206,7 @@ export function SolutionDialog() {
             {/* Uitvoering */}
             {!showOnlyCases && uitvoering && (
               <section>
-                <h1 className="text-2xl font-bold mb-2">Uitvoering</h1>
+                <h1 className="text-3xl font-bold mb-2">Uitvoering</h1>
                 <MarkdownWithAccordions content={uitvoering} />
               </section>
             )}
@@ -215,23 +214,17 @@ export function SolutionDialog() {
             {/* Input Business Case */}
             {!showOnlyCases && inputBusinesscase && (
               <section>
-                <h1 className="text-2xl font-bold mb-2">Input voor Business Case</h1>
+                <h1 className="text-3xl font-bold mb-2">Input voor Business Case</h1>
                 <MarkdownWithAccordions content={inputBusinesscase} />
               </section>
             )}
 
-            {/* Uitdagingen en Aanleidingen */}
-            {!showOnlyCases && uitdagingenEnAanleidingen && (
-              <section>
-                <h1 className="text-2xl font-bold mb-2">Uitdagingen en Aanleidingen</h1>
-                <MarkdownWithAccordions content={uitdagingenEnAanleidingen} />
-              </section>
-            )}
+            {/* Uitdagingen en Aanleidingen verwijderd op verzoek */}
 
             {/* Implementatievarianten - Render met details uit currentVariations */}
-            {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
+            {/* {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
               <section>
-                <h1 className="text-2xl font-bold mb-2">Implementatievarianten</h1>
+                <h1 className="text-3xl font-bold mb-2">Implementatievarianten</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {currentVariations.map((variation, index) => { 
                     const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
@@ -250,12 +243,12 @@ export function SolutionDialog() {
                   })}
                 </div>
               </section>
-            )}
+            )} */}
 
             {/* Collectief vs Individueel */}
             {!showOnlyCases && collectiefVsIndiviueel && (
               <section>
-                <h1 className="text-2xl font-bold mb-2">Collectief vs Individueel</h1>
+                <h1 className="text-3xl font-bold mb-2">Collectief vs Individueel</h1>
                 <MarkdownWithAccordions content={collectiefVsIndiviueel} />
               </section>
             )}
@@ -530,56 +523,56 @@ export function SolutionDialog() {
 
             {variant.samenvatting && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Hoe werkt het</h2>
+                <h1 className="text-3xl font-bold mb-2">Hoe werkt het</h1>
                 <MarkdownContent variant="modal" content={processMarkdownText(variant.samenvatting)} />
               </section>
             )}
             {variant.investering && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Investering</h2>
-                <MarkdownContent content={variant.investering} />
+                <h1 className="text-3xl font-bold mb-2">Exploitatie</h1>
+                <MarkdownContent variant="modal" content={variant.investering} />
               </section>
             )}
             {variant.realisatieplan && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Realisatieplan</h2>
-                <MarkdownContent content={variant.realisatieplan} />
+                <h1 className="text-3xl font-bold mb-2">Realisatieplan</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplan} />
               </section>
             )}
             {variant.realisatieplanLeveranciers && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Leveranciers</h2>
-                <MarkdownContent content={variant.realisatieplanLeveranciers} />
+                <h1 className="text-3xl font-bold mb-2">Leveranciers</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplanLeveranciers} />
               </section>
             )}
             {variant.realisatieplanContractvormen && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Contractvormen</h2>
-                <MarkdownContent content={variant.realisatieplanContractvormen} />
+                <h1 className="text-3xl font-bold mb-2">Contractvormen</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplanContractvormen} />
               </section>
             )}
             {variant.realisatieplanKrachtenveld && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Krachtenveld</h2>
-                <MarkdownContent content={variant.realisatieplanKrachtenveld} />
+                <h1 className="text-3xl font-bold mb-2">Krachtenveld</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplanKrachtenveld} />
               </section>
             )}
             {variant.realisatieplanVoorsEnTegens && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Voors en Tegens</h2>
-                <MarkdownContent content={variant.realisatieplanVoorsEnTegens} />
+                <h1 className="text-3xl font-bold mb-2">Voors en Tegens</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplanVoorsEnTegens} />
               </section>
             )}
             {variant.realisatieplanAandachtspunten && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Aandachtspunten</h2>
-                <MarkdownContent content={variant.realisatieplanAandachtspunten} />
+                <h1 className="text-3xl font-bold mb-2">Aandachtspunten</h1>
+                <MarkdownContent variant="modal" content={variant.realisatieplanAandachtspunten} />
               </section>
             )}
             {variant.realisatieplanChecklist && (
               <section>
-                <h2 className="text-xl font-bold mb-2">Checklist</h2>
-                <MarkdownContent content={variant.realisatieplanChecklist} />
+                <h2 className="text-2xl font-bold mb-2">Checklist</h2>
+                <MarkdownContent variant="modal" content={variant.realisatieplanChecklist} />
               </section>
             )}
           </div>
