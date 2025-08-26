@@ -535,7 +535,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
         )}
 
         {/* Cost Information Section */}
-        {(variation.geschatteJaarlijkseKosten || variation.geschatteKostenPerKmPp || variation.geschatteKostenPerRit) && (
+        {/* {(variation.geschatteJaarlijkseKosten || variation.geschatteKostenPerKmPp || variation.geschatteKostenPerRit) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Kosteninformatie</Text>
             {variation.geschatteJaarlijkseKosten && (
@@ -557,7 +557,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
               </View>
             )}
           </View>
-        )}
+        )} */}
 
         {/* Velden verantwoordelijkheid/contractvormen/voordelen/nadelen zijn verwijderd uit het content type */}
 

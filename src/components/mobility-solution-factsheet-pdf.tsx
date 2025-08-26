@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
-import { MobilitySolution } from '@/domain/models';
+import { MobilitySolution, ImplementationVariation } from '@/domain/models';
+import { getImplementationVariationsForSolution, getImplementationVariationById } from '@/services/contentful-service';
 import Html from 'react-pdf-html';
 
 // Using Open Sans from CDN
@@ -28,6 +29,44 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     fontSize: 9,
     lineHeight: 1.5,
+    color: '#000000',
+  },
+  // Variant comparison table styles
+  compTable: {
+    marginTop: 4,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  compHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  compRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  compHeaderCell: {
+    width: 110,
+    padding: 4,
+  },
+  compCell: {
+    flexGrow: 1,
+    flexBasis: 0,
+    padding: 5,
+    borderLeftWidth: 1,
+    borderLeftColor: '#e5e7eb',
+  },
+  compHeaderText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  compVariantTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
     color: '#000000',
   },
   twoColRow: {
@@ -170,6 +209,145 @@ const basicMarkdownToHtml = (text: string): string => {
 };
 
 const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetPdfProps> = ({ solution }) => {
+  const [resolvedVariations, setResolvedVariations] = useState<ImplementationVariation[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const bootstrap = async () => {
+      // 1) Prefer already attached variations
+      if (Array.isArray((solution as any).implementationVariations) && (solution as any).implementationVariations.length > 0) {
+        if (!cancelled) setResolvedVariations((solution as any).implementationVariations as ImplementationVariation[]);
+        return;
+      }
+      // 2) If we have linked ids, fetch by ids
+      const ids = (solution as any).implementatievarianten as string[] | undefined;
+      if (Array.isArray(ids) && ids.length > 0) {
+        const fetched = (await Promise.all(ids.map(id => getImplementationVariationById(id)))).filter(Boolean) as ImplementationVariation[];
+        if (!cancelled) setResolvedVariations(fetched);
+        return;
+      }
+      // 3) Fallback: query by solution id
+      try {
+        const fetched = await getImplementationVariationsForSolution(solution.id);
+        if (!cancelled) setResolvedVariations(fetched);
+      } catch (_) {
+        // ignore
+      }
+    };
+    bootstrap();
+    return () => { cancelled = true; };
+  }, [solution]);
+  // Helper to render a compact comparison table for available implementation variations
+  const renderVariantComparison = () => {
+    const variations = resolvedVariations;
+    if (!variations || variations.length === 0) return null;
+
+    // Columns: one for each variation
+    return (
+      <View style={{ marginBottom: 14 }}>
+        <Text style={styles.sectionTitle}>Vergelijk implementatievarianten</Text>
+        <Text style={{ fontSize: 9, color: '#374151', marginTop: 2, marginBottom: 6 }}>
+          In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.
+        </Text>
+        {/* Header row with variant titles */}
+        <View style={styles.compTable}>
+          <View style={styles.compHeaderRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Categorie</Text></View>
+            {variations.map((v, idx) => (
+              <View key={`vh-${v.id || idx}`} style={styles.compCell}>
+                <Text style={styles.compVariantTitle}>{v.title || `Variant ${idx + 1}`}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Controle en flexibiliteit */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Controle en flexibiliteit</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.controleEnFlexibiliteit || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`cf-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Maatwerk */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Maatwerk</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.maatwerk || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`mw-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Kosten en schaalvoordelen */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Kosten en schaalvoordelen</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.kostenEnSchaalvoordelen || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`ks-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Operationele complexiteit */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Operationele complexiteit</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.operationeleComplexiteit || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`oc-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Juridische en compliance risico's */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Juridische en compliance risico's</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.juridischeEnComplianceRisicos || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`jr-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Risico van onvoldoende gebruik */}
+          <View style={styles.compRow}>
+            <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Risico van onvoldoende gebruik</Text></View>
+            {variations.map((v, idx) => {
+              const blocks = basicMarkdownToHtml(v.risicoVanOnvoldoendeGebruik || '-');
+              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
+              return (
+                <View key={`rg-${v.id || idx}`} style={styles.compCell}>
+                  <Html stylesheet={htmlTagStyles}>{html}</Html>
+                </View>
+              );
+            })}
+          </View>
+
+        </View>
+      </View>
+    );
+  };
   console.log("MobilitySolutionFactsheetPdf received solution:", JSON.stringify(solution, null, 2)); // Added for debugging
   // renderContent function (copied and adapted from ImplementationVariantFactsheetPdf)
   const renderContent = (content?: string) => {
@@ -303,6 +481,9 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
             {renderContent(solution.collectiefVsIndiviueel)}
           </View>
         )}
+
+        {/* Variant comparison table just before Casebeschrijving */}
+        {renderVariantComparison()}
 
         {solution.casebeschrijving && (
           <View style={styles.section}>

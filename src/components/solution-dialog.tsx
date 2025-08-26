@@ -533,12 +533,12 @@ export function SolutionDialog() {
                 <MarkdownContent variant="modal" content={variant.investering} />
               </section>
             )}
-            {variant.realisatieplan && (
+            {/* {variant.realisatieplan && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Realisatieplan</h1>
                 <MarkdownContent variant="modal" content={variant.realisatieplan} />
               </section>
-            )}
+            )} */}
             {variant.realisatieplanLeveranciers && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Leveranciers</h1>
