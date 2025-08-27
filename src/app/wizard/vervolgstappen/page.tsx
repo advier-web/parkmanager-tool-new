@@ -451,6 +451,7 @@ export default function VervolgstappenPage() {
               <li>Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.</li>
               <li>Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.</li>
               <li>Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.</li>
+              <li>Peil het draagvlak: Voer enquêtes of interviews uit onder medewerkers om hun interesse en bereidheid te meten voor deelname aan collectieve vervoersoplossingen. Zorg ervoor dat dit ook gericht is op de praktische aspecten zoals routes, tijden en kosten.</li>
               <li>
                 Check de wenselijkheid en mogelijkheden van de 
                 <button
