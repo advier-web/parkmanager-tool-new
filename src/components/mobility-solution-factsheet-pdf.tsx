@@ -3,6 +3,15 @@ import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/rendere
 import { MobilitySolution, ImplementationVariation } from '@/domain/models';
 import { getImplementationVariationsForSolution, getImplementationVariationById } from '@/services/contentful-service';
 import Html from 'react-pdf-html';
+// Local helper to avoid importing browser-specific modules in PDF context
+const stripSolutionPrefixFromVariantTitle = (fullVariantTitle: string | undefined): string => {
+  if (!fullVariantTitle) return '';
+  const separatorIndex = fullVariantTitle.indexOf(' - ');
+  if (separatorIndex !== -1) {
+    return fullVariantTitle.substring(separatorIndex + 3);
+  }
+  return fullVariantTitle;
+};
 
 // Using Open Sans from CDN
 const openSansRegularUrl = 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf';
@@ -253,11 +262,14 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
         <View style={styles.compTable}>
           <View style={styles.compHeaderRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Categorie</Text></View>
-            {variations.map((v, idx) => (
-              <View key={`vh-${v.id || idx}`} style={styles.compCell}>
-                <Text style={styles.compVariantTitle}>{v.title || `Variant ${idx + 1}`}</Text>
-              </View>
-            ))}
+            {variations.map((v, idx) => {
+              const shortTitle = stripSolutionPrefixFromVariantTitle(v.title);
+              return (
+                <View key={`vh-${v.id || idx}`} style={styles.compCell}>
+                  <Text style={styles.compVariantTitle}>{shortTitle || `Variant ${idx + 1}`}</Text>
+                </View>
+              );
+            })}
           </View>
 
           {/* Controle en flexibiliteit */}

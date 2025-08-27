@@ -234,8 +234,8 @@ export default function Step3Page() {
                 </h3>
                 <p className={`mt-1 ${currentModelIsRecommended ? 'text-green-700' : 'text-yellow-700'}`}>
                   {currentModelIsRecommended 
-                    ? 'Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde mobiliteitsoplossingen.'
-                    : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde mobiliteitsoplossingen. Overweeg één van de aanbevolen modellen hieronder of mitigeer de risico\'s van uw huidige governance model. .'}
+                    ? 'Goed nieuws! Uw huidige governance model is geschikt voor de geselecteerde vervoersoplossing.'
+                    : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde vervoersoplossing. Overweeg één van de aanbevolen modellen hieronder of mitigeer de risico\'s van uw huidige governance model. .'}
                 </p>
               </div>
               

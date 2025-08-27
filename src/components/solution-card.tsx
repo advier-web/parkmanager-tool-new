@@ -237,9 +237,12 @@ export function SolutionCard({
                     {solution.ophalen.map((ophalenOptie, index) => {
                       let optionMatches = false;
                       if (userPickupPreference && ophalenOptie) {
-                        if (userPickupPreference === 'thuis' && ophalenOptie.toLowerCase().includes('thuis')) {
+                        const txt = ophalenOptie.toLowerCase();
+                        const isHeleReis = txt.includes('thuis') || txt.includes('hele reis') || txt.includes('hele');
+                        const isLaatsteDeel = txt.includes('laatste') || txt.includes('laatste deel') || txt.includes('locatie');
+                        if (userPickupPreference === 'thuis' && isHeleReis) {
                           optionMatches = true;
-                        } else if (userPickupPreference === 'locatie' && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('locatie'))) {
+                        } else if (userPickupPreference === 'locatie' && isLaatsteDeel) {
                           optionMatches = true;
                         }
                       }
@@ -249,9 +252,9 @@ export function SolutionCard({
                             className={`w-3 h-3 rounded-full ${optionMatches ? 'bg-emerald-500' : 'bg-rose-500'} mr-1.5`}
                           ></div>
                           <span className="text-sm text-gray-600">
-                            {ophalenOptie && ophalenOptie.toLowerCase().includes('thuis')
+                            {ophalenOptie && (ophalenOptie.toLowerCase().includes('thuis') || ophalenOptie.toLowerCase().includes('hele reis'))
                               ? 'Voor de hele reis'
-                              : ophalenOptie && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('locatie'))
+                              : ophalenOptie && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('laatste deel') || ophalenOptie.toLowerCase().includes('locatie'))
                               ? 'Voor het laatste deel van de reis'
                               : ophalenOptie}
                           </span>

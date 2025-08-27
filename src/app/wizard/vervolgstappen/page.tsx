@@ -299,13 +299,18 @@ export default function VervolgstappenPage() {
           <div className="bg-white rounded-lg p-8 shadow-even">
             {/* <h2 className="text-xl font-semibold mb-6">Geselecteerde governance model, vervoersoplossing & implementatievariant</h2> */}
             {/* Indien huidig governance model 'niet geschikt' is voor gekozen variant(en) */}
-            {(() => {
-              const notSuitable = currentGovernanceModelId
-                ? selectedVariationsData.some(v =>
-                    Array.isArray(v.governanceModelsNietgeschikt) &&
-                    v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
-                  )
-                : false;
+            {false && (() => {
+              // Toon ook de melding als huidig model 'Geen bestuursvorm' is
+              const isNoGovernance = (currentGovernanceModelTitle || '').toLowerCase().includes('geen') &&
+                ((currentGovernanceModelTitle || '').toLowerCase().includes('bestuursvorm') || (currentGovernanceModelTitle || '').toLowerCase().includes('rechtsvorm'));
+              const notSuitable = isNoGovernance || (
+                currentGovernanceModelId
+                  ? selectedVariationsData.some(v =>
+                      Array.isArray(v.governanceModelsNietgeschikt) &&
+                      v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
+                    )
+                  : true
+              );
               if (!notSuitable) return null;
               return (
                 <div className="mb-6 text-gray-700">
@@ -329,12 +334,32 @@ export default function VervolgstappenPage() {
                         v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
                       )
                     : false;
+                  const isConditionalSelected = selectedGovernanceModelData
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsMits) &&
+                        v.governanceModelsMits.some(g => g.sys?.id === selectedGovernanceModelData.id)
+                      )
+                    : false;
 
                   if (!isSameGovernanceModel) {
                     return (
                       <p className="text-gray-700 mb-3">
                         U heeft een ander governance model gekozen dan het huidige model. Het is belangrijk om eerst de governance-structuur op orde te hebben voordat u verder gaat met het implementeren van de collectieve vervoersoplossing.
                       </p>
+                    );
+                  }
+
+                  if (isSameGovernanceModel && isConditionalSelected) {
+                    const relevance = getVariantRelevance();
+                    return (
+                      <div className="mb-3">
+                        <p className="text-gray-700 mb-3">
+                          Het geselecteerde governance model is mogelijk minder geschikt voor de geselecteerde vervoersoplossing. Besteed extra aandacht aan de onderstaande punten.
+                        </p>
+                        {relevance && (
+                          <div className="text-gray-700 mb-3">{relevance}</div>
+                        )}
+                      </div>
                     );
                   }
 
@@ -357,7 +382,13 @@ export default function VervolgstappenPage() {
                         v.governanceModelsNietgeschikt.some(g => g.sys?.id === currentGovernanceModelId)
                       )
                     : false;
-                  const currentModelSufficient = isSameGovernanceModel && !notSuitable;
+                  const isConditionalSelected = selectedGovernanceModelData
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsMits) &&
+                        v.governanceModelsMits.some(g => g.sys?.id === selectedGovernanceModelData.id)
+                      )
+                    : false;
+                  const currentModelSufficient = isSameGovernanceModel && !notSuitable && !isConditionalSelected;
                   if (currentModelSufficient) return null;
                   const items = extractH2Headings(selectedGovernanceModelData.implementatie);
                   return items.length > 0 ? (
@@ -420,7 +451,20 @@ export default function VervolgstappenPage() {
               <li>Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.</li>
               <li>Indien niet aanwezig, voer een mobiliteitsscan uit. In sommige regio's kan dit gratis via een mobiliteitsmakelaar. Het alternatief is dit onderdeel te maken van de inkoop of een risico te lopen in het gebruik in de praktijk te toetsen.</li>
               <li>Neem de bedrijven mee in de plannen en breng samen het proces goed in kaart. Bepaal of de kennis, kunde en capaciteit aanwezig is binnen de bedrijfsvereniging en/of dat specialisten ingeschakeld moeten worden. De moeilijkheidsgraad in de vorige stappen geeft hiervoor een indicatie.</li>
-              <li>Check de wenselijkheid en mogelijkheden van de COVER subsidie m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.</li>
+              <li>
+                Check de wenselijkheid en mogelijkheden van de 
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('cover-subsidie');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-blue-600 underline hover:text-blue-800 ml-1"
+                >
+                  COVER subsidie
+                </button>
+                {' '}m.b.t. de inkoopmodellen. Onderaan deze pagina vindt u meer informatie over deze subsidie.
+              </li>
               <li>Vergeet hierbij niet om afspraken te maken over wie verantwoordelijk is voor de communicatie naar de gebruikers!</li>
             </ul>
           </div>
@@ -488,7 +532,7 @@ export default function VervolgstappenPage() {
           )}
 
           {/* COVER Subsidie sectie - altijd zichtbaar */}
-          <div className="bg-white rounded-lg p-8 shadow-even">
+          <div id="cover-subsidie" className="bg-white rounded-lg p-8 shadow-even">
               <h2 className="text-xl font-semibold mb-2">Subsidie: COVER (Collectieven mkb Verduurzaming Reisgedrag)</h2>
               <p className="text-gray-700 mb-4">De COVER subsidie is bedoeld voor organisaties die het mkb vertegenwoordigen, zoals parkmanagers. Met behulp van de subsidie kunnen stappen gezet worden naar blijvend duurzaam reisgedrag van werknemers. De subsidie dekt maximaal 75% van de kosten van het project waar de subsidie voor is aangevraagd, met een maximumbedrag van €100.000.
               Er zitten een aantal voorwaarden aan het aanvragen van de COVER subsidie.</p>

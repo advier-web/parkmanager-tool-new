@@ -126,7 +126,7 @@ export function SolutionDialog() {
             <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center z-10">
-            <h2 className="text-xl font-bold">{currentSolution.title}</h2>
+            <h2 className="text-xl font-bold">{showOnlyCases ? `${currentSolution.title} casebeschrijving` : currentSolution.title}</h2>
             <button
               onClick={closeDialog}
               className="text-gray-500 hover:text-gray-700 focus:outline-none"
@@ -256,8 +256,7 @@ export function SolutionDialog() {
             {/* ADDED Casebeschrijving section AT THE BOTTOM of content */}
             {showOnlyCases && currentSolution.casebeschrijving && (
               <section>
-                <h1 className="text-xl font-bold mb-2">Casebeschrijving</h1>
-                {/* Using MarkdownWithAccordions for consistency, or MarkdownContent if preferred */}
+                {/* Titel in header verwerkt; subtitel hier weggelaten */}
                 <MarkdownWithAccordions content={currentSolution.casebeschrijving} /> 
               </section>
             )}
