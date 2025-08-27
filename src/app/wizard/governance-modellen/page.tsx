@@ -84,8 +84,10 @@ export default function Step3Page() {
   
   useEffect(() => {
     if (governanceModels && relevantVariations.length > 0) {
-      // Bepaal de actieve (primaire) variant: de variant die hoort bij de huidige selectie
-      const primaryVariantId = Object.values(selectedVariants).find(Boolean) as string | undefined;
+      // Bepaal de actieve (primaire) variant deterministisch op basis van de eerste geselecteerde oplossing
+      const primaryVariantId = (selectedSolutions.find(sid => selectedVariants[sid])
+        ? selectedVariants[selectedSolutions.find(sid => selectedVariants[sid]) as string]
+        : undefined) as string | undefined;
       const activeVariation = (primaryVariantId
         ? relevantVariations.find(v => v.id === primaryVariantId)
         : relevantVariations[0]) as ImplementationVariation | undefined;

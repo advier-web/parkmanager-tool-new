@@ -328,6 +328,26 @@ export default function VervolgstappenPage() {
                 {/* <h3 className="text-lg font-semibold mb-2">Governance model</h3> */}
                 <h3 className="text-2xl font-semibold mb-3 text-gray-800">Gekozen governance model: {selectedGovernanceModelData.title}</h3>
                 {(() => {
+                  // 0) Indien het geselecteerde governance model 'Ongeschikt' is voor de geselecteerde variant
+                  const isSelectedModelUnsuitable = selectedGovernanceModelData
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsNietgeschikt) &&
+                        v.governanceModelsNietgeschikt.some(g => g.sys?.id === selectedGovernanceModelData.id)
+                      )
+                    : false;
+                  if (isSelectedModelUnsuitable) {
+                    return (
+                      <div className="mb-3">
+                        <p className="text-gray-700 mb-3">
+                          Het geselecteerde governance model is ongeschikt voor de geselecteerde vervoersoplossing. Overweeg onderstaande acties:
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                          <li>Controleer of er in het kader van andere gemeenschappelijke voorzieningen (bijvoorbeeld energie) al een rechtsvorm wordt opgezet of aanwezig is waarbij kan worden aangesloten.</li>
+                          <li>Update het huidige governance model naar één van de geadviseerde rechtsvormen en laat u daarin begeleiden door een specialist (check governance model factsheet voor concrete eerste stappen).</li>
+                        </ul>
+                      </div>
+                    );
+                  }
                   const notSuitable = currentGovernanceModelId
                     ? selectedVariationsData.some(v =>
                         Array.isArray(v.governanceModelsNietgeschikt) &&
@@ -341,15 +361,8 @@ export default function VervolgstappenPage() {
                       )
                     : false;
 
-                  if (!isSameGovernanceModel) {
-                    return (
-                      <p className="text-gray-700 mb-3">
-                        U heeft een ander governance model gekozen dan het huidige model. Het is belangrijk om eerst de governance-structuur op orde te hebben voordat u verder gaat met het implementeren van de collectieve vervoersoplossing.
-                      </p>
-                    );
-                  }
-
-                  if (isSameGovernanceModel && isConditionalSelected) {
+                  // 1) Toon bij 'Aanbevolen, mits' altijd de relevantie-tekst, ongeacht huidig vs gekozen model
+                  if (isConditionalSelected) {
                     const relevance = getVariantRelevance();
                     return (
                       <div className="mb-3">
@@ -360,6 +373,15 @@ export default function VervolgstappenPage() {
                           <div className="text-gray-700 mb-3">{relevance}</div>
                         )}
                       </div>
+                    );
+                  }
+
+                  // 2) Indien het gekozen model afwijkt van het huidige, toon begeleidende melding
+                  if (!isSameGovernanceModel) {
+                    return (
+                      <p className="text-gray-700 mb-3">
+                        U heeft een ander governance model gekozen dan het huidige model. Het is belangrijk om eerst de governance-structuur op orde te hebben voordat u verder gaat met het implementeren van de collectieve vervoersoplossing.
+                      </p>
                     );
                   }
 
@@ -376,6 +398,14 @@ export default function VervolgstappenPage() {
 
                 {/* Implementatiestappen (toon alleen als huidig model niet simpelweg voldoet) */}
                 {(() => {
+                  // Toon geen implementatiestappen wanneer het geselecteerde model ongeschikt is
+                  const isSelectedModelUnsuitable = selectedGovernanceModelData
+                    ? selectedVariationsData.some(v =>
+                        Array.isArray(v.governanceModelsNietgeschikt) &&
+                        v.governanceModelsNietgeschikt.some(g => g.sys?.id === selectedGovernanceModelData.id)
+                      )
+                    : false;
+                  if (isSelectedModelUnsuitable) return null;
                   const notSuitable = currentGovernanceModelId
                     ? selectedVariationsData.some(v =>
                         Array.isArray(v.governanceModelsNietgeschikt) &&

@@ -46,8 +46,8 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
   const variantSpecificText = useMemo(() => {
     const fieldName = governanceTitleToFieldName(model.title);
     if (!fieldName) return undefined;
-    // Kies bij voorkeur de variant die bij de huidige (enige) gekozen oplossing hoort
-    const preferredId = primaryVariantId || (Object.values(selectedVariants).find(Boolean) as string | undefined);
+    // Kies bij voorkeur de variant die hoort bij de eerste geselecteerde oplossing met een variant
+    const preferredId = primaryVariantId || (Object.keys(selectedVariants).find(sid => selectedVariants[sid]) ? selectedVariants[Object.keys(selectedVariants).find(sid => selectedVariants[sid]) as string] as string | undefined : undefined);
     const selectedVariation = variationsToDisplay?.find(v => v.id === preferredId) || variationsToDisplay?.[0];
     const text = selectedVariation ? (selectedVariation as any)[fieldName] : undefined;
     if (!text || typeof text !== 'string') return undefined;
@@ -89,8 +89,13 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
         )}
         
         {isCurrent && (
-          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+          <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-bl-md rounded-tr-md mr-1">
             Huidige model
+          </span>
+        )}
+        {!isRecommended && !isConditionalRecommended && (
+          <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+            Ongeschikt
           </span>
         )}
       </div>
