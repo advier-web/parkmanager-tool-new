@@ -102,7 +102,7 @@ export function SolutionCard({
       color = 'bg-green-500';
       label = `Draagt veel bij aan ${reasonTitleLower}`;
     } else if (scoreForReason >= 4) {
-      color = 'bg-orange-500';
+      color = 'bg-yellow-400';
       label = `Draagt enigszins bij aan ${reasonTitleLower}`;
     } else if (scoreForReason > 0) {
       color = 'bg-red-500';

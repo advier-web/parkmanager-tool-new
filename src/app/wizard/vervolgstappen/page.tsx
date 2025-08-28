@@ -270,9 +270,10 @@ export default function VervolgstappenPage() {
           {/* Top-level Introduction */}
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Vervolgstappen</h2>
-            <p className="mb-6">
+            <p className="mb-3">
               Op deze pagina vindt u een overzicht van de gemaakte keuzes, en concrete vervolgstappen . U kunt teruggaan naar eerdere stappen om wijzigingen aan te brengen. Via onderstaande knop kunt u het adviesrapport in PDF downloaden.
             </p>
+            <p className="mb-6">Let op: dit is géén volledige mobiliteitsscan en ook geen individueel bedrijfsadvies; de uitkomst is bedoeld als gerichte shortlist en startpunt voor verdere uitwerking.</p>
             {/* Centrale downloadknop voor Adviesrapport */}
             {isClient && (
               <SummaryPdfDownloadButton
@@ -336,15 +337,20 @@ export default function VervolgstappenPage() {
                       )
                     : false;
                   if (isSelectedModelUnsuitable) {
+                    const relevance = getVariantRelevance();
                     return (
                       <div className="mb-3">
                         <p className="text-gray-700 mb-3">
-                          Het geselecteerde governance model is ongeschikt voor de geselecteerde vervoersoplossing. Overweeg onderstaande acties:
+                          Het geselecteerde governance model wordt niet aanbevolen voor de geselecteerde vervoersoplossing. Overweeg onderstaande acties:
                         </p>
-                        <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                        <ul className="list-disc pl-5 space-y-1 text-gray-700 mb-3">
                           <li>Controleer of er in het kader van andere gemeenschappelijke voorzieningen (bijvoorbeeld energie) al een rechtsvorm wordt opgezet of aanwezig is waarbij kan worden aangesloten.</li>
                           <li>Update het huidige governance model naar één van de geadviseerde rechtsvormen en laat u daarin begeleiden door een specialist (check governance model factsheet voor concrete eerste stappen).</li>
                         </ul>
+                        <div className="mb-3"><p>Indien u toch dit governance model wilt gebruiken, kunt u de volgende punten in acht nemen:</p></div>
+                        {relevance && (
+                          <div className="text-gray-700 mb-3">{relevance}</div>
+                        )}
                       </div>
                     );
                   }
@@ -398,14 +404,29 @@ export default function VervolgstappenPage() {
 
                 {/* Implementatiestappen (toon alleen als huidig model niet simpelweg voldoet) */}
                 {(() => {
-                  // Toon geen implementatiestappen wanneer het geselecteerde model ongeschikt is
+                  // Bij "Niet aanbevolen" tonen we óók de implementatiestappen (zoals bij 'Aanbevolen, mits'),
+                  // behalve wanneer het geselecteerde model gelijk is aan het huidige model.
                   const isSelectedModelUnsuitable = selectedGovernanceModelData
                     ? selectedVariationsData.some(v =>
                         Array.isArray(v.governanceModelsNietgeschikt) &&
                         v.governanceModelsNietgeschikt.some(g => g.sys?.id === selectedGovernanceModelData.id)
                       )
                     : false;
-                  if (isSelectedModelUnsuitable) return null;
+                  if (isSelectedModelUnsuitable) {
+                    if (isSameGovernanceModel) return null;
+                    const items = extractH2Headings(selectedGovernanceModelData.implementatie);
+                    return items.length > 0 ? (
+                      <div className="text-gray-700">
+                        <h4 className="text-md font-semibold mb-2">Implementatiestappen governance model</h4>
+                        <p className="text-gray-700 mb-4">
+                          Om het geselecteerde governance model succesvol te implementeren, moet u globaal de volgende stappen doorvoeren. Voor een gedetailleerde uitleg, raadpleeg de factsheet via de downloadknop.
+                        </p>
+                        {items.map((txt, idx) => (
+                          <div key={`imp-${idx}`}>{txt}</div>
+                        ))}
+                      </div>
+                    ) : null;
+                  }
                   const notSuitable = currentGovernanceModelId
                     ? selectedVariationsData.some(v =>
                         Array.isArray(v.governanceModelsNietgeschikt) &&

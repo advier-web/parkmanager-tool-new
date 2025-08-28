@@ -156,28 +156,45 @@ export default function MobilitySolutionsPage() {
   }, [calculateScoreForSolution, getTrafficTypeMatchScore, getPickupPreferenceMatch, getReasonScores]);
   
   const processedSolutions = useMemo(() => {
-    if (!mobilitySolutions || !reasons) {
+    // Als er geen oplossingen zijn, niets tonen
+    if (!mobilitySolutions) {
       return { filtered: [], grouped: {} as Record<string, any[]> };
     }
-    
-    let filteredSolutions = [...mobilitySolutions]; 
+
+    // Als er GEEN aanleidingen geselecteerd zijn, tonen we ALLE oplossingen
+    // zonder afhankelijk te zijn van het laden van 'reasons'.
+    const hasActiveReasonFilters = activeFilters.length > 0;
+
+    let filteredSolutions = [...mobilitySolutions];
     const currentTrafficTypes = businessParkInfo.trafficTypes || [];
-    
-    let reasonsToScoreBy: string[] = activeFilters;
-    if (activeFilters.length > 0) {
-      filteredSolutions = filteredSolutions.filter(sol => 
-        activeFilters.some(reasonId => {
-          const identifier = reasonIdToIdentifierMap[reasonId];
-          const score = identifier ? findScoreForIdentifier(sol, identifier) : 0;
-          return identifier && score > 0;
-        })
-      );
-    } else {
-      reasonsToScoreBy = [];
+
+    let reasonsToScoreBy: string[] = [];
+
+    if (hasActiveReasonFilters) {
+      // Alleen filteren op aanleidingen als er filters actief zijn en reasons beschikbaar is
+      if (reasons) {
+        reasonsToScoreBy = activeFilters;
+        filteredSolutions = filteredSolutions.filter(sol =>
+          activeFilters.some(reasonId => {
+            const identifier = reasonIdToIdentifierMap[reasonId];
+            const score = identifier ? findScoreForIdentifier(sol, identifier) : 0;
+            return identifier && score > 0;
+          })
+        );
+      } else {
+        // Reasons nog niet geladen: niet filteren, wel alvast alle tonen
+        reasonsToScoreBy = [];
+      }
     }
-    
-    const sortedAndScored = sortSolutionsByScore(filteredSolutions, reasonsToScoreBy, currentTrafficTypes); 
-    
+
+    let sortedAndScored = sortSolutionsByScore(filteredSolutions, reasonsToScoreBy, currentTrafficTypes);
+
+    // Fail-safe: als er door een combinatie van filters toch niets overblijft,
+    // toon dan alsnog alle oplossingen zonder reden-gewicht.
+    if (sortedAndScored.length === 0 && mobilitySolutions.length > 0) {
+      sortedAndScored = sortSolutionsByScore([...mobilitySolutions], [], currentTrafficTypes);
+    }
+
     type ScoredSolutionItem = { solution: MobilitySolution, score: number, trafficMatch: number, pickupMatch: boolean, contributingReasons: { [reasonId: string]: number } };
     const grouped: Record<string, ScoredSolutionItem[]> = sortedAndScored.reduce((acc, item) => {
       const category = item.solution.category || 'Onbekend';
@@ -185,7 +202,7 @@ export default function MobilitySolutionsPage() {
       acc[category].push(item);
       return acc;
     }, {} as Record<string, ScoredSolutionItem[]>);
-    
+
     return { filtered: sortedAndScored, grouped };
   }, [mobilitySolutions, reasons, businessParkInfo.trafficTypes, businessParkInfo.employeePickupPreference, activeFilters, calculateScoreForSolution, getTrafficTypeMatchScore, getPickupPreferenceMatch, getReasonScores, sortSolutionsByScore]);
   

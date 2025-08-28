@@ -12,7 +12,7 @@ export default function WizardPage() {
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg p-8 shadow-even">
-        <h2 className="text-2xl font-bold mb-4">Welkom bij de ParkManager Tool Collectieve Vervoersoplossingen</h2>
+        <h2 className="text-2xl font-bold mb-4">Welkom bij de Parkmanager Tool Collectieve Vervoersoplossingen</h2>
         <div className="mb-6 space-y-3 text-gray-700">
           <p>
             Ik help parkmanagers, ondernemersverenigingen en bedrijfsverenigingen om snel te komen tot passende collectieve vervoersoplossingen voor hun terrein. Aan het eind ontvangt u een compact advies over de gekozen collectieve vervoersoplossing, de belangrijkste randvoorwaarden en concrete vervolgstappen om door te pakken. U kunt ook factsheets downloaden van de gekozen vervoersoplossing, inkoopvariant en governance model.
@@ -61,24 +61,16 @@ export default function WizardPage() {
 
           {/* Rechter kolom: definities-blok */}
           <div className="bg-gray-50 rounded-lg p-6 shadow-even">
-            <h2 className="text-lg font-semibold mb-3">Gebruikte definities:</h2>
+            <h2 className="text-lg font-semibold mb-3">Subsidieregeling Collectieven mkb Verduurzaming Reisgedrag (COVER)</h2>
             <div className="space-y-4 text-gray-700">
               <div>
-                <p className="font-bold">Bedrijfsvereniging</p>
                 <p>
-                  De juridische entiteit die in de lead is van het organiseren van de Coveraanvraag/ collectieve mobiliteitsoplossing (dit kan dus ook een andere rechtsvorm zijn).
+                De COVER subsidie is bedoeld voor organisaties die het mkb vertegenwoordigen, zoals parkmanagers. Met behulp van de subsidie kunnen stappen gezet worden naar blijvend duurzaam reisgedrag van werknemers. De subsidie dekt maximaal 75% van de kosten van het project waar de subsidie voor is aangevraagd, met een maximumbedrag van €100.000.
                 </p>
-              </div>
-              <div>
-                <p className="font-bold">Aangesloten organisaties</p>
+                </div>
+                <div>
                 <p>
-                  Bij de bedrijfsvereniging aangesloten bedrijven en instellingen. Dit zijn tevens de organisaties voor wie we een oplossing zoeken.
-                </p>
-              </div>
-              <div>
-                <p className="font-bold">Organisaties op uw terrein</p>
-                <p>
-                  Alle organisaties op uw bedrijventerrein.
+                  In het advies ziet u aan welke voorwaarden het project moet voldoen om in aanmerking te komen voor deze subsidie.
                 </p>
               </div>
             </div>

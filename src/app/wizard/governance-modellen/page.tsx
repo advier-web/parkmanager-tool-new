@@ -311,9 +311,9 @@ export default function Step3Page() {
           {/* Unsuitable Governance Models Section */}
           {!isLoading && unsuitableModelsList.length > 0 && (
             <div className="bg-white rounded-lg p-8 shadow-even mb-8">
-              <h3 className="text-xl font-semibold mb-4 text-red-700 border-b pb-2">Ongeschikte governance modellen</h3>
-              <div className="bg-red-50 p-4 rounded-md mb-6 border border-red-200">
-                <p className="text-red-800">
+              <h3 className="text-xl font-semibold mb-4 text-orange-700 border-b pb-2">Niet aanbevolen governance modellen</h3>
+              <div className="bg-orange-50 p-4 rounded-md mb-6 border border-orange-200">
+                <p className="text-orange-800">
                   Deze modellen zijn minder geschikt voor de door u geselecteerde mobiliteitsoplossingen.
                 </p>
               </div>

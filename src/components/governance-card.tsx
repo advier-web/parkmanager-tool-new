@@ -94,8 +94,8 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
           </span>
         )}
         {!isRecommended && !isConditionalRecommended && (
-          <span className="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
-            Ongeschikt
+          <span className="bg-orange-100 text-orange-700 text-xs font-semibold px-2.5 py-0.5 rounded-bl-md rounded-tr-md">
+            Niet aanbevolen
           </span>
         )}
       </div>
