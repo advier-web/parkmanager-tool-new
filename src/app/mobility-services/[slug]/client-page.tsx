@@ -61,24 +61,74 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             )}
           </div>
 
-          {/* Main summary/description section */}
-          {solution.samenvattingLang && (
-            <div className="mb-10 text-gray-900"> {/* Reverted margin and removed rounded-lg as it wasn't there before for this specific div*/}
-              <div className="text-2xl font-semibold"> {/* Reverted to text-2xl font-semibold */}
-                <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
+          {/* Vuistregels (top meta) in 2 kolommen, gelijk aan popup */}
+          {(
+            solution.wanneerRelevant ||
+            solution.minimaleInvestering ||
+            solution.minimumAantalPersonen ||
+            solution.schaalbaarheid ||
+            solution.moeilijkheidsgraad ||
+            solution.impact ||
+            solution.ruimtebeslag ||
+            solution.afhankelijkheidExternePartijen
+          ) && (
+            <section className="text-sm mb-8 bg-white rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {solution.wanneerRelevant && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Wanneer relevant:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.wanneerRelevant}</div>
+                  </div>
+                )}
+                {solution.minimaleInvestering && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Investering:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.minimaleInvestering}</div>
+                  </div>
+                )}
+                {solution.minimumAantalPersonen && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.minimumAantalPersonen}</div>
+                  </div>
+                )}
+                {solution.schaalbaarheid && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Schaalbaarheid:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.schaalbaarheid}</div>
+                  </div>
+                )}
+                {solution.moeilijkheidsgraad && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Moeilijkheidsgraad:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.moeilijkheidsgraad}</div>
+                  </div>
+                )}
+                {solution.impact && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Impact:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.impact}</div>
+                  </div>
+                )}
+                {solution.ruimtebeslag && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Ruimtebeslag:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.ruimtebeslag}</div>
+                  </div>
+                )}
+                {solution.afhankelijkheidExternePartijen && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
+                    <div className="text-gray-800 mt-0.5">{solution.afhankelijkheidExternePartijen}</div>
+                  </div>
+                )}
               </div>
-            </div>
+              <div className="mt-4 border-b border-gray-200" />
+            </section>
           )}
-          {!solution.samenvattingLang && solution.description && ( // Show description if samenvattingLang is not present
-            <div className="mb-6">  {/* Adjusted margin */}
-              <div className="prose max-w-none">
-                 <MarkdownWithAccordions content={solution.description} />
-              </div>
-            </div>
-          )}
-          
-          {/* PDF Download Link for the main solution factsheet */}
-          {(solution.samenvattingLang || solution.description) && ( 
+
+           {/* PDF Download Link for the main solution factsheet */}
+           {(solution.samenvattingLang || solution.description) && ( 
             <div className="mt-6 mb-10"> {/* Adjusted top margin for more space */}
               <MobilitySolutionFactsheetButton
                 solution={solution}
@@ -90,6 +140,25 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
               </MobilitySolutionFactsheetButton>
             </div>
           )}
+
+          {/* Beschrijving eerst; val terug op samenvatting indien geen description */}
+          {solution.description ? (
+            <div className="mb-10 text-gray-900 bg-white rounded-lg p-6">
+              <div className="prose max-w-none">
+                <MarkdownWithAccordions content={solution.description} />
+              </div>
+            </div>
+          ) : (
+            solution.samenvattingLang && (
+              <div className="mb-10 text-gray-900 bg-white rounded-lg p-6">
+                <div className="text-2xl font-semibold">
+                  <MarkdownContent content={processMarkdownText(solution.samenvattingLang)} />
+                </div>
+              </div>
+            )
+          )}
+          
+          {/* Vergelijk implementatievarianten komt onderaan als vervanger van de kaart-grid */}
 
           {solution.uitvoering && (
             <div className="mb-10 rounded-lg bg-white p-6">
@@ -114,31 +183,86 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             </div>
           )}
           
-          <div className="mb-10 rounded-lg">
-            <h2 className="text-3xl font-semibold mb-6">Implementatievarianten</h2>
-            {variations && variations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {variations.map((variation, index) => {
-                  const displayTitle = stripSolutionPrefixFromVariantTitle(variation.title);
-                  
-                  return (
-                    <div key={index} className="border border-gray-200 rounded-lg p-6 shadow-sm">
-                      <h3 className="text-xl font-semibold mb-3 text-teal-700">{displayTitle}</h3>
-                      {variation.samenvatting ? (
-                        <div className="prose prose-sm max-w-none">
-                          <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 italic">Geen samenvatting beschikbaar.</p>
-                      )}
+          {variations && variations.length > 0 && (
+            <section className="mb-10 bg-white rounded-lg p-6">
+              <h2 className="text-3xl font-semibold mb-2">Vergelijk implementatievarianten</h2>
+              <p className="text-sm text-gray-600 mb-4">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.</p>
+              <div className="grid rounded-lg" style={{ gridTemplateColumns: `160px repeat(${variations.length}, 1fr)` }}>
+                {/* Header row */}
+                <div className="contents">
+                  <div className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Categorie</div>
+                  {variations.map((v, idx) => {
+                    const displayTitle = stripSolutionPrefixFromVariantTitle(v.title);
+                    return (
+                      <div key={`vh-${v.id || idx}`} className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900">
+                        {displayTitle}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Controle en flexibiliteit */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Controle en flexibiliteit</div>
+                  {variations.map((v, idx) => (
+                    <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                      <MarkdownContent content={processMarkdownText(v.controleEnFlexibiliteit || '-')} />
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+
+                {/* Maatwerk */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Maatwerk</div>
+                  {variations.map((v, idx) => (
+                    <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                      <MarkdownContent content={processMarkdownText(v.maatwerk || '-')} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Kosten en schaalvoordelen */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Kosten en schaalvoordelen</div>
+                  {variations.map((v, idx) => (
+                    <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                      <MarkdownContent content={processMarkdownText(v.kostenEnSchaalvoordelen || '-')} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Operationele complexiteit */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Operationele complexiteit</div>
+                  {variations.map((v, idx) => (
+                    <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                      <MarkdownContent content={processMarkdownText(v.operationeleComplexiteit || '-')} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Juridische en compliance risico's */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Juridische en compliance risico's</div>
+                  {variations.map((v, idx) => (
+                    <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                      <MarkdownContent content={processMarkdownText(v.juridischeEnComplianceRisicos || '-')} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Risico van onvoldoende gebruik */}
+                <div className="contents">
+                  <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Risico van onvoldoende gebruik</div>
+                  {variations.map((v, idx) => (
+                    <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                      <MarkdownContent content={processMarkdownText(v.risicoVanOnvoldoendeGebruik || '-')} />
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-500 italic">Er zijn geen specifieke implementatievarianten gedefinieerd voor deze dienst.</p>
-            )}
-          </div>
+            </section>
+          )}
 
           {/* Gedetailleerd advies section */}
           <div className="bg-white rounded-lg p-6 mb-10">

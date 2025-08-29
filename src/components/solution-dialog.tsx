@@ -253,6 +253,86 @@ export function SolutionDialog() {
               </section>
             )}
 
+            {/* Vergelijk implementatievarianten - table inside popup before cases */}
+            {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
+              <section className="bg-white rounded-lg py-4">
+                <h1 className="text-3xl font-bold mb-1">Vergelijk implementatievarianten</h1>
+                <p className="text-sm text-gray-600 mb-3">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.</p>
+                <div className="grid rounded-lg" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, 1fr)` }}>
+                  {/* Header row */}
+                  <div className="contents">
+                    <div className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Categorie</div>
+                    {currentVariations.map((v, idx) => {
+                      const title = stripSolutionPrefixFromVariantTitle(v.title);
+                      return (
+                        <div key={`vh-${v.id || idx}`} className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900">{title}</div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Controle en flexibiliteit */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Controle en flexibiliteit</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                        <MarkdownContent content={processMarkdownText(v.controleEnFlexibiliteit || '-')} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Maatwerk */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Maatwerk</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                        <MarkdownContent content={processMarkdownText(v.maatwerk || '-')} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Kosten en schaalvoordelen */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Kosten en schaalvoordelen</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                        <MarkdownContent content={processMarkdownText(v.kostenEnSchaalvoordelen || '-')} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Operationele complexiteit */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Operationele complexiteit</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                        <MarkdownContent content={processMarkdownText(v.operationeleComplexiteit || '-')} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Juridische en compliance risico's */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Juridische en compliance risico's</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
+                        <MarkdownContent content={processMarkdownText(v.juridischeEnComplianceRisicos || '-')} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Risico van onvoldoende gebruik */}
+                  <div className="contents">
+                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Risico van onvoldoende gebruik</div>
+                    {currentVariations.map((v, idx) => (
+                      <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
+                        <MarkdownContent content={processMarkdownText(v.risicoVanOnvoldoendeGebruik || '-')} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* ADDED Casebeschrijving section AT THE BOTTOM of content */}
             {showOnlyCases && currentSolution.casebeschrijving && (
               <section>
