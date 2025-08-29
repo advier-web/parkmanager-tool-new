@@ -13,14 +13,14 @@ export default function WizardPage() {
     <div className="space-y-8">
       <div className="bg-white rounded-lg p-8 shadow-even">
         <h2 className="text-2xl font-bold mb-4">Welkom bij de Parkmanager Tool Collectieve Vervoersoplossingen</h2>
-        <div className="mb-6 space-y-3 text-gray-700">
+        <div className="mb-6 space-y-3">
           <p>
             Ik help parkmanagers, ondernemersverenigingen en bedrijfsverenigingen om snel te komen tot passende collectieve vervoersoplossingen voor hun terrein. Aan het eind ontvangt u een compact advies over de gekozen collectieve vervoersoplossing, de belangrijkste randvoorwaarden en concrete vervolgstappen om door te pakken. U kunt ook factsheets downloaden van de gekozen vervoersoplossing, inkoopvariant en governance model.
           </p>
-          <p className="text-gray-600">
+          <p>
             Let op: dit is géén volledige mobiliteitsscan en ook geen individueel bedrijfsadvies; de uitkomst is bedoeld als gerichte shortlist en startpunt voor verdere uitwerking.
           </p>
-          <p className="text-gray-600">
+          <p>
             Invultijd: ongeveer 5–10 minuten.
           </p>
         </div>

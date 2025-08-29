@@ -10,9 +10,10 @@ export function SiteHeader() {
   return (
     <header className="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-50">
       <div className="container mx-auto max-w-7xl px-6 py-4 flex justify-between items-center">
-        <div>
-          <Link href="/" className="text-xl font-bold text-black">
-            Parkmanager Tool Collectieve Vervoersoplossingen
+        <div className="leading-tight">
+          <Link href="/" className="block text-lg sm:text-xl font-bold text-black">
+            <span className="block">Parkmanager Tool</span>
+            <span className="block text-sm sm:text-base font-medium text-gray-800">Collectieve Vervoersoplossingen</span>
           </Link>
         </div>
         <nav>
@@ -23,7 +24,8 @@ export function SiteHeader() {
                   href="/" 
                   className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-5 rounded-md transition-colors text-sm"
                 >
-                  Terug naar homepage
+                  <span className="sm:hidden">Home</span>
+                  <span className="hidden sm:inline">Terug naar homepage</span>
                 </Link>
               ) : (
                 <Link 
