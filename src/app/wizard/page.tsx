@@ -23,6 +23,9 @@ export default function WizardPage() {
           <p>
             Invultijd: ongeveer 5–10 minuten.
           </p>
+          <p>
+           Deze tool is ontwikkeld in opdracht van het Ministerie van Infrastructuur en Waterstaat.
+          </p>
         </div>
         
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
