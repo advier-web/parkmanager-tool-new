@@ -65,7 +65,7 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
     <div
       onClick={() => onSelect(model.id)}
       className={`
-        p-6 rounded-lg transition-all relative cursor-pointer
+        p-8 rounded-lg transition-all relative cursor-pointer
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-md' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'

@@ -331,44 +331,40 @@ export default function MobilitySolutionsPage() {
                 </div>
               )}
   
-              <div className="space-y-8 mt-8">
-                {Object.entries(processedSolutions.grouped).length > 0 ? (
-                  Object.entries(processedSolutions.grouped).map(([group, solutions]) => (
-                    <div key={group} className="mb-6">
-                      {group && group.toLowerCase() !== 'onbekend' && (
-                        <h3 className="text-xl font-semibold mb-3 text-blue-600">{group}</h3>
-                      )}
-                      <div className="grid grid-cols-1 gap-4">
-                        {solutions.map((scoredSolution: any) => {
-                          const { solution, score, trafficMatch, pickupMatch, contributingReasons } = scoredSolution;
-                          const relevantVariationsForCard = allVariations?.filter((v: ImplementationVariation) => v.title?.startsWith(solution.title)) || [];
-                          return (
-                            <SolutionCard
-                              key={solution.id}
-                              solution={solution}
-                              isSelected={selectedSolutions.includes(solution.id)}
-                              onToggleSelect={() => toggleSolution(solution.id)}
-                              variationsData={relevantVariationsForCard}
-                              score={score}
-                              trafficTypeMatchScore={trafficMatch}
-                              pickupPreferenceMatch={pickupMatch}
-                              userPickupPreference={businessParkInfo.employeePickupPreference}
-                              contributingReasons={contributingReasons}
-                              reasonsData={reasons || []}
-                              activeTrafficTypes={businessParkInfo.trafficTypes || []}
-                              activeReasonFilters={activeFilters}
-                              onMoreInfo={() => handleShowMoreInfo(solution)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-8">Geen oplossingen gevonden die overeenkomen met uw selectie.</p>
-                )}
-              </div>
             </div>
+
+            {/* Iedere oplossing als eigen sectie onder de introductie */}
+            <div className="space-y-6 mt-6">
+              {processedSolutions.filtered.length > 0 ? (
+                processedSolutions.filtered.map((item: any) => {
+                  const { solution, score, trafficMatch, pickupMatch, contributingReasons } = item;
+                  const relevantVariationsForCard = allVariations?.filter((v: ImplementationVariation) => v.title?.startsWith(solution.title)) || [];
+                  return (
+                    <section key={solution.id} className="p-0">
+                      <SolutionCard
+                        key={solution.id}
+                        solution={solution}
+                        isSelected={selectedSolutions.includes(solution.id)}
+                        onToggleSelect={() => toggleSolution(solution.id)}
+                        variationsData={relevantVariationsForCard}
+                        score={score}
+                        trafficTypeMatchScore={trafficMatch}
+                        pickupPreferenceMatch={pickupMatch}
+                        userPickupPreference={businessParkInfo.employeePickupPreference}
+                        contributingReasons={contributingReasons}
+                        reasonsData={reasons || []}
+                        activeTrafficTypes={businessParkInfo.trafficTypes || []}
+                        activeReasonFilters={activeFilters}
+                        onMoreInfo={() => handleShowMoreInfo(solution)}
+                      />
+                    </section>
+                  );
+                })
+              ) : (
+                <p className="text-gray-500 text-center py-8">Geen oplossingen gevonden die overeenkomen met uw selectie.</p>
+              )}
+            </div>
+          
           </div>
         </div>
         

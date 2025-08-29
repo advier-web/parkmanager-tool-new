@@ -265,17 +265,18 @@ export default function Step3Page() {
               </p>
               <div className="space-y-6">
                 {otherRecommendedModelsList.map(model => (
-                  <GovernanceCard
-                    key={model.id}
-                    model={model}
-                    isSelected={selectedGovernanceModel === model.id}
-                    onSelect={handleSelectModel}
-                    onMoreInfo={handleShowMoreInfo}
-                    isRecommended={true}
-                    relevantVariations={relevantVariations}
-                     selectedVariants={selectedVariants}
-                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
-                  />
+                  <section key={model.id} className="p-0">
+                    <GovernanceCard
+                      model={model}
+                      isSelected={selectedGovernanceModel === model.id}
+                      onSelect={handleSelectModel}
+                      onMoreInfo={handleShowMoreInfo}
+                      isRecommended={true}
+                      relevantVariations={relevantVariations}
+                      selectedVariants={selectedVariants}
+                      primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
+                    />
+                  </section>
                 ))}
               </div>
             </div>
@@ -292,17 +293,18 @@ export default function Step3Page() {
               </div>
               <div className="space-y-6">
                 {conditionalRecommendedModelsList.map(model => (
-                  <GovernanceCard
-                    key={model.id}
-                    model={model}
-                    isSelected={selectedGovernanceModel === model.id}
-                    onSelect={handleSelectModel}
-                    onMoreInfo={handleShowMoreInfo}
-                    isConditionalRecommended={true}
-                    relevantVariations={relevantVariations}
-                     selectedVariants={selectedVariants}
-                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
-                  />
+                  <section key={model.id} className="p-0">
+                    <GovernanceCard
+                      model={model}
+                      isSelected={selectedGovernanceModel === model.id}
+                      onSelect={handleSelectModel}
+                      onMoreInfo={handleShowMoreInfo}
+                      isConditionalRecommended={true}
+                      relevantVariations={relevantVariations}
+                      selectedVariants={selectedVariants}
+                      primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
+                    />
+                  </section>
                 ))}
               </div>
             </div>
@@ -319,16 +321,17 @@ export default function Step3Page() {
               </div>
               <div className="space-y-6">
                 {unsuitableModelsList.map(model => (
-                  <GovernanceCard
-                    key={model.id}
-                    model={model}
-                    isSelected={selectedGovernanceModel === model.id}
-                    onSelect={handleSelectModel}
-                    onMoreInfo={handleShowMoreInfo}
-                    relevantVariations={relevantVariations}
-                     selectedVariants={selectedVariants}
-                     primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
-                  />
+                  <section key={model.id} className="p-0">
+                    <GovernanceCard
+                      model={model}
+                      isSelected={selectedGovernanceModel === model.id}
+                      onSelect={handleSelectModel}
+                      onMoreInfo={handleShowMoreInfo}
+                      relevantVariations={relevantVariations}
+                      selectedVariants={selectedVariants}
+                      primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
+                    />
+                  </section>
                 ))}
               </div>
             </div>
@@ -343,15 +346,16 @@ export default function Step3Page() {
               </p>
               <div className="space-y-6">
                 {otherModelsList.map(model => (
-                  <GovernanceCard
-                    key={model.id}
-                    model={model}
-                    isSelected={selectedGovernanceModel === model.id}
-                    onSelect={handleSelectModel}
-                    onMoreInfo={handleShowMoreInfo}
-                    relevantVariations={relevantVariations}
-                    selectedVariants={selectedVariants}
-                  />
+                  <section key={model.id} className="p-0">
+                    <GovernanceCard
+                      model={model}
+                      isSelected={selectedGovernanceModel === model.id}
+                      onSelect={handleSelectModel}
+                      onMoreInfo={handleShowMoreInfo}
+                      relevantVariations={relevantVariations}
+                      selectedVariants={selectedVariants}
+                    />
+                  </section>
                 ))}
               </div>
             </div>

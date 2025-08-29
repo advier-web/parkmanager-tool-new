@@ -148,7 +148,7 @@ export function SolutionCard({
   return (
     <div
       className={`
-        relative p-4 rounded-lg transition-all cursor-pointer w-full
+        relative p-8 rounded-lg transition-all cursor-pointer w-full
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-lg' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md'

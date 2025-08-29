@@ -27,7 +27,7 @@ export function ImplementationVariationCard({
   return (
     <div 
       onClick={onSelect}
-      className={`relative flex flex-col p-6 border rounded-lg cursor-pointer transition-all duration-150 ${isSelected 
+      className={`relative flex flex-col p-8 border rounded-lg cursor-pointer transition-all duration-150 ${isSelected 
         ? 'bg-blue-50 border-2 border-blue-500 shadow-md'
         : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
       }`}

@@ -78,6 +78,14 @@ body {
   }
 }
 
+@layer utilities {
+  /* Slightly larger vertical padding when button text wraps to multiple lines */
+  .btn-wrap {
+    padding-top: 0.625rem; /* ~10px */
+    padding-bottom: 0.625rem;
+  }
+}
+
 /* Headings: brand color + medium weight */
 @layer base {
   h1, h2, h3, h4, h5, h6 {

@@ -51,7 +51,8 @@ export function WizardNavigation({
   };
 
   return (
-    <div className="flex justify-between mt-8">
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+      <div className="container mx-auto max-w-7xl px-6 py-3 flex justify-between items-center">
       {previousStep ? (
         <button
           onClick={handlePrevious}
@@ -78,6 +79,7 @@ export function WizardNavigation({
           Volgende stap
         </button>
       ) : null}
+      </div>
     </div>
   );
 }

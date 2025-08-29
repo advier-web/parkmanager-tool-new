@@ -99,6 +99,7 @@ export default function SelectImplementationVariantPage() {
 
         {/* Right Column - Content */}
         <div className="lg:col-span-3">
+          {/* Intro sectie (alleen kop + vergelijk-balk) */}
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-6">Implementatievarianten</h2>
 
@@ -127,32 +128,34 @@ export default function SelectImplementationVariantPage() {
             {!isLoading && !error && Object.keys(data).length === 0 && selectedSolutions.length > 0 && (
               <p className="text-gray-500">Geen varianten gevonden voor de geselecteerde oplossingen.</p>
             )}
+          </div>
 
-            {!isLoading && !error && (
-              <div className="space-y-10">
-                {selectedSolutions.map(solutionId => (
-                  <div key={solutionId}>
-                    <h3 className="text-xl font-semibold mb-4 border-b pb-2">{data[solutionId]?.solution?.title || 'Oplossing'}</h3>
-                    {data[solutionId]?.variations.length > 0 ? (
-                      <div className="space-y-4">
-                        {data[solutionId].variations.map(variation => (
+          {/* Variatie-kaarten als eigen secties (geen container eromheen) */}
+          {!isLoading && !error && (
+            <div className="space-y-10 mt-6">
+              {selectedSolutions.map(solutionId => (
+                <div key={solutionId}>
+                  <h3 className="text-xl font-semibold mb-4 border-b pb-2">{data[solutionId]?.solution?.title || 'Oplossing'}</h3>
+                  {data[solutionId]?.variations.length > 0 ? (
+                    <div className="space-y-6">
+                      {data[solutionId].variations.map(variation => (
+                        <section key={variation.id} className="p-0">
                           <ImplementationVariationCard
-                            key={variation.id}
                             variation={variation}
                             isSelected={selectedVariants[solutionId] === variation.id}
                             onSelect={() => handleSelectVariation(solutionId, variation.id)}
                             solutionTitle={data[solutionId]?.solution?.title || 'Oplossing'}
                           />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 italic">Geen specifieke implementatievarianten gevonden voor deze oplossing.</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                        </section>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">Geen specifieke implementatievarianten gevonden voor deze oplossing.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
