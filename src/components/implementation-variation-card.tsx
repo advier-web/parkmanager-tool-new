@@ -60,9 +60,9 @@ export function ImplementationVariationCard({
       </div> 
 
       {/* PDF Download Link Section */}
-      <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-3 items-center">
+      <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col md:grid md:grid-cols-3 md:items-center gap-2">
         {/* Meer informatie button */}
-        <div className="justify-self-start">
+        <div className="md:justify-self-start">
           <button
           type="button"
           onClick={e => { e.stopPropagation(); openImplementationVariantDialog(variation); }}
@@ -73,8 +73,8 @@ export function ImplementationVariationCard({
           </button>
         </div>
         {/* PDF Download Button */}
-        <div className="justify-self-center"></div>
-        <div onClick={(e) => e.stopPropagation()} className="justify-self-end min-w-0">
+        <div className="hidden md:block md:justify-self-center"></div>
+        <div onClick={(e) => e.stopPropagation()} className="md:justify-self-end min-w-0">
           <ImplementationVariantFactsheetButton
             variation={variation}
             className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"

@@ -144,9 +144,9 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
             )}
           </div>
           
-          <div className="grid grid-cols-3 items-center mt-6 pt-3 border-t"> 
+          <div className="flex flex-col md:grid md:grid-cols-3 md:items-center mt-6 pt-3 border-t gap-2"> 
             {/* Left: Meer informatie */}
-            <div className="justify-self-start">
+            <div className="md:justify-self-start">
               <button
                 type="button"
                 onClick={(e) => {
@@ -160,9 +160,9 @@ const GovernanceCardComponent: React.FC<GovernanceCardProps> = ({
               </button>
             </div>
             {/* middle spacer */}
-            <div></div>
+            <div className="hidden md:block"></div>
             {/* Right: Download factsheet */}
-            <div className="justify-self-end" onClick={(e) => e.stopPropagation()}>
+            <div className="md:justify-self-end" onClick={(e) => e.stopPropagation()}>
               <GovernanceModelFactsheetButton
                 governanceModel={model}
                 selectedVariations={variationsToDisplay} 

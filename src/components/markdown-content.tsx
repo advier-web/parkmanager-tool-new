@@ -25,11 +25,12 @@ export function MarkdownContent({
   }
   
   // Process the content through the markdown-text processor
-  const processedContent = processMarkdownText(content);
+  const processedContent = processMarkdownText(content)
+    .replace(/__([^_]+)__/g, '<strong>$1<\/strong>');
   
   
   return (
-    <div className={`prose prose-blue max-w-none ${className}`}>
+    <div className={`prose prose-blue max-w-none markdown-${variant} ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkHtml]}
         components={{
@@ -91,7 +92,7 @@ export function MarkdownContent({
           a: ({ node, ...props }) => (
             <a 
               {...props} 
-              className="text-blue-600 hover:underline" 
+              className="text-[color:#01689b] hover:underline" 
               target="_blank" 
               rel="noopener noreferrer"
             />
@@ -115,11 +116,11 @@ export function MarkdownContent({
           ),
           table: ({ node, ...props }) => (
             <div className="overflow-x-auto my-6">
-              <table {...props} className="min-w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
+              <table {...props} className="min-w-[640px] md:min-w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
             </div>
           ),
           thead: ({ node, ...props }) => (
-            <thead {...props} className="bg-blue-50" />
+            <thead {...props} className="bg-sky-50" />
           ),
           tbody: ({ node, ...props }) => (
             <tbody {...props} className="divide-y divide-gray-200" />
@@ -163,6 +164,10 @@ export function processMarkdownText(text: string): string {
   // Replace "* *1. Text* *" with "**1. Text**" (numbered list with bold)
   processed = processed.replace(/\* \*(\d+\.\s+[^\n*]+)\* \*/g, '**$1**');
   
+  // Convert Contentful-style double underscores to bold
+  // e.g., __tekst__ -> **tekst**
+  processed = processed.replace(/__([^_\n]+)__/g, '**$1**');
+
   // Patterns like "*Per persoon, per enkele reis. In €'s*" should be italic
   processed = processed.replace(/(\*[^*\n]+\*)/g, (match) => {
     // Check if this is already inside another markdown construct

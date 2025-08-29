@@ -313,10 +313,22 @@ export default function MobilitySolutionsPage() {
               </p>
   
               {processedSolutions.filtered.length > 0 && (
-                <SolutionComparisonBanner
-                  onCompare={handleOpenComparison}
-                  topSolutionsCount={Math.min(3, processedSolutions.filtered.length)}
-                />
+                <div className="mb-6">
+                  <div className="md:hidden order-2 mt-3">
+                    <button
+                      onClick={handleOpenComparison}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
+                    >
+                      Vergelijk oplossingen
+                    </button>
+                  </div>
+                  <div className="hidden md:block order-1">
+                    <SolutionComparisonBanner
+                      onCompare={handleOpenComparison}
+                      topSolutionsCount={Math.min(3, processedSolutions.filtered.length)}
+                    />
+                  </div>
+                </div>
               )}
   
               <div className="space-y-8 mt-8">

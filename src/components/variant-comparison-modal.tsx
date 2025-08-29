@@ -79,17 +79,17 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                   </p>
                 </div>
 
-                {/* Content - Scrollable */}
-                <div className="flex-1 overflow-auto p-6 max-h-[80vh]">
+                {/* Content - Scrollable with horizontal scroll on small screens */}
+                <div className="flex-1 p-6 max-h-[80vh] overflow-x-auto overflow-y-auto">
                   <div className="space-y-1">
                     
                     {/* Variant Title Row (sticky) */}
-                    <div className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
-                      <div className="flex items-center">
+                    <div className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                      <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Implementatievariant</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-title`} className="border-l border-gray-200 pl-4 flex items-center">
+                        <div key={`${variation.id}-title`} className="border-l border-gray-200 pl-4 flex items-center bg-gray-50">
                           <div>
                             <h4 className="font-semibold text-lg text-blue-600 leading-tight">
                               {getDisplayTitle(variation)}
@@ -144,7 +144,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     {/* Verantwoordelijkheid, Contractvormen, Voordelen en Nadelen zijn verwijderd uit de vergelijking */}
 
                     {/* Controle en flexibiliteit Row */}
-                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Controle en flexibiliteit</h3>
                       </div>
@@ -158,7 +158,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Maatwerk Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Maatwerk</h3>
                       </div>
@@ -172,7 +172,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Kosten en schaalvoordelen Row */}
-                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Kosten en schaalvoordelen</h3>
                       </div>
@@ -186,7 +186,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Operationele complexiteit Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Operationele complexiteit</h3>
                       </div>
@@ -200,7 +200,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Juridische en compliance risico's Row */}
-                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Juridische en compliance risico's</h3>
                       </div>
@@ -214,7 +214,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Risico van onvoldoende gebruik Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                       <div className="flex items-start">
                         <h3 className="font-medium text-gray-900">Risico van onvoldoende gebruik</h3>
                       </div>

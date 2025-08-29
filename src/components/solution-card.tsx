@@ -148,7 +148,7 @@ export function SolutionCard({
   return (
     <div
       className={`
-        relative p-4 rounded-lg transition-all cursor-pointer 
+        relative p-4 rounded-lg transition-all cursor-pointer w-full
         ${isSelected 
           ? 'bg-blue-50 border-2 border-blue-500 shadow-lg' 
           : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md'
@@ -157,7 +157,7 @@ export function SolutionCard({
       onClick={() => onToggleSelect(solution.id)}
     >
       <div className="flex items-start pr-8">
-        <div className="flex-grow">
+        <div className="flex-grow min-w-0">
           <div className="flex items-center mb-2">
             {solution.icon && (
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
@@ -167,7 +167,7 @@ export function SolutionCard({
             <h3 className="text-lg font-medium text-gray-900">{solution.title}</h3>
           </div>
           
-          <div className="text-gray-600 mb-3 prose prose-sm max-w-none">
+          <div className="text-gray-600 mb-3 prose prose-sm max-w-none whitespace-normal break-normal [hyphens:auto]">
              <MarkdownContent content={processMarkdownText(solution.samenvattingKort || solution.samenvattingLang || solution.description || '')} />
           </div>
 
@@ -268,7 +268,7 @@ export function SolutionCard({
           </div>
 
           {/* Benefits/Challenges moved below the two-column layout */}
-          <div className="mb-4 space-y-1 text-xs">
+          <div className="mb-4 space-y-1 text-xs whitespace-normal break-normal [hyphens:auto]">
             {(solution.benefits || []).slice(0, 1).map((benefit, index) => (
               <div key={`benefit-${index}`} className="flex items-center text-green-700">
                 <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
@@ -299,7 +299,7 @@ export function SolutionCard({
           </div>
 
           {onMoreInfo && (
-              <div className="flex items-center gap-6 mt-3">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 mt-3">
               <div>
                 <button
                   type="button"
@@ -307,7 +307,7 @@ export function SolutionCard({
                     e.stopPropagation(); 
                     handleShowMoreInfo();
                   }}
-                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none w-full md:w-auto text-left justify-start"
                 >
                   <InformationCircleIcon className="h-5 w-5 mr-1" />
                   Meer informatie
@@ -320,7 +320,7 @@ export function SolutionCard({
                     e.stopPropagation();
                     openSolutionCases();
                   }}
-                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none w-full md:w-auto text-left justify-start"
                 >
                   <EyeIcon className="h-5 w-5 mr-1" />
                   Bekijk cases
@@ -329,8 +329,8 @@ export function SolutionCard({
               <div onClick={(e) => e.stopPropagation()}>
                 <MobilitySolutionFactsheetButton
                   solution={solution}
-                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none"
-                    buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 p-0 shadow-none font-normal cursor-pointer text-sm h-auto has-[>svg]:px-0 gap-1.5"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 cursor-pointer focus:outline-none w-full md:w-auto text-left"
+                    buttonColorClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-700 p-0 shadow-none font-normal cursor-pointer text-sm h-auto has-[>svg]:px-0 gap-1.5 w-full md:w-auto justify-start text-left"
                 >
                   <DocumentTextIcon className="h-5 w-5 mr-1" />
                   Download factsheet

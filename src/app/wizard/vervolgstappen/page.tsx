@@ -327,7 +327,7 @@ export default function VervolgstappenPage() {
             {selectedGovernanceModelData && (
               <div className="mb-6">
                 {/* <h3 className="text-lg font-semibold mb-2">Governance model</h3> */}
-                <h3 className="text-2xl font-semibold mb-3 text-gray-800">Gekozen governance model: {selectedGovernanceModelData.title}</h3>
+                <h2 className="text-2xl font-bold mb-4">Gekozen governance model: {selectedGovernanceModelData.title}</h2>
                 {(() => {
                   // 0) Indien het geselecteerde governance model 'Ongeschikt' is voor de geselecteerde variant
                   const isSelectedModelUnsuitable = selectedGovernanceModelData
@@ -349,7 +349,9 @@ export default function VervolgstappenPage() {
                         </ul>
                         <div className="mb-3"><p>Indien u toch dit governance model wilt gebruiken, kunt u de volgende punten in acht nemen:</p></div>
                         {relevance && (
-                          <div className="text-gray-700 mb-3">{relevance}</div>
+                          <div className="text-gray-700 mb-3">
+                            <MarkdownContent content={processMarkdownText(relevance)} />
+                          </div>
                         )}
                       </div>
                     );
@@ -376,7 +378,9 @@ export default function VervolgstappenPage() {
                           Het geselecteerde governance model is mogelijk minder geschikt voor de geselecteerde vervoersoplossing. Besteed extra aandacht aan de onderstaande punten.
                         </p>
                         {relevance && (
-                          <div className="text-gray-700 mb-3">{relevance}</div>
+                          <div className="text-gray-700 mb-3">
+                            <MarkdownContent content={processMarkdownText(relevance)} />
+                          </div>
                         )}
                       </div>
                     );
@@ -534,7 +538,7 @@ export default function VervolgstappenPage() {
                   const displayVariantTitle = stripSolutionPrefixFromVariantTitle(variation.title);
                   return (
                     <div key={`${solution.id}-${variation.id}`} className="bg-white rounded-lg p-8 shadow-even">
-                      <h3 className="text-2xl font-semibold mb-3 text-gray-800">{solution.title} - {displayVariantTitle}</h3>
+                      <h2 className="text-2xl font-bold mb-4">{solution.title} - {displayVariantTitle}</h2>
                       {variation.samenvatting && (
                         <div className="prose prose-sm max-w-none mb-3 text-gray-700">
                           <MarkdownContent content={processMarkdownText(variation.samenvatting)} />
@@ -585,7 +589,7 @@ export default function VervolgstappenPage() {
 
           {/* COVER Subsidie sectie - altijd zichtbaar */}
           <div id="cover-subsidie" className="bg-white rounded-lg p-8 shadow-even">
-              <h2 className="text-xl font-semibold mb-2">Subsidie: COVER (Collectieven mkb Verduurzaming Reisgedrag)</h2>
+          <h2 className="text-2xl font-bold mb-4">Subsidie: COVER (Collectieven mkb Verduurzaming Reisgedrag)</h2>
               <p className="text-gray-700 mb-4">De COVER subsidie is bedoeld voor organisaties die het mkb vertegenwoordigen, zoals parkmanagers. Met behulp van de subsidie kunnen stappen gezet worden naar blijvend duurzaam reisgedrag van werknemers. De subsidie dekt maximaal 75% van de kosten van het project waar de subsidie voor is aangevraagd, met een maximumbedrag van €100.000.
               Er zitten een aantal voorwaarden aan het aanvragen van de COVER subsidie.</p>
               <div className="space-y-3 text-gray-800">                

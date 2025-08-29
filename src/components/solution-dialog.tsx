@@ -82,7 +82,7 @@ export function SolutionDialog() {
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
             <button
               onClick={closeDialog}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand"
             >
               Sluiten
             </button>
@@ -199,7 +199,11 @@ export function SolutionDialog() {
             {!showOnlyCases && description && (
               <section>
                 {/* <h1 className="text-2xl font-bold mb-2">Beschrijving</h1> */}
-                <MarkdownWithAccordions content={description} />
+                <div className="overflow-x-auto">
+                  <div className="min-w-full">
+                    <MarkdownWithAccordions content={description} />
+                  </div>
+                </div>
               </section>
             )}
 
@@ -207,7 +211,7 @@ export function SolutionDialog() {
             {!showOnlyCases && uitvoering && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Uitvoering</h1>
-                <MarkdownWithAccordions content={uitvoering} />
+                <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={uitvoering} /></div></div>
               </section>
             )}
 
@@ -215,7 +219,7 @@ export function SolutionDialog() {
             {!showOnlyCases && inputBusinesscase && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Input voor Business Case</h1>
-                <MarkdownWithAccordions content={inputBusinesscase} />
+                <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={inputBusinesscase} /></div></div>
               </section>
             )}
 
@@ -249,7 +253,7 @@ export function SolutionDialog() {
             {!showOnlyCases && collectiefVsIndiviueel && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Collectief vs Individueel</h1>
-                <MarkdownWithAccordions content={collectiefVsIndiviueel} />
+                <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={collectiefVsIndiviueel} /></div></div>
               </section>
             )}
 
@@ -258,7 +262,8 @@ export function SolutionDialog() {
               <section className="bg-white rounded-lg py-4">
                 <h1 className="text-3xl font-bold mb-1">Vergelijk implementatievarianten</h1>
                 <p className="text-sm text-gray-600 mb-3">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.</p>
-                <div className="grid rounded-lg" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, 1fr)` }}>
+                <div className="overflow-x-auto">
+                  <div className="grid rounded-lg min-w-[640px] md:min-w-0" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, minmax(180px, 1fr))` }}>
                   {/* Header row */}
                   <div className="contents">
                     <div className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Categorie</div>
@@ -329,6 +334,7 @@ export function SolutionDialog() {
                       </div>
                     ))}
                   </div>
+                  </div>
                 </div>
               </section>
             )}
@@ -355,7 +361,7 @@ export function SolutionDialog() {
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
             <button
               onClick={closeDialog}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand"
             >
               Sluiten
             </button>
@@ -527,7 +533,7 @@ export function SolutionDialog() {
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
             <button
               onClick={closeDialog}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-brand text-white rounded-md hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand"
             >
               Sluiten
             </button>

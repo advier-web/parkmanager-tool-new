@@ -12,7 +12,7 @@ export function VariantComparisonBanner({ selectedVariations, totalVariations, o
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="flex items-center">
           <div className="flex-shrink-0">
             <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
@@ -33,7 +33,7 @@ export function VariantComparisonBanner({ selectedVariations, totalVariations, o
             </p>
           </div>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 md:self-center md:ml-4">
           <button
             onClick={onOpenComparison}
             className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white transition-colors ${

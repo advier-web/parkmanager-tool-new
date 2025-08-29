@@ -142,14 +142,14 @@ export function SolutionComparisonModal({
           </button>
         </div>
 
-        {/* Content - Scrollable */}
-        <div className="flex-1 overflow-auto p-6">
+        {/* Content - Scrollable with horizontal scroll on small screens */}
+        <div className="flex-1 p-6 overflow-x-auto overflow-y-auto">
           <div className="space-y-1">
             
             {/* Selection controls */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium text-gray-900">Kies welke oplossingen je wilt vergelijken</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+                <h3 className="font-medium text-gray-900 whitespace-normal sm:whitespace-nowrap">Kies welke oplossingen je wilt vergelijken</h3>
                 <div className="text-sm text-gray-500">{selectedIds.length} geselecteerd</div>
               </div>
               <div className="overflow-x-auto">
@@ -174,14 +174,14 @@ export function SolutionComparisonModal({
 
             {/* Solution Title Row (sticky) */}
             <div
-              className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm"
-              style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}
+              className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm min-w-[720px] md:min-w-0"
+              style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}
             >
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Oplossing</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-title`} className="border-l border-gray-200 pl-4 flex items-center">
+                <div key={`${solution.id}-title`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
                   <div>
                     <h4 className="font-semibold text-lg text-blue-600 leading-tight">{solution.title}</h4>
                     {solution.icon && (
@@ -193,12 +193,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Summary Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                <h3 className="font-medium text-gray-900">Samenvatting</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-summary`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-summary`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
                     <MarkdownContent content={processMarkdownText(solution.samenvattingKort || solution.samenvattingLang || solution.description || '')} />
                   </div>
@@ -207,12 +207,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* wanneerRelevant Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Wanneer relevant</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-wanneer`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-wanneer`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.wanneerRelevant || '-'}
                   </div>
@@ -221,12 +221,12 @@ export function SolutionComparisonModal({
             </div>
             
             {/* Minimale investering Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Minimale investering</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center">
+                <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.minimaleInvestering || '-'}
                   </div>
@@ -235,12 +235,12 @@ export function SolutionComparisonModal({
             </div>            
 
             {/* Minimum aantal personen Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Minimum aantal personen</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-min-persons`} className="border-l border-gray-200 pl-4 flex items-center">
+                <div key={`${solution.id}-min-persons`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.minimumAantalPersonen || '-'}
                   </div>
@@ -249,12 +249,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Moeilijkheidsgraad Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Moeilijkheidsgraad</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-difficulty`} className="border-l border-gray-200 pl-4 flex items-center">
+                <div key={`${solution.id}-difficulty`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.moeilijkheidsgraad || '-'}
                   </div>
@@ -263,12 +263,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* schaalbaarheid Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Schaalbaarheid</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-schaalbaarheid`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-schaalbaarheid`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.schaalbaarheid || '-'}
                   </div>
@@ -277,12 +277,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* impact Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Impact</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-impact`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-impact`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.impact || '-'}
                   </div>
@@ -291,12 +291,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* ruimtebeslag Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Ruimtebeslag</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-ruimtebeslag`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-ruimtebeslag`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.ruimtebeslag || '-'}
                   </div>
@@ -305,12 +305,12 @@ export function SolutionComparisonModal({
             </div>
 
             {/* afhankelijkheid externe partijen Row */}
-            <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Afhankelijkheid externe partijen</h3>
               </div>
               {visibleSolutions.map((solution) => (
-                <div key={`${solution.id}-extern`} className="border-l border-gray-200 pl-4">
+                <div key={`${solution.id}-extern`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.afhankelijkheidExternePartijen || '-'}
                   </div>
@@ -320,12 +320,12 @@ export function SolutionComparisonModal({
 
             {/* Traffic Types Row */}
             {activeTrafficTypes.length > 0 && (
-              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Geschikt voor vervoer</h3>
                 </div>
                 {visibleSolutions.map((solution) => (
-                  <div key={`${solution.id}-traffic`} className="border-l border-gray-200 pl-4">
+                  <div key={`${solution.id}-traffic`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                     <div className="space-y-1">
                       {activeTrafficTypes.map(trafficType => (
                         <div key={trafficType} className="flex items-center gap-2">
@@ -343,12 +343,12 @@ export function SolutionComparisonModal({
 
             {/* Pickup Options Row */}
             {userPickupPreference && solutions.some(s => s.ophalen && s.ophalen.length > 0) && (
-              <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Deel van de woon-werkreis</h3>
                 </div>
                 {visibleSolutions.map((solution) => (
-                  <div key={`${solution.id}-pickup`} className="border-l border-gray-200 pl-4">
+                  <div key={`${solution.id}-pickup`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                     {solution.ophalen && solution.ophalen.length > 0 ? (
                       <div className="space-y-1">
                         {solution.ophalen.map((option, index) => {
@@ -376,12 +376,12 @@ export function SolutionComparisonModal({
 
             {/* Reason Contributions Row (moved below pickup row) */}
             {activeReasonFilters.length > 0 && (
-              <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${visibleSolutions.length}, 1fr)` }}>
+              <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Bijdrage aan selectie</h3>
                 </div>
                 {visibleSolutions.map((solution) => (
-                  <div key={`${solution.id}-reasons`} className="border-l border-gray-200 pl-4">
+                  <div key={`${solution.id}-reasons`} className="border-l border-gray-200 pl-4 min-w-[180px]">
                     <div className="space-y-1">
                       {activeReasonFilters.map(reasonId => {
                         const reason = reasonsData.find(r => r.id === reasonId);

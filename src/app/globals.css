@@ -32,3 +32,56 @@ body {
 .shadow-even {
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.25) !important;
 }
+
+/* Brand color overrides – quickly remap Tailwind blue utilities to brand (#01689b) */
+@layer utilities {
+  /* backgrounds */
+  .bg-blue-50 { background-color: #e6f2f8 !important; }
+  .bg-blue-100 { background-color: #cfe7f2 !important; }
+  .bg-blue-600 { background-color: #01689b !important; }
+  .hover\:bg-blue-700:hover { background-color: #015882 !important; }
+
+  /* text colors */
+  .text-blue-600 { color: #01689b !important; }
+  .text-blue-700 { color: #015882 !important; }
+  .hover\:text-blue-700:hover { color: #015882 !important; }
+  .hover\:text-blue-800:hover { color: #014766 !important; }
+
+  /* borders */
+  .border-blue-200 { border-color: #b6d6e6 !important; }
+  .border-blue-300 { border-color: #9dc8dd !important; }
+  .border-blue-500 { border-color: #01689b !important; }
+  .border-blue-600 { border-color: #01689b !important; }
+
+  /* rings / focus */
+  .focus\:ring-blue-500:focus, .focus\:ring-blue-500:focus-visible { --tw-ring-color: #01689b !important; }
+  .focus\:border-blue-500:focus { border-color: #01689b !important; }
+}
+
+/* Better word breaking on small screens */
+@layer base {
+  .prose, .prose-sm, .prose * {
+    overflow-wrap: anywhere;
+    word-break: normal;
+    hyphens: auto;
+  }
+  /* Wider default widths for common table columns in modal markdown */
+  .markdown-modal table th:nth-child(2),
+  .markdown-modal table td:nth-child(2) { /* Kosten */
+    min-width: 120px;
+    width: 120px;
+  }
+  .markdown-modal table th:nth-child(3),
+  .markdown-modal table td:nth-child(3) { /* Eenheid */
+    min-width: 110px;
+    width: 110px;
+  }
+}
+
+/* Headings: brand color + medium weight */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    color: #01689b;
+    font-weight: 500 !important; /* force medium across contexts */
+  }
+}
