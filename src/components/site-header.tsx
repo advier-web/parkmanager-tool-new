@@ -10,14 +10,14 @@ export function SiteHeader() {
   
   return (
     <header className="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto max-w-7xl px-6 py-4 grid grid-cols-3 items-center">
-        <div className="leading-tight">
+      <div className="container mx-auto max-w-7xl px-6 grid grid-cols-3 items-center">
+        <div className="leading-tight py-3">
           <Link href="/" className="block text-lg sm:text-xl font-bold text-black">
             <span className="block">Parkmanager Tool</span>
             <span className="block text-sm sm:text-base font-medium text-gray-800">Collectieve Vervoersoplossingen</span>
           </Link>
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center py-0">
           <Link href="/" aria-label="Ministerie van Infrastructuur en Waterstaat">
             <Image
               src="/Logo IenW.png"
@@ -29,7 +29,7 @@ export function SiteHeader() {
             />
           </Link>
         </div>
-        <nav className="flex justify-end">
+        <nav className="flex justify-end py-3">
           <ul className="flex space-x-6">
             <li>
               {isWizardPage ? (
