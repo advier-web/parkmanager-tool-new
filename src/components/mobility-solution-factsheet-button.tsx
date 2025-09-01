@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import MobilitySolutionFactsheetPdf from './mobility-solution-factsheet-pdf';
 import { Button } from '@/components/ui/button';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { MobilitySolution } from '@/domain/models';
@@ -19,15 +18,31 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   children
 }) => {
   const [isClient, setIsClient] = useState(false);
+  const [PdfComponent, setPdfComponent] = useState<React.ComponentType<{ solution: MobilitySolution }> | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // Dynamically import the PDF component on the client to avoid SSR/import crashes
+  useEffect(() => {
+    if (!isClient) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import('./mobility-solution-factsheet-pdf');
+        if (!cancelled) setPdfComponent(() => mod.default as any);
+      } catch (e) {
+        console.error('Kon PDF component niet laden:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isClient]);
+
   const pdfDocument = useMemo(() => {
-    if (!solution) return null;
-    return <MobilitySolutionFactsheetPdf solution={solution} />;
-  }, [solution]);
+    if (!solution || !PdfComponent) return null;
+    return <PdfComponent solution={solution} />;
+  }, [solution, PdfComponent]);
 
   if (!solution) {
     return (

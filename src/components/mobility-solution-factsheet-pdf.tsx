@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, Svg, Path } from '@react-pdf/renderer';
 import { MobilitySolution, ImplementationVariation } from '@/domain/models';
 import { getImplementationVariationsForSolution, getImplementationVariationById } from '@/services/contentful-service';
 import Html from 'react-pdf-html';
@@ -251,6 +251,57 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
     const variations = resolvedVariations;
     if (!variations || variations.length === 0) return null;
 
+    // Small star row using SVG (ensures visibility regardless of font support)
+    const StarsRow: React.FC<{ count: number }> = ({ count }) => (
+      <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+        {Array.from({ length: count }).map((_, i) => (
+          <Svg key={i} width={10} height={10} viewBox="0 0 24 24">
+            <Path d="M12 .587l3.668 7.568L24 9.423l-6 5.847L19.336 24 12 19.897 4.664 24 6 15.27 0 9.423l8.332-1.268z" fill="#f59e0b" />
+          </Svg>
+        ))}
+      </View>
+    );
+
+    // Render stars + plain text (no Html) to keep PDF generation light-weight
+    const renderStarsAndText = (raw: string) => {
+      const source = typeof raw === 'string' ? raw : String(raw ?? '');
+      const m = source.match(/^\s*(\*{1,5})\s*([\s\S]*)$/);
+      const toPlain = (s: string) =>
+        s
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/\*(.*?)\*/g, '$1')
+          .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+          .replace(/\r?\n/g, ' ')
+          .trim();
+      if (!m) {
+        // Fallback: map textual labels like 'Hoog:', 'Middel:', 'Laag:' to star counts
+        const labelMatch = source.match(/^\s*(hoog|gemidd\w*|middel\w*|laag)\s*:?-?\s*([\s\S]*)$/i);
+        if (labelMatch) {
+          const label = (labelMatch[1] || '').toLowerCase();
+          let mapped = 0;
+          if (label.startsWith('hoog')) mapped = 5;
+          else if (label.startsWith('laag')) mapped = 1;
+          else mapped = 3; // middel/gemiddeld
+          const rest = toPlain(labelMatch[2] || '');
+          return (
+            <View>
+              <StarsRow count={mapped} />
+              <Text style={{ fontSize: 9 }}>{rest || '-'}</Text>
+            </View>
+          );
+        }
+        return <Text style={{ fontSize: 9 }}>{toPlain(source || '-')}</Text>;
+      }
+      const starsCount = m[1].length;
+      const text = toPlain(m[2] || '');
+      return (
+        <View>
+          <StarsRow count={starsCount} />
+          <Text style={{ fontSize: 9 }}>{text || '-'}</Text>
+        </View>
+      );
+    };
+
     // Columns: one for each variation
     return (
       <View style={{ marginBottom: 14 }}>
@@ -275,85 +326,61 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
           {/* Controle en flexibiliteit */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Controle en flexibiliteit</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.controleEnFlexibiliteit || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`cf-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`cf-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.controleEnFlexibiliteit || '-')}
+              </View>
+            ))}
           </View>
 
           {/* Maatwerk */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Maatwerk</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.maatwerk || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`mw-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`mw-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.maatwerk || '-')}
+              </View>
+            ))}
           </View>
 
           {/* Kosten en schaalvoordelen */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Kosten en schaalvoordelen</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.kostenEnSchaalvoordelen || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`ks-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`ks-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.kostenEnSchaalvoordelen || '-')}
+              </View>
+            ))}
           </View>
 
           {/* Operationele complexiteit */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Operationele complexiteit</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.operationeleComplexiteit || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`oc-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`oc-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.operationeleComplexiteit || '-')}
+              </View>
+            ))}
           </View>
 
           {/* Juridische en compliance risico's */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Juridische en compliance risico's</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.juridischeEnComplianceRisicos || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`jr-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`jr-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.juridischeEnComplianceRisicos || '-')}
+              </View>
+            ))}
           </View>
 
           {/* Risico van onvoldoende gebruik */}
           <View style={styles.compRow}>
             <View style={styles.compHeaderCell}><Text style={styles.compHeaderText}>Risico van onvoldoende gebruik</Text></View>
-            {variations.map((v, idx) => {
-              const blocks = basicMarkdownToHtml(v.risicoVanOnvoldoendeGebruik || '-');
-              const html = Array.isArray(blocks) ? blocks.join('') : String(blocks);
-              return (
-                <View key={`rg-${v.id || idx}`} style={styles.compCell}>
-                  <Html stylesheet={htmlTagStyles}>{html}</Html>
-                </View>
-              );
-            })}
+            {variations.map((v, idx) => (
+              <View key={`rg-${v.id || idx}`} style={styles.compCell}>
+                {renderStarsAndText(v.risicoVanOnvoldoendeGebruik || '-')}
+              </View>
+            ))}
           </View>
 
         </View>

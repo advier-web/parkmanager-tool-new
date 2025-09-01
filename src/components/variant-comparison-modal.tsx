@@ -39,6 +39,35 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
 
   // (Voorheen) helper voor komma-gescheiden lijsten is verwijderd omdat de betreffende velden niet meer worden vergeleken
 
+  // Helper: zet leading asterisks om in sterren, tekst eronder
+  const renderStarsAndText = (raw: string) => {
+    const source = typeof raw === 'string' ? raw : String(raw ?? '');
+    const m = source.match(/^\s*(\*{1,5})\s*([\s\S]*)$/);
+    if (!m) {
+      return (
+        <div className="prose prose-sm max-w-none overflow-hidden">
+          <MarkdownContent content={processMarkdownText(source || '-')} />
+        </div>
+      );
+    }
+    const stars = m[1].length;
+    const text = m[2] || '';
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: stars }).map((_, i) => (
+            <svg key={i} className="h-4 w-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10.95 13.93a1 1 0 00-1.175 0L6.615 16.281c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+        </div>
+        <div className="prose prose-sm max-w-none overflow-hidden">
+          <MarkdownContent content={processMarkdownText(text)} />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -75,7 +104,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </button>
                   </div>
                   <p className="mt-2 text-sm text-gray-600">
-                    Bekijk de belangrijkste verschillen tussen de geselecteerde implementatievarianten
+                    Bekijk de belangrijkste verschillen tussen de implementatievarianten. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.
                   </p>
                 </div>
 
@@ -100,7 +129,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Geschatte jaarlijkse kosten Row */}
-                    {/* <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Geschatte jaarlijkse kosten</h3>
                       </div>
@@ -111,10 +140,10 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div> */}
+                    </div>
 
                     {/* Kosten per km per persoon Row */}
-                    {/* <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Kosten per km per persoon</h3>
                       </div>
@@ -125,10 +154,10 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div> */}
+                    </div>
 
                     {/* Kosten per rit Row */}
-                    {/* <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
+                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
                       <div className="flex items-center">
                         <h3 className="font-medium text-gray-900">Kosten per rit</h3>
                       </div>
@@ -139,7 +168,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                           </div>
                         </div>
                       ))}
-                    </div> */}
+                    </div>
 
                     {/* Verantwoordelijkheid, Contractvormen, Voordelen en Nadelen zijn verwijderd uit de vergelijking */}
 
@@ -150,9 +179,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.controleEnFlexibiliteit || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.controleEnFlexibiliteit || '-')}
                         </div>
                       ))}
                     </div>
@@ -164,9 +191,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.maatwerk || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.maatwerk || '-')}
                         </div>
                       ))}
                     </div>
@@ -178,9 +203,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.kostenEnSchaalvoordelen || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.kostenEnSchaalvoordelen || '-')}
                         </div>
                       ))}
                     </div>
@@ -192,9 +215,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.operationeleComplexiteit || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.operationeleComplexiteit || '-')}
                         </div>
                       ))}
                     </div>
@@ -206,9 +227,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.juridischeEnComplianceRisicos || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.juridischeEnComplianceRisicos || '-')}
                         </div>
                       ))}
                     </div>
@@ -220,9 +239,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                       </div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4">
-                          <div className="text-sm text-gray-600 prose prose-sm max-w-none overflow-hidden">
-                            <MarkdownContent content={processMarkdownText(variation.risicoVanOnvoldoendeGebruik || '-')} />
-                          </div>
+                          {renderStarsAndText(variation.risicoVanOnvoldoendeGebruik || '-')}
                         </div>
                       ))}
                     </div>

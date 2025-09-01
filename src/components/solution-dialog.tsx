@@ -41,6 +41,34 @@ export function SolutionDialog() {
   }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
   const ANIMATION_MS = 600;
+  // Helper to render leading '*' as stars and the rest of the text below
+  const renderStarsAndText = (raw: string) => {
+    const source = typeof raw === 'string' ? raw : String(raw ?? '');
+    const m = source.match(/^\s*(\*{1,5})\s*([\s\S]*)$/);
+    if (!m) {
+      return (
+        <div className="prose prose-sm max-w-none">
+          <MarkdownContent content={processMarkdownText(source || '-')} />
+        </div>
+      );
+    }
+    const starsCount = m[1].length;
+    const remainingText = m[2] || '';
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: starsCount }).map((_, i) => (
+            <svg key={i} className="h-4 w-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10.95 13.93a1 1 0 00-1.175 0L6.615 16.281c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+        </div>
+        <div className="prose prose-sm max-w-none">
+          <MarkdownContent content={processMarkdownText(remainingText)} />
+        </div>
+      </div>
+    );
+  };
   if (!isOpen) return null;
 
   // Show business park reason information dialog
@@ -103,6 +131,24 @@ export function SolutionDialog() {
     const inputBusinesscase = currentSolution.inputBusinesscase;
     const collectiefVsIndiviueel = currentSolution.collectiefVsIndiviueel;
     const showOnlyCases = dialogType === 'solution-cases';
+
+    // Enforce fixed column order for implementation variations in the comparison table
+    const normalize = (s: string) => (s || '').toLowerCase().trim();
+    const desiredOrder = [
+      'zelf aanschaffen door bedrijfsvereniging',
+      'inkoop door één aangesloten organisatie met deelname van anderen',
+      'aanbevolen serviceprovider door de bedrijfsvereniging',
+      'centrale inkoop door de bedrijfsvereniging via één serviceprovider',
+    ];
+    const getVariantKey = (v: any) => normalize(stripSolutionPrefixFromVariantTitle(v?.title || ''));
+    const variationsForTable = (currentVariations || []).slice().sort((a: any, b: any) => {
+      const ai = desiredOrder.indexOf(getVariantKey(a));
+      const bi = desiredOrder.indexOf(getVariantKey(b));
+      const as = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+      const bs = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+      if (as !== bs) return as - bs;
+      return getVariantKey(a).localeCompare(getVariantKey(b));
+    });
 
     // Remove unused variables
     // const paspoort = currentSolution.paspoort || '';
@@ -261,13 +307,13 @@ export function SolutionDialog() {
             {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
               <section className="bg-white rounded-lg py-4">
                 <h1 className="text-3xl font-bold mb-1">Vergelijk implementatievarianten</h1>
-                <p className="text-sm text-gray-600 mb-3">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.</p>
+                <p className="text-sm text-gray-600 mb-3">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.</p>
                 <div className="overflow-x-auto">
                   <div className="grid rounded-lg min-w-[640px] md:min-w-0" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, minmax(180px, 1fr))` }}>
                   {/* Header row */}
                   <div className="contents">
                     <div className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Categorie</div>
-                    {currentVariations.map((v, idx) => {
+                    {variationsForTable.map((v, idx) => {
                       const title = stripSolutionPrefixFromVariantTitle(v.title);
                       return (
                         <div key={`vh-${v.id || idx}`} className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900">{title}</div>
@@ -278,9 +324,9 @@ export function SolutionDialog() {
                   {/* Controle en flexibiliteit */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Controle en flexibiliteit</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                        <MarkdownContent content={processMarkdownText(v.controleEnFlexibiliteit || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                        {renderStarsAndText(v.controleEnFlexibiliteit || '-')}
                       </div>
                     ))}
                   </div>
@@ -288,9 +334,9 @@ export function SolutionDialog() {
                   {/* Maatwerk */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Maatwerk</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                        <MarkdownContent content={processMarkdownText(v.maatwerk || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                        {renderStarsAndText(v.maatwerk || '-')}
                       </div>
                     ))}
                   </div>
@@ -298,9 +344,9 @@ export function SolutionDialog() {
                   {/* Kosten en schaalvoordelen */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Kosten en schaalvoordelen</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                        <MarkdownContent content={processMarkdownText(v.kostenEnSchaalvoordelen || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                        {renderStarsAndText(v.kostenEnSchaalvoordelen || '-')}
                       </div>
                     ))}
                   </div>
@@ -308,9 +354,9 @@ export function SolutionDialog() {
                   {/* Operationele complexiteit */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Operationele complexiteit</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                        <MarkdownContent content={processMarkdownText(v.operationeleComplexiteit || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                        {renderStarsAndText(v.operationeleComplexiteit || '-')}
                       </div>
                     ))}
                   </div>
@@ -318,9 +364,9 @@ export function SolutionDialog() {
                   {/* Juridische en compliance risico's */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Juridische en compliance risico's</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                        <MarkdownContent content={processMarkdownText(v.juridischeEnComplianceRisicos || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                        {renderStarsAndText(v.juridischeEnComplianceRisicos || '-')}
                       </div>
                     ))}
                   </div>
@@ -328,9 +374,9 @@ export function SolutionDialog() {
                   {/* Risico van onvoldoende gebruik */}
                   <div className="contents">
                     <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Risico van onvoldoende gebruik</div>
-                    {currentVariations.map((v, idx) => (
-                      <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                        <MarkdownContent content={processMarkdownText(v.risicoVanOnvoldoendeGebruik || '-')} />
+                    {variationsForTable.map((v, idx) => (
+                      <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                        {renderStarsAndText(v.risicoVanOnvoldoendeGebruik || '-')}
                       </div>
                     ))}
                   </div>
