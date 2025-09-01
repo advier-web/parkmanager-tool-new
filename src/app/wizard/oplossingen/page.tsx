@@ -309,7 +309,7 @@ export default function MobilitySolutionsPage() {
             <div className="bg-white rounded-lg p-8 shadow-even">
               <h2 className="text-2xl font-bold mb-4">Oplossingen</h2>
               <p className="mb-6">
-                Op basis van de door u geselecteerde aanleidingen, kunt u hier één collectieve vervoersoplossing selecteren om mee verder te gaan.
+                Op basis van de door u geselecteerde aanleidingen zijn onderstaande collectieve vervoersoplossingen gesorteerd. Om verder te gaan selecteert u één collectieve vervoersoplossing.
               </p>
   
               {processedSolutions.filtered.length > 0 && (

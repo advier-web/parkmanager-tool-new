@@ -12,7 +12,8 @@ import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 export default function Step1Page() {
   const {
     selectedReasons,
-    toggleReason
+    toggleReason,
+    setSelectedReasons
   } = useWizardStore();
 
   const { data: reasons, isLoading, error } = useBusinessParkReasons();
@@ -42,6 +43,37 @@ export default function Step1Page() {
 
   // Form validity (optional step)
   const isFormValid = true;
+
+  // Ensure "Ik weet het nog niet" is mutually exclusive with other reasons
+  const handleToggleSelect = (reasonId: string) => {
+    if (!reasons || reasons.length === 0) {
+      // Fallback to default toggle if reasons not loaded yet
+      toggleReason(reasonId);
+      return;
+    }
+
+    const unknownReason = reasons.find(r => (r.title || '').toLowerCase() === 'ik weet het nog niet');
+    const unknownId = unknownReason?.id;
+    const isUnknown = reasonId === unknownId;
+
+    if (isUnknown) {
+      const isSelected = selectedReasons.includes(reasonId);
+      if (isSelected) {
+        // Deselect only the unknown reason
+        setSelectedReasons(selectedReasons.filter(id => id !== reasonId));
+      } else {
+        // Selecting unknown clears all others and selects only unknown
+        setSelectedReasons([reasonId]);
+      }
+      return;
+    }
+
+    // Toggling a normal reason should deselect the unknown option if present
+    const next = selectedReasons.includes(reasonId)
+      ? selectedReasons.filter(id => id !== reasonId)
+      : [...selectedReasons.filter(id => id !== (unknownId || '')), reasonId];
+    setSelectedReasons(next);
+  };
 
   return (
     <div className="space-y-8">
@@ -92,14 +124,16 @@ export default function Step1Page() {
             <div className="space-y-8 mt-6">
               {sortedCategories.map(category => (
                 <section key={category} className="p-0">
-                  <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
+                  {category !== 'Overig' && (
+                    <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {groupedReasons[category].map(reason => (
                       <ReasonCard
                         key={reason.id}
                         reason={reason}
                         isSelected={selectedReasons.includes(reason.id)}
-                        onToggleSelect={() => toggleReason(reason.id)}
+                        onToggleSelect={handleToggleSelect}
                       />
                     ))}
                   </div>

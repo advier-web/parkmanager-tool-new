@@ -147,20 +147,20 @@ export function SolutionComparisonModal({
           <div className="space-y-1">
             
             {/* Selection controls */}
-            <div className="mb-4">
+            <div className="mb-4 pb-2">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
                 <h3 className="font-medium text-gray-900 whitespace-normal sm:whitespace-nowrap">Kies welke oplossingen je wilt vergelijken</h3>
                 <div className="text-sm text-gray-500">{selectedIds.length} geselecteerd</div>
               </div>
-              <div className="overflow-x-auto">
-                <div className="flex gap-2 min-w-max">
+              <div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 py-1">
                   {solutions.map((sol) => {
                     const isActive = selectedIds.includes(sol.id);
                     return (
                       <button
                         key={`select-${sol.id}`}
                         onClick={() => toggleSelected(sol.id)}
-                        className={`${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'} px-3 py-2 rounded-md text-sm whitespace-nowrap border border-gray-200 hover:bg-blue-600/10 hover:text-gray-900`}
+                        className={`${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800'} w-full px-3 py-2 rounded-md text-sm border border-gray-200 hover:bg-blue-600/10 hover:text-gray-900 text-left`}
                         title={sol.title || ''}
                       >
                         {sol.icon && <span className="mr-1">{getIconDisplay(sol.icon)}</span>}
@@ -170,11 +170,12 @@ export function SolutionComparisonModal({
                   })}
                 </div>
               </div>
+              <div className="mt-2 h-px bg-gray-200" />
             </div>
 
-            {/* Solution Title Row (sticky) */}
+            {/* Solution Title Row (sticky on md+ to avoid overlap with controls on mobile) */}
             <div
-              className="grid bg-gray-50 rounded-lg p-3 sticky top-0 z-10 shadow-sm min-w-[720px] md:min-w-0"
+              className="grid bg-gray-50 rounded-lg p-3 md:sticky md:top-0 z-10 shadow-sm min-w-[720px] md:min-w-0"
               style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}
             >
               <div className="flex items-center">

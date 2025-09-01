@@ -114,7 +114,23 @@ export function SolutionCard({
     return (
       <div key={reason.id} className="mt-1">
         <div className="flex items-start gap-2">
-          <div className={`w-3 h-3 rounded-full ${color} mt-0.5 flex-shrink-0`}></div>
+          {scoreForReason >= 7 ? (
+            // Green check
+            <svg className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : scoreForReason >= 4 ? (
+            // Yellow dot remains
+            <div className={`w-3 h-3 rounded-full bg-yellow-400 mt-0.5 flex-shrink-0`}></div>
+          ) : scoreForReason > 0 ? (
+            // Red cross
+            <svg className="h-4 w-4 text-rose-600 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : (
+            // Gray dot for no/neutral contribution
+            <div className={`w-3 h-3 rounded-full bg-gray-400 mt-0.5 flex-shrink-0`}></div>
+          )}
           <div className="text-sm text-gray-600 leading-snug">
             <span>{label}</span>
             <button 
@@ -214,9 +230,15 @@ export function SolutionCard({
                       const isMatch = solution.typeVervoer?.includes(activeType);
                       return (
                         <div key={activeType} className="flex items-center">
-                          <div 
-                            className={`w-3 h-3 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} mr-1.5`}
-                          ></div>
+                          {isMatch ? (
+                            <svg className="h-4 w-4 text-emerald-600 mr-1.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          ) : (
+                            <svg className="h-4 w-4 text-rose-600 mr-1.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
                           <span className="text-sm text-gray-600 capitalize">{activeType.replace(/-/g, ' ')}</span>
                         </div>
                       );
@@ -248,9 +270,15 @@ export function SolutionCard({
                       }
                       return (
                         <div key={index} className="flex items-center">
-                          <div 
-                            className={`w-3 h-3 rounded-full ${optionMatches ? 'bg-emerald-500' : 'bg-rose-500'} mr-1.5`}
-                          ></div>
+                          {optionMatches ? (
+                            <svg className="h-4 w-4 text-emerald-600 mr-1.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          ) : (
+                            <svg className="h-4 w-4 text-rose-600 mr-1.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
                           <span className="text-sm text-gray-600">
                             {ophalenOptie && (ophalenOptie.toLowerCase().includes('thuis') || ophalenOptie.toLowerCase().includes('hele reis'))
                               ? 'Voor de hele reis'

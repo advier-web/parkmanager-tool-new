@@ -35,7 +35,7 @@ export default function WizardPage() {
             href="/wizard/bedrijventerrein"
             className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white font-medium text-base hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Start de wizard
+            Start de tool
           </Link>
           
           <Link 
@@ -61,6 +61,9 @@ export default function WizardPage() {
                 <li>Deelmobiliteit: deelfietsen of (elektrische) deelauto’s voor bedrijven op het terrein.</li>
                 <li>Last-mile vervoer vanaf station of HOV-halte naar het terrein.</li>
               </ul>
+              <p>
+              Deze tool richt zich op collectieve oplossingen op bedrijventerreinen. Bent u op zoek naar mogelijkheden die u als individueel bedrijf kunt nemen om mobiliteit te verduurzamen? Kijk dan op: <a className="text-blue-600 underline hover:text-blue-700" href="https://www.rvo.nl/onderwerpen/start-met-verduurzamen-werkgebonden-personenmobiliteit" target="_blank" rel="noreferrer noopener">Start met verduurzamen werkgebonden personenmobiliteit | RVO.nl</a>
+              </p>
             </div>
           </div>
 
@@ -77,6 +80,14 @@ export default function WizardPage() {
                 <p>
                   In het advies ziet u aan welke voorwaarden het project moet voldoen om in aanmerking te komen voor deze subsidie.
                 </p>
+                <Link 
+            href="https://www.rvo.nl/subsidies-financiering/cover"
+            target="_blank"
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-white font-medium text-base hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-4"
+             >
+            Meer over COVER
+               </Link>
+          
               </div>
             </div>
           </div>
