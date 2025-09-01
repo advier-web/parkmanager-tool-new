@@ -75,36 +75,38 @@ export default function Step1Page() {
         </div>
 
         <div className="lg:col-span-3">
+          {/* Intro sectie (alleen kop + toelichting) */}
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Aanleidingen</h2>
             <p className="mb-6">
               Selecteer de redenen waarom u de mobiliteit op uw bedrijventerrein wilt verbeteren. 
               U kunt meerdere redenen selecteren, maar dit is niet verplicht.
             </p>
-
-            {isLoading && <p>Aanleidingen laden...</p>}
-            {error && <p className="text-red-500">Fout bij het laden van aanleidingen.</p>}
-
-            {!isLoading && !error && groupedReasons && (
-              <div className="space-y-8">
-                {sortedCategories.map(category => (
-                  <section key={category}>
-                    <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {groupedReasons[category].map(reason => (
-                        <ReasonCard
-                          key={reason.id}
-                          reason={reason}
-                          isSelected={selectedReasons.includes(reason.id)}
-                          onToggleSelect={() => toggleReason(reason.id)}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Kaarten als losse secties, buiten de witte container */}
+          {isLoading && <p className="mt-6">Aanleidingen laden...</p>}
+          {error && <p className="mt-6 text-red-500">Fout bij het laden van aanleidingen.</p>}
+
+          {!isLoading && !error && groupedReasons && (
+            <div className="space-y-8 mt-6">
+              {sortedCategories.map(category => (
+                <section key={category} className="p-0">
+                  <h3 className="text-xl font-semibold mb-4 capitalize">{category}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {groupedReasons[category].map(reason => (
+                      <ReasonCard
+                        key={reason.id}
+                        reason={reason}
+                        isSelected={selectedReasons.includes(reason.id)}
+                        onToggleSelect={() => toggleReason(reason.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       

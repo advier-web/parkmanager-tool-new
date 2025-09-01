@@ -284,13 +284,13 @@ export default function MobilitySolutionsPage() {
                 <h3 className="text-lg font-semibold mb-2">Waarom deze stap?</h3>
                 <p className="text-gray-600 text-sm">
                   Op basis van uw gekozen aanleidingen, presenteren we hier de meest relevante collectieve vervoersoplossingen. 
-                  Selecteer de oplossingen die u wilt overwegen.
+                  Selecteer de oplossing die u wilt overwegen.
                 </p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-2">Ontdek oplossingen</h3>
                 <p className="text-gray-600 text-sm">
-                  Bekijk de details van elke oplossing door erop te klikken.
+                  Bekijk de details van elke oplossing door op de knop "Meer informatie" te klikken.
                   Selecteer precies één oplossing die het beste aansluit bij uw situatie. Vergelijk eerst opties via de vergelijker indien nodig.
                 </p>
               </div>

@@ -191,7 +191,7 @@ export default function Step3Page() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Aanbevelingen</h3>
               <p className="text-gray-600 text-sm">
-                Op basis van uw gekozen collectieve vervoersoplossing tonen we welke governance modellen het beste 
+                Op basis van uw gekozen collectieve vervoersoplossing toon ik welke governance modellen het beste 
                 passen. Deze aanbevelingen zijn gebaseerd op praktijkervaring en succesvolle implementaties.
               </p>
             </div>
@@ -199,7 +199,7 @@ export default function Step3Page() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Huidig model</h3>
               <p className="text-gray-600 text-sm">
-                We tonen uw huidige governance model bovenaan en geven aan of dit geschikt is voor de 
+                Ik toon uw huidige governance model bovenaan en geef aan of dit geschikt is voor de 
                 gekozen oplossingen. Als het huidige model minder geschikt is, kunt u een ander model kiezen.
               </p>
             </div>
@@ -222,14 +222,17 @@ export default function Step3Page() {
             <h2 className="text-2xl font-bold mb-4">Governance modellen</h2>
             <p className="text-gray-600 mb-6">
               Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen collectieve vervoersoplossing. 
-              De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten. Let wel op: ieder governance model is maatwerk, binnen een governance model zijn veel verschillen mogelijk. Het is aan te raden met een lokale jurist te kijken naar de opzet van het gekozen governance model.
+              De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten. 
+            </p>
+            <p>
+            Let wel op: ieder governance model is maatwerk, binnen een governance model zijn veel verschillen mogelijk. Het is aan te raden met een lokale jurist te kijken naar de opzet van het gekozen governance model.
             </p>
             {isLoading && <p>Aanbevelingen laden...</p>}
           </div>
             
           {/* Current Governance Model Section (always at the top) */}
           {!isLoading && currentModel && (
-            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+            <div className="mb-8">
               <div className={`p-4 rounded-md ${currentModelIsRecommended ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'} mb-4`}>
                 <h3 className={`text-xl font-semibold ${currentModelIsRecommended ? 'text-green-800' : 'text-yellow-800'}`}>
                   Uw huidige governance model
@@ -240,25 +243,27 @@ export default function Step3Page() {
                     : 'Uw huidige governance model is mogelijk minder geschikt voor de geselecteerde vervoersoplossing. Overweeg één van de aanbevolen modellen hieronder of mitigeer de risico\'s van uw huidige governance model. .'}
                 </p>
               </div>
-              
-              <GovernanceCard
-                key={currentModel.id}
-                model={currentModel}
-                isSelected={selectedGovernanceModel === currentModel.id}
-                onSelect={handleSelectModel}
-                onMoreInfo={handleShowMoreInfo}
-                isRecommended={currentModelIsRecommended}
-                isCurrent={true}
-                relevantVariations={relevantVariations}
-                selectedVariants={selectedVariants}
-                primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
-              />
+
+              <section className="p-0">
+                <GovernanceCard
+                  key={currentModel.id}
+                  model={currentModel}
+                  isSelected={selectedGovernanceModel === currentModel.id}
+                  onSelect={handleSelectModel}
+                  onMoreInfo={handleShowMoreInfo}
+                  isRecommended={currentModelIsRecommended}
+                  isCurrent={true}
+                  relevantVariations={relevantVariations}
+                  selectedVariants={selectedVariants}
+                  primaryVariantId={Object.values(selectedVariants).find(Boolean) as string | undefined}
+                />
+              </section>
             </div>
           )}
             
           {/* Recommended Governance Models Section */}
           {!isLoading && otherRecommendedModelsList.length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+            <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-green-700 border-b pb-2">Aanbevolen governance modellen</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Deze modellen worden aanbevolen voor de door u geselecteerde mobiliteitsoplossingen.
@@ -284,7 +289,7 @@ export default function Step3Page() {
             
           {/* Conditional Recommended Governance Models Section */}
           {!isLoading && conditionalRecommendedModelsList.length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+            <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Aanbevolen, mits...</h3>
               <div className="bg-blue-50 p-4 rounded-md mb-6 border border-blue-200">
                 <p className="text-blue-800">
@@ -312,7 +317,7 @@ export default function Step3Page() {
             
           {/* Unsuitable Governance Models Section */}
           {!isLoading && unsuitableModelsList.length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even mb-8">
+            <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-orange-700 border-b pb-2">Niet aanbevolen governance modellen</h3>
               <div className="bg-orange-50 p-4 rounded-md mb-6 border border-orange-200">
                 <p className="text-orange-800">
@@ -339,7 +344,7 @@ export default function Step3Page() {
           
           {/* Other Models Section - models that don't fit in any category */}
           {!isLoading && otherModelsList.length > 0 && (
-            <div className="bg-white rounded-lg p-8 shadow-even">
+            <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Overige governance modellen</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Deze modellen hebben geen specifieke aanbeveling voor de door u geselecteerde mobiliteitsoplossingen.

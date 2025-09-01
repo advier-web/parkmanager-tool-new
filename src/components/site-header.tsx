@@ -14,7 +14,7 @@ export function SiteHeader() {
         <div className="leading-tight py-2 sm:py-3">
           <Link href="/" className="block text-lg sm:text-xl font-bold text-black">
             <span className="block">Parkmanager Tool</span>
-            <span className="block text-sm sm:text-base font-medium text-gray-800">Collectieve Vervoersoplossingen</span>
+            <span className="block text-xs sm:text-base font-medium text-gray-800 whitespace-nowrap">Collectieve Vervoersoplossingen</span>
           </Link>
         </div>
         <div className="hidden sm:flex justify-center pt-0 pb-2 self-start">
