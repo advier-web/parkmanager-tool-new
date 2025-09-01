@@ -18,7 +18,8 @@ function getCategoryColor(category?: string): string {
     case 'auto':
       return 'bg-red-600';
     default:
-      return 'bg-indigo-600';
+      // Gebruik dezelfde blauwe kleur als headers i.p.v. paars
+      return 'bg-blue-600';
   }
 }
 

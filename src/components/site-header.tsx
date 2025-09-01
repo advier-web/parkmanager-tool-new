@@ -45,7 +45,7 @@ export function SiteHeader() {
                   href="/wizard" 
                   className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-5 rounded-md transition-colors text-sm"
                 >
-                  Start de wizard
+                  Start de tool
                 </Link>
               )}
             </li>

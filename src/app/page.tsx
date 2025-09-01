@@ -122,7 +122,7 @@ export default function Home() {
             href="/wizard"
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-md text-center font-medium transition-colors sm:flex-initial"
           >
-            Start de wizard
+            Start de tool
           </Link>
           
           <button
@@ -223,7 +223,7 @@ export default function Home() {
         </section>
         
         <section id="bestuursvormen" className="mb-16 pb-8 border-b border-gray-200">
-          <h2 className="text-2xl font-bold mb-6">Bestuurlijke rechtsvormen</h2>
+          <h2 className="text-2xl font-bold mb-6">Governance modellen</h2>
           <MarkdownContent content={data.bestuurlijkeRechtsvormen} />
           
           {isLoadingGovernance && (
@@ -259,21 +259,21 @@ export default function Home() {
           <MarkdownContent content={data.coverSubsidie} />
         </section>
         
-        <section id="best-practices" className="mb-16">
+        {/* <section id="best-practices" className="mb-16">
           <h2 className="text-2xl font-bold mb-6">Best practices</h2>
           <MarkdownContent content={data.bestPractices} />
-        </section>
+        </section> */}
         
         <div className="mt-12 p-6 bg-blue-50 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Klaar om te beginnen?</h2>
           <p className="mb-4">
-            Start de wizard om een stappenplan op maat te maken voor collectieve vervoersoplossingen op uw bedrijventerrein.
+            Start de tool om een stappenplan op maat te maken voor collectieve vervoersoplossingen op uw bedrijventerrein.
           </p>
           <Link 
             href="/wizard" 
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md inline-block transition-colors"
           >
-            Start de wizard
+            Start de tool
           </Link>
         </div>
       </main>

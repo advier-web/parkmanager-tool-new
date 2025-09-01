@@ -21,7 +21,7 @@ export default function GovernanceModelButton({ model }: GovernanceModelButtonPr
   return (
     <Link 
       href={`/governance-models/${slug}`}
-      className="relative block rounded-lg bg-teal-600 p-6 h-auto min-h-48 overflow-hidden transition-transform hover:scale-105 shadow-md hover:shadow-lg"
+      className="relative block rounded-lg bg-blue-100 p-6 h-auto min-h-48 overflow-hidden transition-transform hover:scale-105 shadow-md hover:shadow-lg"
     >
       {bgImage && (
         <div className="absolute inset-0 opacity-20">
@@ -30,15 +30,18 @@ export default function GovernanceModelButton({ model }: GovernanceModelButtonPr
             alt="" 
             fill
             style={{ objectFit: 'cover' }} 
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
           />
         </div>
       )}
       <div className="relative z-10">
-        <h3 className="text-white font-bold text-xl mb-2">{model.title}</h3>
+        <h3 className="text-gray-900 font-bold text-xl mb-2">{model.title}</h3>
         {model.summary && (
-          <p className="text-white/90 text-sm mb-4">{model.summary}</p>
+          <p className="text-gray-800 text-sm mb-4">{model.summary}</p>
         )}
-        <p className="text-white font-medium text-sm mt-auto flex items-center">
+        <p className="text-gray-900 font-medium text-sm mt-auto flex items-center">
           Lees meer <span className="ml-1">→</span>
         </p>
       </div>

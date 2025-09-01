@@ -107,14 +107,14 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
           {/* Download Factsheet Button (under summary) */}
           {model && (
-            <div className="mb-4"> {/* Reduced margin */}
+            <div className="mb-8"> {/* Extra ruimte onder de knop */}
               <GovernanceModelFactsheetButton
                 governanceModel={model}
                 selectedVariations={[]} // No specific variations on this page
                 governanceTitleToFieldName={placeholderGovernanceTitleToFieldName}
                 stripSolutionPrefixFromVariantTitle={placeholderStripSolutionPrefixFromVariantTitle}
                 className="inline-flex items-center text-sm cursor-pointer focus:outline-none"
-                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
+                buttonColorClassName="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
               >
                 <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
                 {`Download factsheet ${model.title || 'Governance Model'}`}
@@ -125,14 +125,14 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {/* Original Description section - re-added */}
           {model.description && (model.summary ? model.description !== model.summary : true) && (
             <div className="mb-6 rounded-lg bg-white p-6">
-              <h2 className="font-semibold text-xl mb-2">Beschrijving</h2>
+              <h1 className="font-semibold text-3xl mb-3">Beschrijving</h1>
               <MarkdownContent content={processMarkdownText(model.description)} />
             </div>
           )}
 
           {model.aansprakelijkheid && (
             <div className="mb-6 rounded-lg bg-white p-6">
-              <h2 className="font-semibold text-xl mb-2">Aansprakelijkheid</h2>
+              <h1 className="font-semibold text-3xl mb-3">Aansprakelijkheid</h1>
               <MarkdownContent content={processMarkdownText(model.aansprakelijkheid || '')} />
             </div>
           )}
@@ -179,7 +179,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
 
           {model.benodigdhedenOprichting && Array.isArray(model.benodigdhedenOprichting) && model.benodigdhedenOprichting.length > 0 && (
             <div className="mb-6 rounded-lg bg-white p-6"> 
-              <h2 className="font-semibold text-xl mb-2">Benodigdheden voor oprichting</h2>
+              <h1 className="font-semibold text-3xl mb-3">Benodigdheden voor oprichting</h1>
               <div className="">
                 {model.benodigdhedenOprichting.map((item: string, index: number) => (
                   <div key={index}>
@@ -193,7 +193,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {/* Links */}
           {(Array.isArray(links) && links.length > 0 || typeof links === 'string' && links) && (
             <div className="mb-6 rounded-lg bg-white p-6">
-              <h2 className="font-semibold text-xl mb-2">Relevante links</h2>
+              <h1 className="font-semibold text-3xl mb-3">Relevante links</h1>
               
               {Array.isArray(links) && links.length > 0 && (
                 <div className="space-y-4">
@@ -336,7 +336,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
           {/* Doorlooptijd */}
           {doorlooptijd && (
             <div className="mb-6 rounded-lg bg-white p-6">
-              <h2 className="font-semibold text-xl mb-2">Doorlooptijd</h2>
+              <h1 className="font-semibold text-3xl mb-3">Doorlooptijd</h1>
               <MarkdownContent content={processMarkdownText(doorlooptijd)} />
             </div>
           )}
@@ -350,7 +350,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
                 governanceTitleToFieldName={placeholderGovernanceTitleToFieldName}
                 stripSolutionPrefixFromVariantTitle={placeholderStripSolutionPrefixFromVariantTitle}
                 className="inline-flex items-center text-sm cursor-pointer focus:outline-none"
-                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
+                buttonColorClassName="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
               >
                 <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
                 {`Download factsheet ${model.title || 'Governance Model'}`}
