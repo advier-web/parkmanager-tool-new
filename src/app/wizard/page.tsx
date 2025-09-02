@@ -12,7 +12,7 @@ export default function WizardPage() {
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-lg p-8 shadow-even">
-        <h2 className="text-2xl font-bold mb-4">Welkom bij de Parkmanager Tool Collectieve Vervoersoplossingen</h2>
+        <h1 className="text-3xl font-bold mb-4">Welkom bij de Parkmanager Tool Collectieve Vervoersoplossingen</h1>
         <div className="mb-6 space-y-3">
           <p>
             Ik help parkmanagers, ondernemersverenigingen en bedrijfsverenigingen om snel te komen tot passende collectieve vervoersoplossingen voor hun terrein. Aan het eind ontvangt u een compact advies over de gekozen collectieve vervoersoplossing, de belangrijkste randvoorwaarden en concrete vervolgstappen om door te pakken. U kunt ook factsheets downloaden van de gekozen vervoersoplossing, inkoopvariant en governance model.
@@ -51,7 +51,7 @@ export default function WizardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Linker kolom: Wat zijn collectieve mobiliteitsoplossingen? */}
           <div className="bg-white rounded-lg p-6 shadow-even">
-            <h2 className="text-lg font-semibold mb-3">Wat zijn collectieve vervoeroplossingen?</h2>
+            <h2 className="text-2xl font-semibold mb-3">Wat zijn collectieve vervoeroplossingen?</h2>
             <div className="space-y-3 text-gray-700">
               <p>
                 Collectieve vervoersoplossingen zijn voorzieningen waarmee meerdere organisaties of doelgroepen samen vervoer organiseren en financieren. Doel is efficiënter, betaalbaarder en duurzamer reizen door capaciteit te bundelen en ritten te combineren.
@@ -69,7 +69,7 @@ export default function WizardPage() {
 
           {/* Rechter kolom: definities-blok */}
           <div className="bg-gray-50 rounded-lg p-6 shadow-even">
-            <h2 className="text-lg font-semibold mb-3">Subsidieregeling Collectieven mkb Verduurzaming Reisgedrag (COVER)</h2>
+            <h2 className="text-2xl font-semibold mb-3">Subsidieregeling Collectieven mkb Verduurzaming Reisgedrag (COVER)</h2>
             <div className="space-y-4 text-gray-700">
               <div>
                 <p>

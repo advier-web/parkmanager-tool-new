@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
-import { MobilitySolution } from '@/domain/models';
+import { MobilitySolution, ImplementationVariation } from '@/domain/models';
+import { getImplementationVariationsForSolution } from '@/services/contentful-service';
 
 interface MobilitySolutionFactsheetButtonProps {
   solution: MobilitySolution | null;
@@ -18,7 +19,8 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   children
 }) => {
   const [isClient, setIsClient] = useState(false);
-  const [PdfComponent, setPdfComponent] = useState<React.ComponentType<{ solution: MobilitySolution }> | null>(null);
+  const [PdfComponent, setPdfComponent] = useState<React.ComponentType<{ solution: MobilitySolution; variations?: ImplementationVariation[] }> | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -39,10 +41,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
     return () => { cancelled = true; };
   }, [isClient]);
 
-  const pdfDocument = useMemo(() => {
-    if (!solution || !PdfComponent) return null;
-    return <PdfComponent solution={solution} />;
-  }, [solution, PdfComponent]);
+  const fileName = useMemo(() => `Factsheet_${(solution?.title || 'oplossing').replace(/[^a-z0-9]/gi, '_')}.pdf`, [solution?.title]);
 
   if (!solution) {
     return (
@@ -53,36 +52,55 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
     );
   }
 
-  const fileName = `Factsheet_${solution.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+  const handleGenerate = useMemo(() => {
+    return async () => {
+      if (!isClient || !solution) return;
+      setGenerating(true);
+      try {
+        let Mod = PdfComponent;
+        if (!Mod) {
+          const mod = await import('./mobility-solution-factsheet-pdf');
+          Mod = mod.default as any;
+          setPdfComponent(() => Mod!);
+        }
+        // Pre-fetch variations to ensure the comparison table always renders
+        let variations: ImplementationVariation[] = [];
+        try {
+          variations = await getImplementationVariationsForSolution(solution.id);
+        } catch {}
+        const Cmp = Mod as React.ComponentType<{ solution: MobilitySolution; variations?: ImplementationVariation[] }>;
+        const doc = <Cmp solution={solution} variations={variations} />;
+        const blob = await pdf(doc as any).toBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName; a.style.display = 'none';
+        document.body.appendChild(a); a.click();
+        URL.revokeObjectURL(url); a.remove();
+      } catch (e) {
+        console.error('Kon PDF niet genereren:', e);
+      } finally {
+        setGenerating(false);
+      }
+    };
+  }, [PdfComponent, isClient, solution, fileName]);
 
-  if (!pdfDocument) {
-    return (
-      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <DocumentTextIcon className="h-4 w-4" />
-        Factsheet (document niet beschikbaar)
-      </Button>
-    );
-  }
-
-  return isClient ? (
-    <PDFDownloadLink document={pdfDocument} fileName={fileName}>
-      {({ loading }) => (
-        <Button variant="default" className={`${className} ${buttonColorClassName}`} disabled={loading}>
-          {children
-            ? (loading ? 'Even geduld…' : children)
-            : (
-              <>
-                <DocumentTextIcon className="h-4 w-4" />
-                {loading ? 'Even geduld…' : `Download factsheet ${solution.title}`}
-              </>
-            )}
-        </Button>
+  return (
+    <Button onClick={handleGenerate} variant="default" className={`${className} ${buttonColorClassName}`} disabled={!isClient || generating}>
+      {generating ? (
+        <>
+          <DocumentTextIcon className="h-4 w-4" />
+          Even geduld…
+        </>
+      ) : (
+        children ? (
+          children
+        ) : (
+          <>
+            <DocumentTextIcon className="h-4 w-4" />
+            {`Download factsheet ${solution.title}`}
+          </>
+        )
       )}
-    </PDFDownloadLink>
-  ) : (
-    <Button variant="default" disabled className={`${className} ${buttonColorClassName}`}>
-      <DocumentTextIcon className="h-4 w-4" />
-      Factsheet laden...
     </Button>
   );
 };

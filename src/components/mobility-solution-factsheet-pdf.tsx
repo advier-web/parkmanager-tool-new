@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Page, Text, View, Document, StyleSheet, Font, Svg, Path } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, Svg, Path, Image } from '@react-pdf/renderer';
 import { MobilitySolution, ImplementationVariation } from '@/domain/models';
-import { getImplementationVariationsForSolution, getImplementationVariationById } from '@/services/contentful-service';
 import Html from 'react-pdf-html';
 // Local helper to avoid importing browser-specific modules in PDF context
 const stripSolutionPrefixFromVariantTitle = (fullVariantTitle: string | undefined): string => {
@@ -35,6 +34,7 @@ Font.registerHyphenationCallback(word => [word]);
 const styles = StyleSheet.create({
   page: {
     padding: 30,
+    paddingTop: 50, // normale top padding voor vervolgpagina's
     fontFamily: 'Open Sans',
     fontSize: 9,
     lineHeight: 1.5,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   twoColRow: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   twoColLeft: {
     width: '50%',
@@ -91,13 +91,24 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   headerContainer: {
-    marginBottom: 25,
-    paddingBottom: 5,
+    marginTop: -50, // trekt content (logo) tegen bovenrand aan op pagina 1
+    marginBottom: 16,
+    paddingBottom: 0,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginTop: 12,
+    marginBottom: 8,
   },
   headerText: {
     fontSize: 18,
     textAlign: 'left',
-    color: '#000000',
+    color: '#01689b',
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     lineHeight: 1.4,
@@ -112,7 +123,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#000000',
+    color: '#01689b',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
   },
@@ -167,7 +178,7 @@ const htmlTagStyles = {
   h1: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 10,
     marginBottom: 6,
     lineHeight: 1.1,
@@ -175,7 +186,7 @@ const htmlTagStyles = {
   h2: {
     fontSize: 12.5,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 8,
     marginBottom: 6,
     lineHeight: 1.1,
@@ -183,7 +194,7 @@ const htmlTagStyles = {
   h3: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 6,
     marginBottom: 5,
     lineHeight: 1.1,
@@ -219,6 +230,7 @@ const htmlTagStyles = {
 
 interface MobilitySolutionFactsheetPdfProps {
   solution: MobilitySolution;
+  variations?: ImplementationVariation[];
 }
 
 // Convert simple markdown to HTML; try to preserve tables (we'll render them ourselves)
@@ -247,35 +259,8 @@ const basicMarkdownToHtml = (text: string): string => {
   return html;
 };
 
-const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetPdfProps> = ({ solution }) => {
-  const [resolvedVariations, setResolvedVariations] = useState<ImplementationVariation[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const bootstrap = async () => {
-      // 1) Prefer already attached variations
-      if (Array.isArray((solution as any).implementationVariations) && (solution as any).implementationVariations.length > 0) {
-        if (!cancelled) setResolvedVariations((solution as any).implementationVariations as ImplementationVariation[]);
-        return;
-      }
-      // 2) If we have linked ids, fetch by ids
-      const ids = (solution as any).implementatievarianten as string[] | undefined;
-      if (Array.isArray(ids) && ids.length > 0) {
-        const fetched = (await Promise.all(ids.map(id => getImplementationVariationById(id)))).filter(Boolean) as ImplementationVariation[];
-        if (!cancelled) setResolvedVariations(fetched);
-        return;
-      }
-      // 3) Fallback: query by solution id
-      try {
-        const fetched = await getImplementationVariationsForSolution(solution.id);
-        if (!cancelled) setResolvedVariations(fetched);
-      } catch (_) {
-        // ignore
-      }
-    };
-    bootstrap();
-    return () => { cancelled = true; };
-  }, [solution]);
+const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetPdfProps> = ({ solution, variations = [] }) => {
+  const [resolvedVariations] = useState<ImplementationVariation[]>(variations);
   // Helper to render a compact comparison table for available implementation variations
   const renderVariantComparison = () => {
     const variations = resolvedVariations;
@@ -417,16 +402,182 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
       </View>
     );
   };
-  console.log("MobilitySolutionFactsheetPdf received solution:", JSON.stringify(solution, null, 2)); // Added for debugging
+  // Lightweight renderer to avoid heavy Html parsing; handles headings, lists and paragraphs
+  // Also supports inline bold/italic for **text**, __text__, *text*, _text_
+  const renderPlainBlocks = (text: string) => {
+    const renderInline = (input: string): any[] => {
+      const nodes: any[] = [];
+      const pattern = /(\*\*[^*]+?\*\*|__[^_]+?__|\*[^*]+?\*|_[^_]+?_)/g;
+      let lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = pattern.exec(input)) !== null) {
+        if (m.index > lastIndex) {
+          nodes.push(input.slice(lastIndex, m.index));
+        }
+        const token = m[0];
+        if (token.startsWith('**') && token.endsWith('**')) {
+          nodes.push(<Text key={`b-${m.index}`} style={{ fontWeight: 'bold' }}>{token.slice(2, -2)}</Text>);
+        } else if (token.startsWith('__') && token.endsWith('__')) {
+          nodes.push(<Text key={`b2-${m.index}`} style={{ fontWeight: 'bold' }}>{token.slice(2, -2)}</Text>);
+        } else if (token.startsWith('*') && token.endsWith('*')) {
+          nodes.push(<Text key={`i-${m.index}`} style={{ fontStyle: 'italic' }}>{token.slice(1, -1)}</Text>);
+        } else if (token.startsWith('_') && token.endsWith('_')) {
+          nodes.push(<Text key={`i2-${m.index}`} style={{ fontStyle: 'italic' }}>{token.slice(1, -1)}</Text>);
+        } else {
+          nodes.push(token);
+        }
+        lastIndex = m.index + token.length;
+      }
+      if (lastIndex < input.length) nodes.push(input.slice(lastIndex));
+      return nodes;
+    };
+
+    const lines = text.split(/\r?\n/);
+    const blocks: any[] = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      // Skip empty lines
+      if (!line.trim()) { i++; continue; }
+      // Headings
+      const h3 = line.match(/^###\s+(.*)$/);
+      if (h3) { blocks.push(<Text key={`h3-${i}`} style={{ fontSize: 11, fontWeight: 'bold', color: '#01689b', marginTop: 6, marginBottom: 5, lineHeight: 1.1 }}>{h3[1]}</Text>); i++; continue; }
+      const h2 = line.match(/^##\s+(.*)$/);
+      if (h2) { blocks.push(<Text key={`h2-${i}`} style={{ fontSize: 12.5, fontWeight: 'bold', color: '#01689b', marginTop: 8, marginBottom: 6, lineHeight: 1.1 }}>{h2[1]}</Text>); i++; continue; }
+      const h1 = line.match(/^#\s+(.*)$/);
+      if (h1) { blocks.push(<Text key={`h1-${i}`} style={{ fontSize: 18, fontWeight: 'bold', color: '#01689b', marginTop: 10, marginBottom: 6, lineHeight: 1.1 }}>{h1[1]}</Text>); i++; continue; }
+      // Unordered list
+      if (/^\s*[-*+]\s+/.test(line)) {
+        const items: string[] = [];
+        while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^\s*[-*+]\s+/, ''));
+          i++;
+        }
+        blocks.push(
+          <View key={`ul-${i}`} style={{ marginTop: 4, marginBottom: 3, paddingLeft: 6 }}>
+            {items.map((it, idx) => (
+              <View key={`uli-${idx}`} style={{ flexDirection: 'row', marginBottom: 2 }}>
+                <Text style={{ fontSize: 9, marginRight: 3 }}>•</Text>
+                <Text style={{ fontSize: 9, flex: 1 }}>{renderInline(it)}</Text>
+              </View>
+            ))}
+          </View>
+        );
+        continue;
+      }
+      // Ordered list
+      if (/^\s*\d+\.\s+/.test(line)) {
+        const items: string[] = [];
+        let startNum = parseInt((line.match(/^(\s*)(\d+)/) || [0, '', '1'])[2], 10) || 1;
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^\s*\d+\.\s+/, ''));
+          i++;
+        }
+        blocks.push(
+          <View key={`ol-${i}`} style={{ marginTop: 2, marginBottom: 2, paddingLeft: 6 }}>
+            {items.map((it, idx) => (
+              <View key={`oli-${idx}`} style={{ flexDirection: 'row', marginBottom: 2 }}>
+                <Text style={{ fontSize: 9, marginRight: 4 }}>{`${startNum + idx}.`}</Text>
+                <Text style={{ fontSize: 9, flex: 1 }}>{renderInline(it)}</Text>
+              </View>
+            ))}
+          </View>
+        );
+        continue;
+      }
+      // Paragraph: merge consecutive non-empty non-list lines
+      const para: string[] = [line];
+      i++;
+      while (i < lines.length && lines[i].trim() && !/^\s*[-*+]/.test(lines[i]) && !/^\s*\d+\./.test(lines[i]) && !/^#{1,3}\s+/.test(lines[i])) {
+        para.push(lines[i]);
+        i++;
+      }
+      blocks.push(<Text key={`p-${i}`} style={{ fontSize: 9, marginBottom: 6, lineHeight: 1.5 }}>{renderInline(para.join(' '))}</Text>);
+    }
+    return <View>{blocks}</View>;
+  };
+
   // renderContent function (copied and adapted from ImplementationVariantFactsheetPdf)
   const renderContent = (content?: string) => {
     if (!content) return <Text>Niet gespecificeerd</Text>;
-    const isLikelyHtml = content.includes('<') && content.includes('>');
-    let htmlToRender;
-    if (isLikelyHtml) {
-      htmlToRender = content;
-    } else {
-      htmlToRender = basicMarkdownToHtml(content);
+    // Only treat as HTML if there appear to be actual tags like <p>, <div>, etc.
+    const isLikelyHtml = /<\s*[a-zA-Z][^>]*>/i.test(content);
+    const sanitizeHtml = (html: string) =>
+      html
+        .replace(/<img[^>]*>/gi, '') // strip images to avoid heavy rendering
+        .replace(/<script[\s\S]*?<\/script>/gi, '') // no scripts
+        .replace(/ style="[^"]*"/gi, ''); // drop inline styles that Html might not like
+
+    // If HTML contains <table>, convert them to lightweight PDF tables to avoid heavy Html rendering
+    if (isLikelyHtml && /<table/i.test(content)) {
+      const html = content;
+      const tableRegex = /<table[\s\S]*?<\/table>/gi;
+      const parts: any[] = [];
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = tableRegex.exec(html)) !== null) {
+        const before = html.slice(lastIndex, match.index);
+        if (before.trim()) {
+          parts.push(<Html key={`h-${lastIndex}`} stylesheet={htmlTagStyles}>{sanitizeHtml(before)}</Html>);
+        }
+        const tableHtml = match[0];
+        // Parse rows and cells
+        const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+        const thRegex = /<th[^>]*>([\s\S]*?)<\/th>/gi;
+        const tdRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+        const rows: string[][] = [];
+        let rowMatch: RegExpExecArray | null;
+        while ((rowMatch = rowRegex.exec(tableHtml)) !== null) {
+          const rowInner = rowMatch[1];
+          const headerCells: string[] = [];
+          let h: RegExpExecArray | null;
+          while ((h = thRegex.exec(rowInner)) !== null) headerCells.push(h[1]);
+          if (headerCells.length > 0) rows.push(headerCells);
+          const cells: string[] = [];
+          let c: RegExpExecArray | null;
+          while ((c = tdRegex.exec(rowInner)) !== null) cells.push(c[1]);
+          if (cells.length > 0) rows.push(cells);
+        }
+        const decode = (s: string) =>
+          sanitizeHtml(s)
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const headers = rows.length > 0 ? rows[0].map(decode) : [];
+        const bodyRows = rows.length > 1 ? rows.slice(1).map(r => r.map(decode)) : [];
+        parts.push(
+          <View key={`t-${match.index}`} style={styles.genTable}>
+            {headers.length > 0 && (
+              <View style={styles.genHeaderRow}>
+                {headers.map((h, i) => (
+                  <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
+                    <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {bodyRows.map((r, ri) => (
+              <View key={`tr-${ri}`} style={styles.genRow}>
+                {(headers.length > 0 ? headers : r).map((_, ci) => (
+                  <View key={`td-${ri}-${ci}`} style={styles.genCell}>
+                    <Text style={{ fontSize: 9 }}>{r[ci] || ''}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        );
+        lastIndex = match.index + match[0].length;
+      }
+      const after = html.slice(lastIndex);
+      if (after.trim()) {
+        parts.push(<Html key={`h-end`} stylesheet={htmlTagStyles}>{sanitizeHtml(after)}</Html>);
+      }
+      return <View>{parts}</View>;
     }
     // Try to detect simple markdown tables and render as PDF table
     const tableRegex = /(\n|^)\s*\|([^\n]+)\|\s*\n\s*\|[\-:\s\|]+\|\s*\n([\s\S]*?)(?=\n\s*\n|$)/g;
@@ -436,8 +587,12 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
     while ((m = tableRegex.exec(content)) !== null) {
       const before = content.slice(last, m.index);
       if (before.trim()) {
-        const beforeHtml = basicMarkdownToHtml(before);
-        parts.push(<Html key={`h-${last}`} stylesheet={htmlTagStyles}>{beforeHtml}</Html>);
+        if (isLikelyHtml) {
+          parts.push(<Html key={`h-${last}`} stylesheet={htmlTagStyles}>{sanitizeHtml(before)}</Html>);
+        } else {
+          // render markdown as lightweight blocks (avoid Html for performance)
+          parts.push(<View key={`md-${last}`}>{renderPlainBlocks(before)}</View>);
+        }
       }
       const headerRow = m[2];
       const body = m[3];
@@ -470,8 +625,11 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
     }
     const after = content.slice(last);
     if (after.trim()) {
-      const afterHtml = basicMarkdownToHtml(after);
-      parts.push(<Html key={`h-end`} stylesheet={htmlTagStyles}>{afterHtml}</Html>);
+      if (isLikelyHtml) {
+        parts.push(<Html key={`h-end`} stylesheet={htmlTagStyles}>{sanitizeHtml(after)}</Html>);
+      } else {
+        parts.push(<View key={`md-end`}>{renderPlainBlocks(after)}</View>);
+      }
     }
     return <View>{parts}</View>;
   };
@@ -480,12 +638,19 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerContainer}>
+          <View style={styles.logoWrap}>
+            <Image src="/Logo IenW.png" style={{ width: 200, height: 50, objectFit: 'contain' }} />
+          </View>
           <Text style={styles.headerText}>
             {`Factsheet ${solution.title || 'Onbekende Oplossing'}`}
           </Text>
+          <Text style={{ fontSize: 10, color: '#374151', marginTop: 4 }}>
+            Deze factsheet is gemaakt door de Parkmanager Tool Collectieve Vervoersoplossingen. Deze tool is ontwikkeld in opdracht van het Ministerie van Infrastructuur en Waterstaat.
+          </Text>
+          <View style={styles.divider} />
         </View>
 
-        {/* Meta blok in twee kolommen */}
+        {/* Meta blok in twee kolommen (Vuistregels) */}
         <View style={styles.twoColRow}>
           <View style={styles.twoColLeft}>
             {solution.wanneerRelevant && (
@@ -541,6 +706,10 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
             )}
           </View>
         </View>
+
+        {/* Divider onder vuistregels */}
+        <View style={styles.divider} />
+
 
         {solution.description && (
           <View style={styles.section}>

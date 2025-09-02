@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { ImplementationVariation } from '@/domain/models';
 import Html from 'react-pdf-html';
 
@@ -25,26 +25,34 @@ Font.registerHyphenationCallback(word => [word]);
 const styles = StyleSheet.create({
   page: {
     padding: 30,
+    paddingTop: 30,
     fontFamily: 'Open Sans',
     fontSize: 9,
     lineHeight: 1.5,
     color: '#000000',
   },
   headerContainer: {
-    marginBottom: 25,
-    paddingBottom: 5,
+    // Trek de header (logo) tegen de bovenrand aan op pagina 1
+    marginTop: -30,
+    marginBottom: 16,
+    paddingBottom: 0,
   },
+  logoWrap: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  divider: { height: 1, backgroundColor: '#e5e7eb', marginTop: 12, marginBottom: 8 },
   headerText: {
     fontSize: 18,
     textAlign: 'left',
-    color: '#000000',
+    color: '#01689b',
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     lineHeight: 1.4,
   },
   twoColRow: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   twoColLeft: {
     width: '50%',
@@ -64,7 +72,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#000000',
+    color: '#01689b',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
   },
@@ -75,7 +83,7 @@ const styles = StyleSheet.create({
   h1Style: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 10,
     marginBottom: 2,
     lineHeight: 1.1,
@@ -83,7 +91,7 @@ const styles = StyleSheet.create({
   h2Style: {
     fontSize: 12.5,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 8,
     marginBottom: 2,
     lineHeight: 1.1,
@@ -91,7 +99,7 @@ const styles = StyleSheet.create({
   h3Style: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 6,
     marginBottom: 3,
     lineHeight: 1.1,
@@ -162,9 +170,9 @@ const styles = StyleSheet.create({
 
 const htmlTagStyles = {
   p: { fontSize: 9, marginBottom: 5, lineHeight: 1.5, textAlign: 'left', marginTop: 0 },
-  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1 },
-  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1 },
-  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1 },
+  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1, color: '#01689b' },
+  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1, color: '#01689b' },
+  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1, color: '#01689b' },
   ul: { marginTop: 4, marginBottom: 5, paddingLeft: 6 },
   li: { fontSize: 9, marginBottom: 4, lineHeight: 1.45 },
   strong: { fontWeight: 'bold', fontFamily: 'Open Sans' },
@@ -474,12 +482,19 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerContainer}> 
+          <View style={styles.logoWrap}>
+            <Image src="/Logo IenW.png" style={{ width: 200, height: 50, objectFit: 'contain' }} />
+          </View>
           <Text style={{ ...styles.headerText, marginBottom: 2 }}>
             Factsheet Implementatievariant:
           </Text>
           <Text style={styles.headerText}>
             {variation.title || 'Onbekende Variant'}
           </Text>
+          <Text style={{ fontSize: 10, color: '#374151', marginTop: 4 }}>
+            Deze factsheet is gemaakt door de Parkmanager Tool Collectieve Vervoersoplossingen. Deze tool is ontwikkeld in opdracht van het Ministerie van Infrastructuur en Waterstaat.
+          </Text>
+          <View style={styles.divider} />
         </View>
 
         {/* Meta blok in twee kolommen (vergelijkbaar met oplossingen factsheet) */}
@@ -526,6 +541,9 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
             )}
           </View>
         </View>
+
+        {/* Divider onder vuistregels */}
+        <View style={styles.divider} />
 
         {variation.samenvatting && (
           <View style={styles.section}>

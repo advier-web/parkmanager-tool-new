@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { GovernanceModel, ImplementationVariation } from '@/domain/models';
 import Html from 'react-pdf-html';
 
@@ -24,19 +24,22 @@ Font.registerHyphenationCallback(word => [word]); // Disable hyphenation
 const styles = StyleSheet.create({
   page: {
     padding: 30,
+    paddingTop: 50,
     fontFamily: 'Open Sans',
     fontSize: 9,
     lineHeight: 1.5,
     color: '#000000',
   },
   headerContainer: {
-    marginBottom: 25,
-    paddingBottom: 5,
+    marginTop: -50, // logo strak tegen de bovenrand op pagina 1
+    marginBottom: 16,
+    paddingBottom: 0,
   },
+  logoWrap: { alignItems: 'center', marginBottom: 18 },
   headerText: {
     fontSize: 18,
     textAlign: 'left',
-    color: '#000000',
+    color: '#01689b',
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
     lineHeight: 1.4,
@@ -51,7 +54,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#000000',
+    color: '#01689b',
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
   },
@@ -71,9 +74,9 @@ const styles = StyleSheet.create({
 
 const htmlTagStyles = {
   p: { fontSize: 9, marginBottom: 5, lineHeight: 1.5, textAlign: 'left', marginTop: 0 },
-  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1 },
-  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1 },
-  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1 },
+  h1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 6, lineHeight: 1.1, color: '#01689b' },
+  h2: { fontSize: 12.5, fontWeight: 'bold', marginTop: 8, marginBottom: 6, lineHeight: 1.1, color: '#01689b' },
+  h3: { fontSize: 11, fontWeight: 'bold', marginTop: 6, marginBottom: 5, lineHeight: 1.1, color: '#01689b' },
   ul: { marginTop: 4, marginBottom: 5, paddingLeft: 6 },
   li: { fontSize: 9, marginBottom: 4, lineHeight: 1.45 },
   strong: { fontWeight: 'bold', fontFamily: 'Open Sans' },
@@ -227,12 +230,19 @@ const GovernanceModelFactsheetPdfComponent: React.FC<GovernanceModelFactsheetPdf
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerContainer}>
+          <View style={styles.logoWrap}>
+            <Image src="/Logo IenW.png" style={{ width: 200, height: 50, objectFit: 'contain' }} />
+          </View>
           <Text style={{ ...styles.headerText, marginBottom: 2 }}>
             Factsheet Governance Model:
           </Text>
           <Text style={styles.headerText}>
             {model.title || 'Onbekend Model'}
           </Text>
+          <Text style={{ fontSize: 10, color: '#374151', marginTop: 4 }}>
+            Deze factsheet is gemaakt door de Parkmanager Tool Collectieve Vervoersoplossingen. Deze tool is ontwikkeld in opdracht van het Ministerie van Infrastructuur en Waterstaat.
+          </Text>
+          <View style={{ height: 1, backgroundColor: '#e5e7eb', marginTop: 12, marginBottom: 8 }} />
         </View>
 
         {(model.description || model.summary) && (

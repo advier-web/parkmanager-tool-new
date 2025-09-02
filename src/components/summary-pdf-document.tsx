@@ -1,7 +1,7 @@
 'use client'; // Required for @react-pdf/renderer client-side nature
 
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font as PdfFont } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font as PdfFont, Image } from '@react-pdf/renderer';
 import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation, BusinessParkReason } from '@/domain/models';
 import { SelectedVariantMap } from '@/lib/store';
 import { stripSolutionPrefixFromVariantTitle, governanceTitleToFieldName as governanceTitleToFieldNameHelper, snakeToCamel as snakeToCamelHelper } from '@/utils/wizard-helpers';
@@ -30,6 +30,7 @@ PdfFont.registerHyphenationCallback(word => [word]);
 const styles = StyleSheet.create({
   page: {
     padding: 30,
+    paddingTop: 50,
     fontFamily: 'Open Sans', // Changed from Helvetica
     fontSize: 9, // Consistent base font size
     lineHeight: 1.5, // Consistent line height
@@ -48,15 +49,16 @@ const styles = StyleSheet.create({
   },
   // Header for "Vervolgstappen" and "Mobiliteitsplan Bedrijventerrein X"
   headerSection: { 
-    marginBottom: 25, // Consistent with factsheets headerContainer
-    paddingBottom: 5, // Consistent with factsheets headerContainer
-    // Removed borderBottom, factsheets don't have it on the main PDF title container
+    marginTop: -50, // Trek logo tegen de bovenrand aan op pagina 1
+    marginBottom: 16,
+    paddingBottom: 0,
   },
+  logoWrap: { alignItems: 'center', marginBottom: 18 },
   mainTitle: { // "Vervolgstappen"
     fontSize: 18, // Consistent with factsheets headerText
     fontWeight: 'bold', // Consistent with factsheets headerText
     fontFamily: 'Open Sans', // Ensure Open Sans
-    color: '#000000', // Consistent with factsheets headerText
+    color: '#01689b',
     textAlign: 'left', // Changed from center for consistency
     marginBottom: 2, // Consistent spacing for multi-line headers
     lineHeight: 1.4, // Consistent with factsheets headerText
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
     fontSize: 18, // Keep same size as main title if it's part of the main header block
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
-    color: '#000000',
+    color: '#01689b',
     textAlign: 'left',
     lineHeight: 1.4,
     marginBottom: 15, // Spacing after the full header block
@@ -75,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
-    color: '#000000', 
+    color: '#01689b', 
     marginTop: 10, 
     marginBottom: 14, // nog wat extra ruimte onder H1
     lineHeight: 1.1,
@@ -94,7 +96,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5, // match factsheets
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
-    color: '#000000', // Consistent with factsheet sectionTitle
+    color: '#01689b',
     marginBottom: 9, // iets meer lucht onder H2
     lineHeight: 1.2, // Consistent with factsheet sectionTitle
     // Removed its own borderBottom, as the parent <View style={styles.section}> has it
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 11, // match factsheets
     fontWeight: 'bold',
     fontFamily: 'Open Sans',
-    color: '#000000',
+    color: '#01689b',
     marginTop: 6, // Added marginTop for spacing, consistent with factsheet h3
     marginBottom: 5, // consistent
     lineHeight: 1.1,
@@ -124,6 +126,15 @@ const styles = StyleSheet.create({
     marginBottom: 5, // Consistent with factsheet p
     textAlign: 'left', // Changed from justify
     marginTop: 0, // Consistent with factsheet p
+  },
+  // Intro text style used in header and for the 'Over dit advies' section
+  introText: {
+    fontFamily: 'Open Sans',
+    fontSize: 10,
+    color: '#374151',
+    lineHeight: 1.5,
+    marginBottom: 5,
+    textAlign: 'left',
   },
   listItemContainer: { // For bulleted lists from renderRichText
     flexDirection: 'row',
@@ -201,6 +212,7 @@ const styles = StyleSheet.create({
   contributionItem: {
     marginBottom: 8,
   },
+  divider: { height: 1, backgroundColor: '#e5e7eb', marginTop: 12, marginBottom: 8 },
   subtleText: { // For "(Geen specifieke toelichting beschikbaar)"
     fontFamily: 'Open Sans',
     fontSize: 9,
@@ -590,17 +602,24 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerSection}>
+          <View style={styles.logoWrap}>
+            <Image src="/Logo IenW.png" style={{ width: 200, height: 50, objectFit: 'contain' }} />
+          </View>
           <Text style={styles.mainTitle}>Adviesrapport</Text>
+          <Text style={{ fontSize: 10, color: '#374151', marginTop: 4 }}>
+            Deze factsheet is gemaakt door de Parkmanager Tool Collectieve Vervoersoplossingen. Deze tool is ontwikkeld in opdracht van het Ministerie van Infrastructuur en Waterstaat.
+          </Text>
+          <View style={styles.divider} />
         </View>
 
         {/* Page 1 - single column stacked content */}
         <View style={styles.section}>
           <Text style={styles.h1}>Over dit advies</Text>
           {introParagraphs.map((p, i) => (
-            <Text key={`intro-${i}`} style={styles.paragraph}>{p}</Text>
+            <Text key={`intro-${i}`} style={styles.introText}>{p}</Text>
           ))}
         </View>
-        <View style={styles.section}>
+        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
           <Text style={styles.h1}>Uw Keuzes</Text>
           <View style={styles.twoColRow}>
             <View style={styles.twoColLeft}>
@@ -653,7 +672,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
       {/* Page 2: Governance model only */}
       <Page size="A4" style={styles.page}>
         {selectedGovModel ? (
-          <View style={styles.section}>
+          <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
             <Text style={styles.h1}>{selectedGovModel.title}</Text>
             {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
 
@@ -689,7 +708,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             </View>
           </View>
         ) : (
-          <View style={styles.section}>
+          <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
             <Text style={styles.h1}>Governancemodel</Text>
             <Text style={styles.paragraph}>Geen governance model geselecteerd.</Text>
           </View>
@@ -703,7 +722,7 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           const chosenVariant = findVariantById(variantIdForSolution);
           return (
             <View>
-              <View style={styles.section}>
+              <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
                 <Text style={styles.h1}>{solution.title}</Text>
                 {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
 
