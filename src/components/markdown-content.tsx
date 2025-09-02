@@ -116,7 +116,7 @@ export function MarkdownContent({
           ),
           table: ({ node, ...props }) => (
             <div className="overflow-x-auto my-6">
-              <table {...props} className="min-w-[640px] md:min-w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
+              <table {...props} className="min-w-[720px] w-full table-fixed border-collapse border border-gray-300 bg-white rounded-lg shadow-sm" />
             </div>
           ),
           thead: ({ node, ...props }) => (
@@ -129,10 +129,10 @@ export function MarkdownContent({
             <tr {...props} className="hover:bg-gray-50" />
           ),
           th: ({ node, ...props }) => (
-            <th {...props} className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-300" />
+            <th {...props} className="px-4 py-3 text-left text-[13px] font-semibold text-gray-700 border-b border-gray-300 w-1/4" />
           ),
           td: ({ node, ...props }) => (
-            <td {...props} className="px-4 py-3 text-sm text-gray-600 border-b border-gray-200" />
+            <td {...props} className="px-4 py-3 text-[13px] text-gray-700 border-b border-gray-200 align-top w-1/4" />
           ),
         }}
       >

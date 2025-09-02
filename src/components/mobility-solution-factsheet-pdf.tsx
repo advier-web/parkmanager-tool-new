@@ -116,6 +116,36 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     lineHeight: 1.2,
   },
+  // Generic PDF table styles for markdown tables in content
+  genTable: {
+    marginTop: 4,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  genHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  genRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  genHeaderCell: {
+    flexGrow: 1,
+    flexBasis: 0,
+    padding: 5,
+  },
+  genCell: {
+    flexGrow: 1,
+    flexBasis: 0,
+    padding: 5,
+    borderLeftWidth: 1,
+    borderLeftColor: '#e5e7eb',
+  },
   // content style might not be directly used if all content goes through renderContent -> Html
   content: {
     fontSize: 9,
@@ -191,7 +221,7 @@ interface MobilitySolutionFactsheetPdfProps {
   solution: MobilitySolution;
 }
 
-// Basic Markdown to HTML converter (copied from ImplementationVariantFactsheetPdf)
+// Convert simple markdown to HTML; try to preserve tables (we'll render them ourselves)
 const basicMarkdownToHtml = (text: string): string => {
   let html = text;
   // Links: [label](url) -> <a href="url">label</a>
@@ -398,31 +428,52 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
     } else {
       htmlToRender = basicMarkdownToHtml(content);
     }
-    const cleanedHtml = htmlToRender.replace(/<p><\/p>/g, '');
-    // Split into block-level chunks so large sections can flow across page breaks
-    const blockRegex = /<(h1|h2|h3|p|ul|ol|table|pre)[\s\S]*?<\/\1>/gi;
-    const blocks: string[] = [];
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = blockRegex.exec(cleanedHtml)) !== null) {
-      // Push any text before the match as a paragraph
-      if (match.index > lastIndex) {
-        const stray = cleanedHtml.slice(lastIndex, match.index).trim();
-        if (stray) blocks.push(`<p>${stray}</p>`);
+    // Try to detect simple markdown tables and render as PDF table
+    const tableRegex = /(\n|^)\s*\|([^\n]+)\|\s*\n\s*\|[\-:\s\|]+\|\s*\n([\s\S]*?)(?=\n\s*\n|$)/g;
+    const parts: any[] = [];
+    let last = 0;
+    let m: RegExpExecArray | null;
+    while ((m = tableRegex.exec(content)) !== null) {
+      const before = content.slice(last, m.index);
+      if (before.trim()) {
+        const beforeHtml = basicMarkdownToHtml(before);
+        parts.push(<Html key={`h-${last}`} stylesheet={htmlTagStyles}>{beforeHtml}</Html>);
       }
-      blocks.push(match[0]);
-      lastIndex = match.index + match[0].length;
+      const headerRow = m[2];
+      const body = m[3];
+      const headers = headerRow.split('|').map(h => h.trim()).filter(Boolean);
+      const rows = body.split('\n').filter(l => l.trim().startsWith('|')).map((line, idx) => {
+        const cells = line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+        return { id: idx, cells };
+      });
+      parts.push(
+        <View key={`t-${m.index}`} style={styles.genTable}>
+          <View style={styles.genHeaderRow}>
+            {headers.map((h, i) => (
+              <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
+                <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
+              </View>
+            ))}
+          </View>
+          {rows.map(r => (
+            <View key={`tr-${r.id}`} style={styles.genRow}>
+              {headers.map((_, i) => (
+                <View key={`td-${r.id}-${i}`} style={styles.genCell}>
+                  <Text style={{ fontSize: 9 }}>{r.cells[i] || ''}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      );
+      last = m.index + m[0].length;
     }
-    const tail = cleanedHtml.slice(lastIndex).trim();
-    if (tail) blocks.push(`<p>${tail}</p>`);
-
-    return (
-      <View>
-        {blocks.map((b, i) => (
-          <Html key={i} stylesheet={htmlTagStyles}>{b}</Html>
-        ))}
-      </View>
-    );
+    const after = content.slice(last);
+    if (after.trim()) {
+      const afterHtml = basicMarkdownToHtml(after);
+      parts.push(<Html key={`h-end`} stylesheet={htmlTagStyles}>{afterHtml}</Html>);
+    }
+    return <View>{parts}</View>;
   };
 
   return (

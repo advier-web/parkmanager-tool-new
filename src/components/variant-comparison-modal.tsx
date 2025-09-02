@@ -129,43 +129,31 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Geschatte jaarlijkse kosten Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
-                      <div className="flex items-center">
-                        <h3 className="font-medium text-gray-900">Geschatte jaarlijkse kosten</h3>
-                      </div>
+                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Geschatte jaarlijkse kosten</h3></div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-yearly-costs`} className="border-l border-gray-200 pl-4 flex items-center">
-                          <div className="text-sm text-gray-700">
-                            {variation.geschatteJaarlijkseKosten || '-'}
-                          </div>
+                        <div key={`${variation.id}-yearly-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                          {variation.geschatteJaarlijkseKosten || '-'}
                         </div>
                       ))}
                     </div>
 
                     {/* Kosten per km per persoon Row */}
-                    <div className="grid bg-white rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
-                      <div className="flex items-center">
-                        <h3 className="font-medium text-gray-900">Kosten per km per persoon</h3>
-                      </div>
+                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Kosten per km per persoon</h3></div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 flex items-center">
-                          <div className="text-sm text-gray-700">
-                            {variation.geschatteKostenPerKmPp || '-'}
-                          </div>
+                        <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                          {variation.geschatteKostenPerKmPp || '-'}
                         </div>
                       ))}
                     </div>
 
                     {/* Kosten per rit Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3" style={{ gridTemplateColumns: `200px repeat(${variations.length}, 1fr)` }}>
-                      <div className="flex items-center">
-                        <h3 className="font-medium text-gray-900">Kosten per rit</h3>
-                      </div>
+                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Kosten per rit</h3></div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 flex items-center">
-                          <div className="text-sm text-gray-700">
-                            {variation.geschatteKostenPerRit || '-'}
-                          </div>
+                        <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                          {variation.geschatteKostenPerRit || '-'}
                         </div>
                       ))}
                     </div>
@@ -178,7 +166,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Controle en flexibiliteit</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.controleEnFlexibiliteit || '-')}
                         </div>
                       ))}
@@ -190,7 +178,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Maatwerk</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.maatwerk || '-')}
                         </div>
                       ))}
@@ -202,7 +190,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Kosten en schaalvoordelen</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.kostenEnSchaalvoordelen || '-')}
                         </div>
                       ))}
@@ -214,7 +202,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Operationele complexiteit</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.operationeleComplexiteit || '-')}
                         </div>
                       ))}
@@ -226,7 +214,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Juridische en compliance risico's</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.juridischeEnComplianceRisicos || '-')}
                         </div>
                       ))}
@@ -238,7 +226,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <h3 className="font-medium text-gray-900">Risico van onvoldoende gebruik</h3>
                       </div>
                       {variations.map((variation) => (
-                        <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4">
+                        <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {renderStarsAndText(variation.risicoVanOnvoldoendeGebruik || '-')}
                         </div>
                       ))}
