@@ -488,19 +488,19 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
             {variation.controleEnFlexibiliteit && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Controle en flexibiliteit:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.controleEnFlexibiliteit}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.controleEnFlexibiliteit || '').replace(/\*/g, '')}</Text>
               </View>
             )}
             {variation.kostenEnSchaalvoordelen && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Kosten en schaalvoordelen:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.kostenEnSchaalvoordelen}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.kostenEnSchaalvoordelen || '').replace(/\*/g, '')}</Text>
               </View>
             )}
             {variation.juridischeEnComplianceRisicos && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Juridische en compliance-risico’s:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.juridischeEnComplianceRisicos}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.juridischeEnComplianceRisicos || '').replace(/\*/g, '')}</Text>
               </View>
             )}
           </View>
@@ -509,19 +509,19 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
             {variation.maatwerk && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Maatwerk:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.maatwerk}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.maatwerk || '').replace(/\*/g, '')}</Text>
               </View>
             )}
             {variation.operationeleComplexiteit && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Operationele complexiteit:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.operationeleComplexiteit}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.operationeleComplexiteit || '').replace(/\*/g, '')}</Text>
               </View>
             )}
             {variation.risicoVanOnvoldoendeGebruik && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Risico van onvoldoende gebruik:</Text>
-                <Text style={{ marginTop: 2 }}>{variation.risicoVanOnvoldoendeGebruik}</Text>
+                <Text style={{ marginTop: 2 }}>{(variation.risicoVanOnvoldoendeGebruik || '').replace(/\*/g, '')}</Text>
               </View>
             )}
           </View>

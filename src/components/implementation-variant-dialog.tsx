@@ -79,7 +79,16 @@ export function ImplementationVariantDialog({ variation, isOpen, onClose }: Impl
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">Samenvatting</h3>
                         <div className="mt-2 prose prose-sm max-w-none">
-                          <MarkdownContent content={processMarkdownText(variation.samenvatting || '')} />
+                          {(() => {
+                            // Specifiek voor deze popup: verwijder eventuele rating-asterisken aan het begin van regels
+                            const stripLeadingStars = (txt: string) =>
+                              (txt || '')
+                                .split('\n')
+                                .map(line => line.replace(/^\s*\*{1,5}\s+/, ''))
+                                .join('\n');
+                            const cleaned = stripLeadingStars(variation.samenvatting || '');
+                            return <MarkdownContent content={processMarkdownText(cleaned)} />;
+                          })()}
                         </div>
                       </div>
 

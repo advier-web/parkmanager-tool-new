@@ -183,6 +183,8 @@ export function processMarkdownText(text: string): string {
   
   // Handle ordered lists better
   processed = processed.replace(/^(\s*)(\d+\.\s+)/gm, '$1$2');
+
+  // NOTE: geen globale omzetting naar sterren meer; dit wordt per-context beslist
   
   // Ensure proper spacing around headers
   processed = processed.replace(/^(#{1,6})([^#\s])/gm, '$1 $2');

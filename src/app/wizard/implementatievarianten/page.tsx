@@ -92,7 +92,7 @@ export default function SelectImplementationVariantPage() {
             <h3 className="text-lg font-semibold">Kies een Implementatievariant</h3>
             <p className="text-gray-600 text-sm">
               Voor elke gekozen collectieve vervoersoplossing zijn er vaak meerdere manieren om deze te implementeren.
-              Kies per oplossing de variant die het beste bij uw situatie past.
+              Kies de implementatievariant die het beste bij uw situatie past.
             </p>
           </div>
         </div>
@@ -101,7 +101,10 @@ export default function SelectImplementationVariantPage() {
         <div className="lg:col-span-3">
           {/* Intro sectie (alleen kop + vergelijk-balk) */}
           <div className="bg-white rounded-lg p-8 shadow-even">
-            <h2 className="text-2xl font-bold mb-6">Implementatievarianten</h2>
+            <h2 className="text-2xl font-bold mb-4">Implementatievarianten</h2>
+              <p className="mb-6">
+                Voor de door u geselecteerde vervoersoplossing zijn onderstaande implementatievarianten beschikbaar. Om verder te gaan selecteert u één implementatievariant.
+              </p>
 
             {!isLoading && !error && allVariations.length >= 2 && (
               <VariantComparisonBanner

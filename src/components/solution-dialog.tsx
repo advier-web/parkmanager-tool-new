@@ -41,6 +41,11 @@ export function SolutionDialog() {
   }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
   const ANIMATION_MS = 600;
+  // Utility: strip any asterisks used as ratings in plain text fields
+  const stripAsterisks = (text?: string) => {
+    if (!text) return '';
+    return text.replace(/\*/g, '').trim();
+  };
   // Helper to render leading '*' as stars and the rest of the text below
   const renderStarsAndText = (raw: string) => {
     const source = typeof raw === 'string' ? raw : String(raw ?? '');
@@ -615,37 +620,37 @@ export function SolutionDialog() {
                 {variant.controleEnFlexibiliteit && (
                   <div>
                     <div className="font-semibold text-gray-900">Controle en flexibiliteit:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.controleEnFlexibiliteit}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.controleEnFlexibiliteit)}</div>
                   </div>
                 )}
                 {variant.maatwerk && (
                   <div>
                     <div className="font-semibold text-gray-900">Maatwerk:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.maatwerk}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.maatwerk)}</div>
                   </div>
                 )}
                 {variant.kostenEnSchaalvoordelen && (
                   <div>
                     <div className="font-semibold text-gray-900">Kosten en schaalvoordelen:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.kostenEnSchaalvoordelen}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.kostenEnSchaalvoordelen)}</div>
                   </div>
                 )}
                 {variant.operationeleComplexiteit && (
                   <div>
                     <div className="font-semibold text-gray-900">Operationele complexiteit:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.operationeleComplexiteit}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.operationeleComplexiteit)}</div>
                   </div>
                 )}
                 {variant.juridischeEnComplianceRisicos && (
                   <div>
                     <div className="font-semibold text-gray-900">Juridische en compliance-risico’s:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.juridischeEnComplianceRisicos}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.juridischeEnComplianceRisicos)}</div>
                   </div>
                 )}
                 {variant.risicoVanOnvoldoendeGebruik && (
                   <div>
                     <div className="font-semibold text-gray-900">Risico van onvoldoende gebruik:</div>
-                    <div className="text-gray-800 mt-0.5">{variant.risicoVanOnvoldoendeGebruik}</div>
+                    <div className="text-gray-800 mt-0.5">{stripAsterisks(variant.risicoVanOnvoldoendeGebruik)}</div>
                   </div>
                 )}
               </div>
@@ -655,7 +660,15 @@ export function SolutionDialog() {
             {variant.samenvatting && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Hoe werkt het</h1>
-                <MarkdownContent variant="modal" content={processMarkdownText(variant.samenvatting)} />
+                {(() => {
+                  const stripLeadingStars = (txt: string) =>
+                    (txt || '')
+                      .split('\n')
+                      .map(line => line.replace(/^\s*\*{1,5}\s+/, ''))
+                      .join('\n');
+                  const cleaned = stripLeadingStars(variant.samenvatting || '');
+                  return <MarkdownContent variant="modal" content={processMarkdownText(cleaned)} />;
+                })()}
               </section>
             )}
             {variant.investering && (
