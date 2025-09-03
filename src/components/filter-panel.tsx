@@ -1,4 +1,5 @@
 import { BusinessParkReason, TrafficType } from '../domain/models';
+import { useWizardStore } from '@/store/wizard-store';
 import { useMemo } from 'react';
 
 interface FilterPanelProps {
@@ -20,6 +21,9 @@ export function FilterPanel({
   selectedTrafficTypes,
   onTrafficTypeFilterChange
 }: FilterPanelProps) {
+  const { setEmployeePickupPreference, businessParkInfo } = useWizardStore();
+  const isWoonWerkSelected = (businessParkInfo?.trafficTypes || []).includes('woon-werkverkeer' as any) || selectedTrafficTypes.includes('woon-werkverkeer' as any);
+  const currentPref = businessParkInfo?.employeePickupPreference || null;
   // Sort reasons by order property before rendering
   const sortedReasons = useMemo(() => {
     if (!reasons) return [];
@@ -53,7 +57,7 @@ export function FilterPanel({
       </div>
       
       <div className="mb-6 pb-4">
-        <h4 className="font-medium text-sm text-gray-700 mb-2">Type vervoer</h4>
+        <h4 className="font-medium text-sm text-gray-700 mb-2">Type verkeer</h4>
         <div className="space-y-2">
           {Object.values(TrafficType).map((type) => (
             <div key={type} className="flex items-start">
@@ -80,6 +84,41 @@ export function FilterPanel({
             </div>
           ))}
         </div>
+        {isWoonWerkSelected && (
+          <div className="mt-4">
+            <h4 className="font-medium text-sm text-gray-700 mb-2">Deel van de reis</h4>
+            <div className="space-y-2">
+              <div className="flex items-start">
+                <label className="flex items-start cursor-pointer">
+                  <input
+                    type="radio"
+                    name="pickup-pref"
+                    className="h-4 w-4 mt-1 rounded border-gray-300 focus:ring-blue-600 accent-blue-600"
+                    checked={currentPref === 'thuis'}
+                    onChange={() => setEmployeePickupPreference('thuis')}
+                  />
+                  <div className="ml-2">
+                    <span className="block text-sm">Voor de hele reis</span>
+                  </div>
+                </label>
+              </div>
+              <div className="flex items-start">
+                <label className="flex items-start cursor-pointer">
+                  <input
+                    type="radio"
+                    name="pickup-pref"
+                    className="h-4 w-4 mt-1 rounded border-gray-300 focus:ring-blue-600 accent-blue-600"
+                    checked={currentPref === 'locatie'}
+                    onChange={() => setEmployeePickupPreference('locatie')}
+                  />
+                  <div className="ml-2">
+                    <span className="block text-sm">Voor het laatste deel van de reis</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="space-y-4">

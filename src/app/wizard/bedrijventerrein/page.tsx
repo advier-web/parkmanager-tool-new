@@ -213,23 +213,25 @@ export default function BusinessParkInfoPage() {
                 </fieldset>
               </div>
               
-              {/* Nieuwe Ophalen werknemers vraag */}
-              <div className="mt-6">
-                <label htmlFor="employeePickupPreference" className="block text-sm font-medium text-gray-700 mb-1">
-                  Zoekt u een oplossing voor de hele woon-werkreis, of alleen een gedeelte (bijvoorbeeld van treinstation/P&R naar de werklocatie)?
-                </label>
-                <select
-                  id="employeePickupPreference"
-                  name="employeePickupPreference"
-                  value={businessParkInfo.employeePickupPreference || ''}
-                  onChange={handleSelectChange}
-                  className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Selecteer een optie</option>
-                  <option value="thuis">Voor de hele reis</option>
-                  <option value="locatie">Voor het laatste deel van de reis</option>
-                </select>
-              </div>
+              {/* Nieuwe Ophalen werknemers vraag - alleen tonen bij Woon-werkverkeer */}
+              {(businessParkInfo.trafficTypes || []).includes(TrafficType.COMMUTER) && (
+                <div className="mt-6">
+                  <label htmlFor="employeePickupPreference" className="block text-sm font-medium text-gray-700 mb-1">
+                    Zoekt u een oplossing voor de hele woon-werkreis, of alleen een gedeelte (bijvoorbeeld van treinstation/P&R naar de werklocatie)?
+                  </label>
+                  <select
+                    id="employeePickupPreference"
+                    name="employeePickupPreference"
+                    value={businessParkInfo.employeePickupPreference || ''}
+                    onChange={handleSelectChange}
+                    className="block w-full rounded-md shadow-sm px-3 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Selecteer een optie</option>
+                    <option value="thuis">Voor de hele reis</option>
+                    <option value="locatie">Voor het laatste deel van de reis</option>
+                  </select>
+                </div>
+              )}
               {/* Divider */}
               <div className="border-t border-gray-200 my-6"></div>
               

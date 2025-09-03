@@ -1,7 +1,7 @@
 'use client'; // Required for @react-pdf/renderer client-side nature
 
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font as PdfFont, Image } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Font as PdfFont, Image, Link } from '@react-pdf/renderer';
 import { BusinessParkInfo, MobilitySolution, GovernanceModel, ImplementationVariation, BusinessParkReason } from '@/domain/models';
 import { SelectedVariantMap } from '@/lib/store';
 import { stripSolutionPrefixFromVariantTitle, governanceTitleToFieldName as governanceTitleToFieldNameHelper, snakeToCamel as snakeToCamelHelper } from '@/utils/wizard-helpers';
@@ -287,6 +287,10 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     textAlign: 'right',
   },
+  link: {
+    color: '#01689b',
+    textDecoration: 'underline',
+  },
 });
 
 // --- END STYLING CHANGES ---
@@ -322,8 +326,8 @@ const cleanText = (text: any): string => {
     .trim(); // Trim start/end of the whole block
 };
 
-// Parses **bold** and *italic*
-const renderInlineFormatting = (line: string, keyPrefix: string) => {
+// Parses **bold** and *italic* (no links)
+const renderInlineFormattingNoLinks = (line: string, keyPrefix: string) => {
   // Split by bold/italic markers, keeping the delimiters
   const parts = line.split(/(\*\*.*?\*\*|\*.*?\*|__.*?__|_.*?_)/g).filter(part => part);
   let isBold = false;
@@ -345,6 +349,34 @@ const renderInlineFormatting = (line: string, keyPrefix: string) => {
     }
     return <Text key={key}>{part}</Text>;
   });
+};
+
+// Parses [label](url) links and applies inline bold/italic within non-link parts
+const renderInlineFormatting = (line: string, keyPrefix: string) => {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const elements: React.ReactElement[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let segIndex = 0;
+
+  while ((match = linkRegex.exec(line)) !== null) {
+    const [full, label, href] = match;
+    const before = line.slice(lastIndex, match.index);
+    if (before) {
+      elements.push(<Text key={`${keyPrefix}-seg-${segIndex++}`}>{renderInlineFormattingNoLinks(before, `${keyPrefix}-before-${segIndex}`)}</Text>);
+    }
+    elements.push(
+      <Link key={`${keyPrefix}-link-${segIndex++}`} src={href} style={styles.link}>
+        <Text style={styles.link}>{label}</Text>
+      </Link>
+    );
+    lastIndex = match.index + full.length;
+  }
+  const rest = line.slice(lastIndex);
+  if (rest) {
+    elements.push(<Text key={`${keyPrefix}-seg-${segIndex++}`}>{renderInlineFormattingNoLinks(rest, `${keyPrefix}-rest-${segIndex}`)}</Text>);
+  }
+  return elements.length > 0 ? elements : renderInlineFormattingNoLinks(line, `${keyPrefix}-nolinks`);
 };
 
 // Fallback-safe text renderer: strips html and renders as paragraphs only
@@ -524,6 +556,35 @@ function paginateTwoColumnsByLines(text?: string, maxLinesPerColumn: number = 38
   }
   return pages;
 }
+
+// Split the provided text into the first block and the remainder (double-newline separated)
+function splitFirstBlockFromText(text?: string): { first: string; rest: string } {
+  if (!text || typeof text !== 'string') return { first: '', rest: '' };
+  const blocks = cleanText(text).split(/\n{2,}/).filter(Boolean);
+  const first = blocks[0] || '';
+  const rest = blocks.slice(1).join('\n\n');
+  return { first, rest };
+}
+
+// Render a heading together with its first content block as one non-wrapping group.
+// If the group niet meer in de resterende paginaruimte past, verschuift de hele groep naar de volgende pagina.
+function renderHeadingWithFirstBlock(
+  heading: string,
+  body: string | undefined,
+  baseKey: string,
+  headingStyle: any = styles.h1,
+) {
+  const { first, rest } = splitFirstBlockFromText(body);
+  return (
+    <>
+      <View key={`${baseKey}-group`} wrap={false}>
+        <Text style={headingStyle}>{heading}</Text>
+        {first ? renderRichText(first, `${baseKey}-first`) : null}
+      </View>
+      {rest ? renderRichText(rest, `${baseKey}-rest`) : null}
+    </>
+  );
+}
 const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
   businessParkInfo,
   businessParkName,
@@ -673,8 +734,11 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
       <Page size="A4" style={styles.page}>
         {selectedGovModel ? (
           <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
-            <Text style={styles.h1}>{selectedGovModel.title}</Text>
-            {renderRichText(selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description, `gov-sum-${selectedGovModel.id}`)}
+            {renderHeadingWithFirstBlock(
+              selectedGovModel.title,
+              selectedGovModel.summary || selectedGovModel.samenvatting || selectedGovModel.description,
+              `gov-sum-${selectedGovModel.id}`
+            )}
 
             {/* If current model is sufficient, show a short notice instead of full implementatiestappen */}
             {currentModelSufficient ? (
@@ -684,16 +748,19 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
             ) : (
               selectedGovModel.implementatie && (
                 <View style={{ marginTop: 8 }}>
-                  <Text style={styles.h1}>Implementatie</Text>
-                  {renderRichText(selectedGovModel.implementatie, `gov-impl-${selectedGovModel.id}`)}
+                  {renderHeadingWithFirstBlock(
+                    'Implementatie',
+                    selectedGovModel.implementatie,
+                    `gov-impl-${selectedGovModel.id}`
+                  )}
                 </View>
               )
             )}
 
             {/* Algemene vervolgstappen direct onder governance implementatie of melding */}
             <View style={{ marginTop: 12 }}>
-              <Text style={styles.h1}>Algemene vervolgstappen</Text>
-              {renderRichText(
+              {renderHeadingWithFirstBlock(
+                'Algemene vervolgstappen',
                 [
                   'Nadat u de governance model keuze hebt gemaakt, kunt u verdergaan met de volgende stappen, maar voordat u verder gaat, is het belangrijk om de volgende punten te controleren:',
                   '- Check of relevante bereikbaarheidsdata (o.a. type bedrijf, begin- en eindtijden van werknemers, inzicht in bezoekersstromen, woon-werkverkeer en zakelijk verkeer, locatie, aanwezigheid infrastructuur etc.) aanwezig is binnen (een deel van) de aangesloten bedrijven en/of is geïnventariseerd vanuit een mobiliteitsmakelaar in uw regio. Controleer of deze data actueel en betrouwbaar is.',

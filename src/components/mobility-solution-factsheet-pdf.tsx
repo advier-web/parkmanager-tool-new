@@ -631,7 +631,33 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
         parts.push(<View key={`md-end`}>{renderPlainBlocks(after)}</View>);
       }
     }
-    return <View>{parts}</View>;
+    // Group headings with the first following block using wrap={false}
+    const groupHeadingWithNext = (elements: any[]) => {
+      const grouped: any[] = [];
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        const isHeading = (() => {
+          if (!React.isValidElement(el)) return false;
+          const anyEl: any = el as any;
+          const childStr = typeof anyEl.props?.children === 'string' ? anyEl.props.children as string : '';
+          return anyEl.type === Html && /<h[1-3][^>]*>/i.test(childStr.trim());
+        })();
+        if (isHeading) {
+          const next = i + 1 < elements.length ? elements[i + 1] : null;
+          grouped.push(
+            <View key={`grp-${i}`} wrap={false}>
+              {el}
+              {next}
+            </View>
+          );
+          if (next) i++;
+        } else {
+          grouped.push(el);
+        }
+      }
+      return grouped;
+    };
+    return <View>{groupHeadingWithNext(parts)}</View>;
   };
 
   return (

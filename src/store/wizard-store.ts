@@ -15,6 +15,7 @@ interface WizardState {
   // trafficTypes: TrafficType[]; // Verwijderd
   businessParkInfo: BusinessParkInfo; // Re-add businessParkInfo state
   businessParkName: string; // <-- ADDED
+  // Extra convenience for step-3 filter: update pickup preference
 
   // Actions
   setHasHydrated: (state: boolean) => void;
@@ -30,6 +31,7 @@ interface WizardState {
   // setTrafficTypes: (types: TrafficType[]) => void; // Verwijderd
   setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void; // Re-add action
   setBusinessParkName: (name: string) => void; // <-- ADDED
+  setEmployeePickupPreference: (pref: 'thuis' | 'locatie' | null) => void;
   reset: () => void;
   // Add missing actions from previous state
   updateTrafficTypes: (types: TrafficType[]) => void;
@@ -151,6 +153,10 @@ export const useWizardStore = create<WizardState>()(
 
       // <-- ADDED ACTION IMPLEMENTATION ---
       setBusinessParkName: (name) => set ({ businessParkName: name }),
+
+      setEmployeePickupPreference: (pref) => set((state) => ({
+        businessParkInfo: { ...state.businessParkInfo, employeePickupPreference: pref }
+      })),
 
       // Add implementation for updateTrafficTypes
       updateTrafficTypes: (types) => set((state) => ({

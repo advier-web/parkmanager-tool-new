@@ -204,13 +204,77 @@ const GovernanceModelFactsheetPdfComponent: React.FC<GovernanceModelFactsheetPdf
   governanceTitleToFieldName,
   stripSolutionPrefixFromVariantTitle,
 }) => {
+  // Render a section where the heading and the first content block are grouped (non-wrapping)
+  const renderSectionGrouped = (heading: string, markdown?: string) => {
+    if (!markdown) return null;
+    const blocks = basicMarkdownToHtml(markdown);
+    const first = blocks[0] || '';
+    const restBlocks = blocks.slice(1);
+    return (
+      <View style={styles.section}>
+        <View wrap={false}>
+          <Text style={styles.sectionTitle}>{heading}</Text>
+          {first ? <Html stylesheet={htmlTagStyles}>{first}</Html> : null}
+        </View>
+        {restBlocks.length > 0 ? renderHtmlBlocksGrouped(restBlocks) : null}
+      </View>
+    );
+  };
+
+  // Render array content sections (e.g., voordelen/nadelen) with heading + first item grouped
+  const renderSectionArrayGrouped = (heading: string, items?: string[]) => {
+    if (!items || items.length === 0) return null;
+    const [firstItem, ...restItems] = items;
+    const firstBlocks = firstItem ? basicMarkdownToHtml(firstItem) : [];
+    return (
+      <View style={styles.section}>
+        <View wrap={false}>
+          <Text style={styles.sectionTitle}>{heading}</Text>
+          {firstBlocks.length > 0 ? <Html stylesheet={htmlTagStyles}>{firstBlocks.join('')}</Html> : <Text>Niet gespecificeerd</Text>}
+        </View>
+        {restItems.length > 0 && (
+          <View>
+            {restItems.map((item, index) => (
+              <View key={index} style={{ marginBottom: 5 }}>
+                {renderHtmlBlocksGrouped(basicMarkdownToHtml(item))}
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Render an array of HTML blocks while keeping each heading (h1-h3) together
+  // with the immediate next block using a non-wrapping container.
+  const renderHtmlBlocksGrouped = (blocks: string[]) => {
+    const elements: React.ReactElement[] = [];
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i] || '';
+      const isHeading = /^<h[1-3][^>]*>/i.test(b.trim());
+      if (isHeading) {
+        const next = i + 1 < blocks.length ? blocks[i + 1] : '';
+        elements.push(
+          <View key={`grp-${i}`} wrap={false}>
+            <Html stylesheet={htmlTagStyles}>{b}</Html>
+            {next ? <Html stylesheet={htmlTagStyles}>{next}</Html> : null}
+          </View>
+        );
+        if (next) i++; // skip next because grouped
+      } else {
+        elements.push(
+          <Html key={`blk-${i}`} stylesheet={htmlTagStyles}>{b}</Html>
+        );
+      }
+    }
+    return <View>{elements}</View>;
+  };
+
   const renderContent = (content?: string) => {
     if (!content) return <Text>Niet gespecificeerd</Text>;
     const htmlBlocks = basicMarkdownToHtml(content);
     if (htmlBlocks.length === 0) return <Text>Niet gespecificeerd</Text>;
-    const combinedHtml = htmlBlocks.join('');
-    if (combinedHtml.trim() === '') return <Text>Niet gespecificeerd</Text>;
-    return <Html stylesheet={htmlTagStyles}>{combinedHtml}</Html>;
+    return renderHtmlBlocksGrouped(htmlBlocks);
   };
 
   const renderContentArray = (items?: string[]) => {
@@ -245,61 +309,21 @@ const GovernanceModelFactsheetPdfComponent: React.FC<GovernanceModelFactsheetPdf
           <View style={{ height: 1, backgroundColor: '#e5e7eb', marginTop: 12, marginBottom: 8 }} />
         </View>
 
-        {(model.description || model.summary) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Beschrijving</Text>
-            {renderContent(model.description || model.summary)}
-          </View>
-        )}
+        {(model.description || model.summary) && renderSectionGrouped('Beschrijving', model.description || model.summary)}
 
-        {model.aansprakelijkheid && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Aansprakelijkheid</Text>
-            {renderContent(model.aansprakelijkheid)}
-          </View>
-        )}
+        {model.aansprakelijkheid && renderSectionGrouped('Aansprakelijkheid', model.aansprakelijkheid)}
 
-        {model.voordelen && model.voordelen.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Voordelen</Text>
-            {renderContentArray(model.voordelen)}
-          </View>
-        )}
+        {model.voordelen && model.voordelen.length > 0 && renderSectionArrayGrouped('Voordelen', model.voordelen)}
 
-        {model.nadelen && model.nadelen.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Nadelen</Text>
-            {renderContentArray(model.nadelen)}
-          </View>
-        )}
+        {model.nadelen && model.nadelen.length > 0 && renderSectionArrayGrouped('Nadelen', model.nadelen)}
 
-        {model.benodigdhedenOprichting && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Benodigdheden Oprichting</Text>
-            {renderContent(Array.isArray(model.benodigdhedenOprichting) ? model.benodigdhedenOprichting.join('\n\n') : model.benodigdhedenOprichting)}
-          </View>
-        )}
+        {model.benodigdhedenOprichting && renderSectionGrouped('Benodigdheden Oprichting', Array.isArray(model.benodigdhedenOprichting) ? model.benodigdhedenOprichting.join('\n\n') : model.benodigdhedenOprichting)}
 
-        {model.links && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Links</Text>
-            {renderContent(model.links)}
-          </View>
-        )}
+        {model.links && renderSectionGrouped('Links', model.links)}
 
-        {model.doorlooptijdLang && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Doorlooptijd</Text>
-            {renderContent(model.doorlooptijdLang)}
-          </View>
-        )}
+        {model.doorlooptijdLang && renderSectionGrouped('Doorlooptijd', model.doorlooptijdLang)}
 
-        {model.implementatie && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Implementatie</Text>
-            {renderContent(model.implementatie)}
-          </View>
-        )}
+        {model.implementatie && renderSectionGrouped('Implementatie', model.implementatie)}
 
         {/* Relevantie sectie verwijderd op verzoek */}
       </Page>

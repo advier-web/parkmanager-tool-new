@@ -437,25 +437,70 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
 };
 
 const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariantFactsheetPdfProps> = ({ variation }) => {
+  // Render an array of html blocks, grouping every heading (h1-h3)
+  // with its immediate next block to avoid orphaned headings
+  const renderHtmlBlocksGrouped = (blocks: string[]) => {
+    const elements: React.ReactElement[] = [];
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i] || '';
+      const isHeading = /^<h[1-3][^>]*>/i.test(b.trim());
+      if (isHeading) {
+        const next = i + 1 < blocks.length ? blocks[i + 1] : '';
+        elements.push(
+          <View key={`grp-${i}`} wrap={false}>
+            <Html stylesheet={htmlTagStyles}>{b}</Html>
+            {next ? <Html stylesheet={htmlTagStyles}>{next}</Html> : null}
+          </View>
+        );
+        if (next) i++;
+      } else {
+        elements.push(<Html key={`blk-${i}`} stylesheet={htmlTagStyles}>{b}</Html>);
+      }
+    }
+    return <View>{elements}</View>;
+  };
+
+  // Render a section where the sectionTitle and the first content block are kept together
+  const renderSectionGrouped = (heading: string, content?: string) => {
+    if (!content) return null;
+    const blocks = basicMarkdownToHtml(content);
+    if (blocks.length === 0) return null;
+    const first = blocks[0] || '';
+    const rest = blocks.slice(1);
+    return (
+      <View style={styles.section}>
+        <View wrap={false}>
+          <Text style={styles.sectionTitle}>{heading}</Text>
+          {first ? <Html stylesheet={htmlTagStyles}>{first}</Html> : null}
+        </View>
+        {rest.length > 0 ? renderHtmlBlocksGrouped(rest) : null}
+      </View>
+    );
+  };
+
   const renderContent = (content?: string) => {
     if (!content) return <Text>Niet gespecificeerd</Text>;
-
     const htmlBlocks = basicMarkdownToHtml(content);
-    if (htmlBlocks.length === 0) {
-      return <Text>Niet gespecificeerd</Text>;
+    if (htmlBlocks.length === 0) return <Text>Niet gespecificeerd</Text>;
+    // Group headings (h1-h3) with the immediately following block using wrap={false}
+    const elements: React.ReactElement[] = [];
+    for (let i = 0; i < htmlBlocks.length; i++) {
+      const b = htmlBlocks[i];
+      const isHeading = /^<h[1-3][^>]*>/i.test((b || '').trim());
+      if (isHeading) {
+        const next = i + 1 < htmlBlocks.length ? htmlBlocks[i + 1] : '';
+        elements.push(
+          <View key={`grp-${i}`} wrap={false}>
+            <Html stylesheet={htmlTagStyles}>{b}</Html>
+            {next ? <Html stylesheet={htmlTagStyles}>{next}</Html> : null}
+          </View>
+        );
+        if (next) i++;
+      } else {
+        elements.push(<Html key={`blk-${i}`} stylesheet={htmlTagStyles}>{b}</Html>);
+      }
     }
-
-    const combinedHtml = htmlBlocks.join('');
-
-    if (combinedHtml.trim() === '') {
-      return <Text>Niet gespecificeerd</Text>;
-    }
-
-    return (
-      <Html stylesheet={htmlTagStyles}>
-        {combinedHtml}
-      </Html>
-    );
+    return <View>{elements}</View>;
   };
 
   // Helper function to render comma-separated list in PDF
@@ -545,12 +590,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
         {/* Divider onder vuistregels */}
         <View style={styles.divider} />
 
-        {variation.samenvatting && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Hoe werkt het</Text>
-            {renderContent(variation.samenvatting)}
-          </View>
-        )}
+        {variation.samenvatting && renderSectionGrouped('Hoe werkt het', variation.samenvatting)}
 
         {/* Cost Information Section */}
         {/* {(variation.geschatteJaarlijkseKosten || variation.geschatteKostenPerKmPp || variation.geschatteKostenPerRit) && (
@@ -579,63 +619,23 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
 
         {/* Velden verantwoordelijkheid/contractvormen/voordelen/nadelen zijn verwijderd uit het content type */}
 
-        {variation.investering && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Exploitatie</Text>
-            {renderContent(variation.investering)}
-          </View>
-        )}
+        {variation.investering && renderSectionGrouped('Exploitatie', variation.investering)}
 
         {/* 'realisatieplan' is verwijderd op verzoek */}
 
-        {variation.realisatieplanLeveranciers && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Leveranciers</Text>
-            {renderContent(variation.realisatieplanLeveranciers)}
-          </View>
-        )}
+        {variation.realisatieplanLeveranciers && renderSectionGrouped('Leveranciers', variation.realisatieplanLeveranciers)}
 
-        {variation.realisatieplanContractvormen && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contractvormen</Text>
-            {renderContent(variation.realisatieplanContractvormen)}
-          </View>
-        )}
+        {variation.realisatieplanContractvormen && renderSectionGrouped('Contractvormen', variation.realisatieplanContractvormen)}
 
-        {variation.realisatieplanKrachtenveld && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Krachtenveld</Text>
-            {renderContent(variation.realisatieplanKrachtenveld)}
-          </View>
-        )}
+        {variation.realisatieplanKrachtenveld && renderSectionGrouped('Krachtenveld', variation.realisatieplanKrachtenveld)}
 
-        {variation.realisatieplanVoorsEnTegens && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Voors en Tegens</Text>
-            {renderContent(variation.realisatieplanVoorsEnTegens)}
-          </View>
-        )}
+        {variation.realisatieplanVoorsEnTegens && renderSectionGrouped('Voors en Tegens', variation.realisatieplanVoorsEnTegens)}
 
-        {variation.realisatieplanAandachtspunten && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Aandachtspunten</Text>
-            {renderContent(variation.realisatieplanAandachtspunten)}
-          </View>
-        )}
+        {variation.realisatieplanAandachtspunten && renderSectionGrouped('Aandachtspunten', variation.realisatieplanAandachtspunten)}
 
-        {variation.realisatieplanChecklist && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Checklist</Text>
-            {renderContent(variation.realisatieplanChecklist)}
-          </View>
-        )}
+        {variation.realisatieplanChecklist && renderSectionGrouped('Checklist', variation.realisatieplanChecklist)}
 
-        {variation.vervolgstappen && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Vervolgstappen</Text>
-            {renderContent(variation.vervolgstappen)}
-          </View>
-        )}
+        {variation.vervolgstappen && renderSectionGrouped('Vervolgstappen', variation.vervolgstappen)}
       </Page>
     </Document>
   );

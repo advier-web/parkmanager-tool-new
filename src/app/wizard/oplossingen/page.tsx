@@ -87,13 +87,21 @@ export default function MobilitySolutionsPage() {
     // If user has a preference but the solution has no pickup info, treat as no match
     if (!solution.ophalen || solution.ophalen.length === 0) return false;
 
+    const includes = (opt: string, needle: string) => opt.toLowerCase().includes(needle);
     if (userPreference === 'thuis') {
-      return solution.ophalen.some(option => option?.toLowerCase().includes('thuis'));
+      // Treat synonyms of "hele reis" as home pickup as well
+      return solution.ophalen.some(option => {
+        const txt = (option || '').toLowerCase();
+        return includes(txt, 'thuis') || includes(txt, 'hele reis') || includes(txt, 'hele');
+      });
     } else if (userPreference === 'locatie') {
       // Support new content label 'laatste deel' and fallback 'locatie'
-      return solution.ophalen.some(option => option?.toLowerCase().includes('laatste')) || solution.ophalen.some(option => option?.toLowerCase().includes('locatie'));
+      return solution.ophalen.some(option => {
+        const txt = (option || '').toLowerCase();
+        return includes(txt, 'laatste deel') || includes(txt, 'laatste') || includes(txt, 'locatie');
+      });
     }
-    
+
     return false; // If preference is unknown, be conservative
   }, [businessParkInfo.employeePickupPreference]);
   
@@ -104,6 +112,21 @@ export default function MobilitySolutionsPage() {
   };
   
   const calculateScoreForSolution = useCallback((solution: MobilitySolution, filters: string[]): number => {
+    // If there are no active filters, use the sum over ALL available reason identifiers
+    if (!filters || filters.length === 0) {
+      const all = reasons || [];
+      let total = 0;
+      all.forEach(reason => {
+        if (reason.identifier) {
+          const s = findScoreForIdentifier(solution, reason.identifier);
+          total += s * (reason.weight || 1);
+        }
+      });
+      // Still add a tiny nudge for traffic match to keep consistent ordering if totals tie
+      return total + getTrafficTypeMatchScore(solution) * 0.0001;
+    }
+
+    // Otherwise: only sum the selected filters
     let score = 0;
     const reasonDetails = (reasons || []).filter(r => filters.includes(r.id));
     reasonDetails.forEach(reason => {
@@ -112,7 +135,8 @@ export default function MobilitySolutionsPage() {
         score += reasonScore * (reason.weight || 1);
       }
     });
-    score += getTrafficTypeMatchScore(solution);
+    // Keep original small tie-break influence of traffic matching
+    score += getTrafficTypeMatchScore(solution) * 0.0001;
     return score;
   }, [reasons, getTrafficTypeMatchScore]);
   
@@ -136,20 +160,39 @@ export default function MobilitySolutionsPage() {
     currentTrafficTypes: TrafficType[]
   ) => {
     if (!solutions) return [] as { solution: MobilitySolution, score: number, trafficMatch: number, pickupMatch: boolean, contributingReasons: { [reasonId: string]: number } }[];
+    // If no specific filters: compute a globalReasonsScore to break ties more meaningfully
+    const computeGlobalReasonsScore = (solution: MobilitySolution) => {
+      if (currentFilters && currentFilters.length > 0) return 0; // not used when filters active
+      const all = reasons || [];
+      let total = 0;
+      all.forEach(reason => {
+        if (reason.identifier) {
+          const s = findScoreForIdentifier(solution, reason.identifier);
+          total += s * (reason.weight || 1);
+        }
+      });
+      return total;
+    };
+
     const scoredSolutions = solutions.map(solution => ({
       solution,
       score: calculateScoreForSolution(solution, currentFilters),
       trafficMatch: getTrafficTypeMatchScore(solution),
       pickupMatch: getPickupPreferenceMatch(solution),
-      contributingReasons: getReasonScores(solution, currentFilters)
+      contributingReasons: getReasonScores(solution, currentFilters),
+      globalReasonsScore: computeGlobalReasonsScore(solution),
     }));
     // Sort order:
-    // 1) Match op type reis (traffic types)
-    // 2) Match op Deel van de woon-werkreis (pickup preference)
-    // 3) Bijdrage aan selectie (reason score)
+    // 1) Match op Deel van de woon-werkreis (pickup preference) – primaire factor
+    // 2) Match op type reis (traffic types)
+    // 3) Bij geen geselecteerde aanleidingen: gebruik optelsom over alle aanleidingen (globalReasonsScore)
+    //    Bij wel geselecteerde aanleidingen: gebruik alleen de geselecteerde reden-score (score)
     scoredSolutions.sort((a, b) => {
-      if (b.trafficMatch !== a.trafficMatch) return b.trafficMatch - a.trafficMatch;
       if (a.pickupMatch !== b.pickupMatch) return b.pickupMatch ? 1 : -1;
+      if (b.trafficMatch !== a.trafficMatch) return b.trafficMatch - a.trafficMatch;
+      if (!currentFilters || currentFilters.length === 0) {
+        if (b.globalReasonsScore !== a.globalReasonsScore) return b.globalReasonsScore - a.globalReasonsScore;
+      }
       return b.score - a.score;
     });
     return scoredSolutions;
