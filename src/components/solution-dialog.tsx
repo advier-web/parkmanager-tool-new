@@ -707,12 +707,7 @@ export function SolutionDialog() {
                 <MarkdownContent variant="modal" content={variant.realisatieplanVoorsEnTegens} />
               </section>
             )}
-            {variant.realisatieplanAandachtspunten && (
-              <section>
-                <h1 className="text-3xl font-bold mb-2">Aandachtspunten</h1>
-                <MarkdownContent variant="modal" content={variant.realisatieplanAandachtspunten} />
-              </section>
-            )}
+            {/* Aandachtspunten tijdelijk verborgen op verzoek */}
             {variant.realisatieplanChecklist && (
               <section>
                 <h2 className="text-2xl font-bold mb-2">Checklist</h2>

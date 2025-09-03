@@ -208,7 +208,7 @@ export function SolutionComparisonModal({
             </div>
 
             {/* wanneerRelevant Row */}
-            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-start">
                 <h3 className="font-medium text-gray-900">Wanneer relevant</h3>
               </div>
@@ -250,7 +250,7 @@ export function SolutionComparisonModal({
             </div>
 
             {/* Moeilijkheidsgraad Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Moeilijkheidsgraad</h3>
               </div>
@@ -321,7 +321,7 @@ export function SolutionComparisonModal({
 
             {/* Traffic Types Row */}
             {activeTrafficTypes.length > 0 && (
-              <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+              <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
                 <div className="flex items-start">
                   <h3 className="font-medium text-gray-900">Geschikt voor vervoer</h3>
                 </div>

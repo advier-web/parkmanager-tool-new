@@ -631,7 +631,7 @@ const ImplementationVariantFactsheetPdfComponent: React.FC<ImplementationVariant
 
         {variation.realisatieplanVoorsEnTegens && renderSectionGrouped('Voors en Tegens', variation.realisatieplanVoorsEnTegens)}
 
-        {variation.realisatieplanAandachtspunten && renderSectionGrouped('Aandachtspunten', variation.realisatieplanAandachtspunten)}
+        {/* Aandachtspunten tijdelijk verborgen op verzoek */}
 
         {variation.realisatieplanChecklist && renderSectionGrouped('Checklist', variation.realisatieplanChecklist)}
 
