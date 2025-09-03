@@ -27,6 +27,8 @@ interface SummaryPdfDownloadButtonProps {
   buttonClassName?: string;
   label?: string;
   showIcon?: boolean;
+  // When true, renders as a simple text link (underline, no padding)
+  asLink?: boolean;
 }
 
 export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButtonProps) {
@@ -49,7 +51,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
     buttonClassName = 'bg-blue-600 hover:bg-blue-700 text-white',
     label = 'Download Adviesrapport',
   } = props;
-  const { showIcon = true } = props;
+  const { showIcon = true, asLink = false } = props;
 
   const [isClient, setIsClient] = React.useState(false);
   const [isArmed, setIsArmed] = React.useState(false);
@@ -59,27 +61,44 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
 
   if (!isClient) {
     return (
-      <Button variant="default" disabled className={buttonClassName + ' ' + className}>
-        {showIcon && <DocumentTextIcon className="h-4 w-4" />}
-        Laden…
-      </Button>
+      asLink ? (
+        <span className={(className || '') + ' text-sm text-gray-500'}>Laden…</span>
+      ) : (
+        <Button variant="default" disabled className={buttonClassName + ' ' + className}>
+          {showIcon && <DocumentTextIcon className="h-4 w-4" />}
+          Laden…
+        </Button>
+      )
     );
   }
 
   if (!isArmed) {
     return (
-      <Button
-        variant="default"
-        className={buttonClassName + ' ' + className}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsArmed(true);
-        }}
-      >
-        {showIcon && <DocumentTextIcon className="h-4 w-4" />}
-        {label}
-      </Button>
+      asLink ? (
+        <button
+          className={(className || '') + ' text-sm underline underline-offset-2 text-blue-600 hover:text-blue-800 transition-colors'}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsArmed(true);
+          }}
+        >
+          {label}
+        </button>
+      ) : (
+        <Button
+          variant="default"
+          className={buttonClassName + ' ' + className}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsArmed(true);
+          }}
+        >
+          {showIcon && <DocumentTextIcon className="h-4 w-4" />}
+          {label}
+        </Button>
+      )
     );
   }
 
@@ -129,10 +148,19 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
       {({ loading, url }: { loading: boolean; url?: string }) => (
         <>
           <AutoDownloader loading={loading} url={url} />
-          <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
-            {showIcon && <DocumentTextIcon className="h-4 w-4" />}
-            {loading ? 'Even geduld…' : label}
-          </Button>
+          {asLink ? (
+            <button
+              className={(className || '') + ' text-sm underline underline-offset-2 text-blue-600 hover:text-blue-800 transition-colors'}
+              disabled={loading}
+            >
+              {loading ? '...' : label}
+            </button>
+          ) : (
+            <Button variant="default" className={buttonClassName + ' ' + className} disabled={loading}>
+              {showIcon && <DocumentTextIcon className="h-4 w-4" />}
+              {loading ? 'Even geduld…' : label}
+            </Button>
+          )}
         </>
       )}
     </PDFDownloadLink>

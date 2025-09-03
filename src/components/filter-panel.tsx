@@ -60,13 +60,13 @@ export function FilterPanel({
               <label className="flex items-start cursor-pointer">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 mt-1 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  className="h-4 w-4 mt-1 rounded border-gray-300 focus:ring-blue-600 accent-blue-600"
                   checked={activeTrafficTypes.includes(type)}
                   onChange={() => onTrafficTypeFilterChange(type)}
                 />
                 <div className="ml-2">
                   <span 
-                    className={`block text-sm ${activeTrafficTypes.includes(type) ? 'font-medium text-blue-800' : ''}`}
+                    className={`block text-sm ${activeTrafficTypes.includes(type) ? 'font-medium text-blue-600' : ''}`}
                   >
                     {type.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                   </span>
@@ -96,13 +96,13 @@ export function FilterPanel({
                     <label className="flex items-start cursor-pointer">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 mt-1 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        className="h-4 w-4 mt-1 rounded border-gray-300 focus:ring-blue-600 accent-blue-600"
                         checked={isActive}
                         onChange={() => onReasonFilterChange(reason.id)}
                       />
                       <div className="ml-2">
                         <span 
-                          className={`block text-sm ${isActive ? 'font-medium text-blue-800' : ''}`}
+                          className={`block text-sm ${isActive ? 'font-medium text-blue-600' : ''}`}
                           title={reason.description}
                         >
                           {reason.title}

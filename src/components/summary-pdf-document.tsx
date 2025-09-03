@@ -723,21 +723,26 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
           return (
             <View>
               <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 10, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', paddingBottom: 10 }]}>
-                <Text style={styles.h1}>{solution.title}</Text>
-                {solution.samenvattingLang && renderRichText(solution.samenvattingLang, `sol-sum-${solution.id}`)}
-
-                {chosenVariant && (
-                  <View style={{ marginTop: 12 }}>
-                    <Text style={styles.h1}>{stripSolutionPrefixFromVariantTitle(chosenVariant.title)}</Text>
-                    {chosenVariant.samenvatting && renderRichText(chosenVariant.samenvatting, `var-sum-${chosenVariant.id}`)}
-                    {/* Realisatieplan – aandachtspunten verwijderd */}
+                {chosenVariant ? (
+                  <>
+                    <Text style={styles.h1}>Vervolgstappen</Text>
+                    {(() => {
+                      const displayVariant = stripSolutionPrefixFromVariantTitle(chosenVariant.title);
+                      const variantSummary = cleanText(chosenVariant.samenvatting || '');
+                      const combinedIntro = `U heeft **${solution.title}** geselecteerd als collectieve vervoersoplossing, met de inkoopvariant **${displayVariant}**. ${variantSummary}`;
+                      return renderRichText(combinedIntro, `intro-sol-var-${chosenVariant.id}`);
+                    })()}
                     {chosenVariant.vervolgstappen && (
                       <View style={{ marginTop: 10 }}>
-                        <Text style={styles.h1}>Vervolgstappen</Text>
                         {renderRichText(chosenVariant.vervolgstappen, `var-steps-${chosenVariant.id}`)}
                       </View>
                     )}
-                  </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.h1}>Vervolgstappen</Text>
+                    {renderRichText(`U heeft **${solution.title}** geselecteerd als collectieve vervoersoplossing.`, `intro-sol-only-${solution.id}`)}
+                  </>
                 )}
               </View>
             </View>

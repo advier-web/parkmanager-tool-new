@@ -186,10 +186,11 @@ export default function VervolgstappenPage() {
                   snakeToCamel={snakeToCamel}
                   selectedVariationsData={selectedVariationsData}
                   fileName={`Adviesrapport_Mobiliteitsplan_${businessParkInfo?.numberOfCompanies ?? 'bedrijven'}.pdf`}
-                  className="!px-0 !py-0 bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 shadow-none font-normal text-sm"
-                  buttonClassName="bg-transparent hover:bg-transparent text-blue-600 hover:text-blue-800 p-0 shadow-none font-normal text-sm"
+                  className=""
+                  buttonClassName=""
                   label="Adviesrapport (PDF)"
                   showIcon={false}
+                  asLink
                 />
               ) : (
                 <span className="text-sm text-gray-500">Laden…</span>

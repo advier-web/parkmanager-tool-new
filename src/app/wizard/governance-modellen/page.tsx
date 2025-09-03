@@ -220,7 +220,7 @@ export default function Step3Page() {
           {/* Inleiding sectie */}
           <div className="bg-white rounded-lg p-8 shadow-even mb-8">
             <h2 className="text-2xl font-bold mb-4">Governance modellen</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="mb-6">
               Selecteer het governance model dat het beste aansluit bij uw situatie en de gekozen collectieve vervoersoplossing. 
               De aanbevelingen zijn gebaseerd op de door u geselecteerde implementatievarianten. 
             </p>

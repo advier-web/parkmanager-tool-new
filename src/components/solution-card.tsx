@@ -174,13 +174,13 @@ export function SolutionCard({
     >
       <div className="flex items-start pr-8">
         <div className="flex-grow min-w-0">
-          <div className="flex items-center mb-2">
+          <div className="flex items-center mb-4">
             {solution.icon && (
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
                 <span className="text-blue-600 text-xl">{getIconDisplay(solution.icon)}</span>
               </div>
             )}
-            <h3 className="text-lg font-medium text-gray-900">{solution.title}</h3>
+            <h3 className="text-lg font-medium">{solution.title}</h3>
           </div>
           
           <div className="text-gray-600 mb-3 prose prose-sm max-w-none whitespace-normal break-normal [hyphens:auto]">

@@ -32,11 +32,9 @@ export function ImplementationVariationCard({
         : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow'
       }`}
     >
-      <div className="flex items-start">
+      <div className="flex items-start mb-2">
         <div className="flex-grow">
-          <span className="text-lg font-semibold mb-3">
-            {displayTitle}
-          </span>
+          <h3 className="text-lg font-medium mb-3">{displayTitle}</h3>
           
           {variation.samenvatting && (
             <div className="text-gray-600 mb-3 prose prose-sm max-w-none">
@@ -59,10 +57,10 @@ export function ImplementationVariationCard({
         </div>
       </div> 
 
-      {/* PDF Download Link Section */}
-      <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col md:grid md:grid-cols-3 md:items-center gap-2">
+      {/* Action row: align left like solution cards */}
+      <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
         {/* Meer informatie button */}
-        <div className="md:justify-self-start">
+        <div>
           <button
           type="button"
           onClick={e => { e.stopPropagation(); openImplementationVariantDialog(variation); }}
@@ -73,8 +71,7 @@ export function ImplementationVariationCard({
           </button>
         </div>
         {/* PDF Download Button */}
-        <div className="hidden md:block md:justify-self-center"></div>
-        <div onClick={(e) => e.stopPropagation()} className="md:justify-self-end min-w-0">
+        <div onClick={(e) => e.stopPropagation()} className="min-w-0">
           <ImplementationVariantFactsheetButton
             variation={variation}
             className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 cursor-pointer focus:outline-none"
