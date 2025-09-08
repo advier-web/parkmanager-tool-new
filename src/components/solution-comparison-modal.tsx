@@ -77,7 +77,15 @@ export function SolutionComparisonModal({
     if (userPickupPreference === 'thuis') {
       return solution.ophalen.some(option => option.toLowerCase().includes('thuis'));
     } else if (userPickupPreference === 'locatie') {
-      return solution.ophalen.some(option => option.toLowerCase().includes('locatie'));
+      return solution.ophalen.some(option => {
+        const txt = option.toLowerCase();
+        return txt.includes('ov-knooppunt') || txt.includes('ov knooppunt') || txt.includes('p+r') || txt.includes('locatie') || txt.includes('laatste');
+      });
+    } else if (userPickupPreference === 'ov') {
+      return solution.ophalen.some(option => {
+        const txt = option.toLowerCase();
+        return txt.includes('aansluiting') && txt.includes('ov');
+      });
     }
     
     return true;
@@ -93,14 +101,14 @@ export function SolutionComparisonModal({
     } else if (score > 0) {
       color = 'bg-red-500';
     }
-    return <div className={`w-3 h-3 rounded-full ${color}`}></div>;
+    return <span className={`inline-block w-3 h-3 rounded-full ${color} flex-shrink-0 align-middle`}></span>;
   };
 
   // Helper function to render traffic type match
   const renderTrafficTypeMatch = (solution: MobilitySolution, trafficType: TrafficType) => {
     const isMatch = solution.typeVervoer?.includes(trafficType);
     return (
-      <div className={`w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'}`}></div>
+      <span className={`inline-block w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} flex-shrink-0 align-middle`}></span>
     );
   };
 
@@ -115,7 +123,7 @@ export function SolutionComparisonModal({
       }
     }
     return (
-      <div className={`w-2.5 h-2.5 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'}`}></div>
+      <span className={`inline-block w-2.5 h-2.5 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} flex-shrink-0 align-middle`}></span>
     );
   };
 
@@ -356,8 +364,10 @@ export function SolutionComparisonModal({
                           const lower = (option || '').toLowerCase();
                           const display = lower.includes('thuis')
                             ? 'Voor de hele reis'
-                            : (lower.includes('laatste') || lower.includes('locatie'))
-                            ? 'Voor het laatste deel van de reis'
+                            : (lower.includes('ov-knooppunt') || lower.includes('ov knooppunt') || lower.includes('p+r') || lower.includes('locatie') || lower.includes('laatste'))
+                            ? 'Tussen OV-knooppunt of P+R terrein en bedrijventerrein'
+                            : (lower.includes('aansluiting') && lower.includes('ov'))
+                            ? 'Aansluiting bedrijventerrein op OV (als onderdeel hele OV-reis)'
                             : option;
                           return (
                             <div key={index} className="flex items-center gap-2">

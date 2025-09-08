@@ -79,6 +79,7 @@ export interface MobilitySolution {
   description?: string; // HTML string from Contentful Rich Text
   samenvattingKort?: string; // ADDED: Short summary, plain text or markdown
   samenvattingLang?: string; // HTML string from Contentful Rich Text
+  introTekstTool?: string; // Intro text shown on solution detail (from Contentful)
   implementatie?: string; // HTML string from Contentful Rich Text
   uitvoering?: string; // HTML string from Contentful Rich Text
   paspoort?: string; // HTML string from Contentful Rich Text
@@ -240,7 +241,7 @@ export interface BusinessParkInfo {
   numberOfCompanies: number;
   numberOfEmployees: number;
   trafficTypes: TrafficType[];
-  employeePickupPreference?: 'thuis' | 'locatie' | null;
+  employeePickupPreference?: 'thuis' | 'locatie' | 'ov' | null;
   
   // Locatiekenmerken
   carAccessibility?: 'slecht' | 'matig' | 'goed';

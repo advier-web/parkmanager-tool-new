@@ -31,7 +31,7 @@ interface WizardState {
   // setTrafficTypes: (types: TrafficType[]) => void; // Verwijderd
   setBusinessParkInfo: (info: Partial<BusinessParkInfo>) => void; // Re-add action
   setBusinessParkName: (name: string) => void; // <-- ADDED
-  setEmployeePickupPreference: (pref: 'thuis' | 'locatie' | null) => void;
+  setEmployeePickupPreference: (pref: 'thuis' | 'locatie' | 'ov' | null) => void;
   reset: () => void;
   // Add missing actions from previous state
   updateTrafficTypes: (types: TrafficType[]) => void;

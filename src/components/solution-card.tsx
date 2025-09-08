@@ -261,10 +261,13 @@ export function SolutionCard({
                       if (userPickupPreference && ophalenOptie) {
                         const txt = ophalenOptie.toLowerCase();
                         const isHeleReis = txt.includes('thuis') || txt.includes('hele reis') || txt.includes('hele');
-                        const isLaatsteDeel = txt.includes('laatste') || txt.includes('laatste deel') || txt.includes('locatie');
+                        const isLaatsteDeel = txt.includes('ov-knooppunt') || txt.includes('ov knooppunt') || txt.includes('p+r') || txt.includes('locatie') || txt.includes('laatste');
+                        const isOvAansluiting = txt.includes('ov') && (txt.includes('aansluiting') || txt.includes('ov-reis') || txt.includes('ov reis'));
                         if (userPickupPreference === 'thuis' && isHeleReis) {
                           optionMatches = true;
                         } else if (userPickupPreference === 'locatie' && isLaatsteDeel) {
+                          optionMatches = true;
+                        } else if (userPickupPreference === 'ov' && isOvAansluiting) {
                           optionMatches = true;
                         }
                       }
@@ -280,11 +283,13 @@ export function SolutionCard({
                             </svg>
                           )}
                           <span className="text-sm text-gray-600">
-                            {ophalenOptie && (ophalenOptie.toLowerCase().includes('thuis') || ophalenOptie.toLowerCase().includes('hele reis'))
-                              ? 'Voor de hele reis'
-                              : ophalenOptie && (ophalenOptie.toLowerCase().includes('laatste') || ophalenOptie.toLowerCase().includes('laatste deel') || ophalenOptie.toLowerCase().includes('locatie'))
-                              ? 'Voor het laatste deel van de reis'
-                              : ophalenOptie}
+                            {(() => {
+                              const txt = (ophalenOptie || '').toLowerCase();
+                              if (txt.includes('thuis') || txt.includes('hele reis')) return 'Voor de hele reis';
+                              if (txt.includes('ov-knooppunt') || txt.includes('ov knooppunt') || txt.includes('p+r') || txt.includes('locatie') || txt.includes('laatste')) return 'Tussen OV-knooppunt of P+R terrein en bedrijventerrein';
+                              if (txt.includes('aansluiting') && txt.includes('ov')) return 'Aansluiting bedrijventerrein op OV (als onderdeel hele OV-reis)';
+                              return ophalenOptie;
+                            })()}
                           </span>
                         </div>
                       );

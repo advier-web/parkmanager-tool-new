@@ -104,7 +104,10 @@ export default function MobilitySolutionsPage() {
     if (userPreference === 'thuis') {
       return solution.ophalen.some(option => option.toLowerCase().includes('thuis'));
     } else if (userPreference === 'locatie') {
-      return solution.ophalen.some(option => option.toLowerCase().includes('locatie'));
+      return solution.ophalen.some(option => {
+        const txt = option.toLowerCase();
+        return txt.includes('ov-knooppunt') || txt.includes('ov knooppunt') || txt.includes('p+r') || txt.includes('locatie') || txt.includes('laatste');
+      });
     }
     
     return true; // Default to showing solution if unclear

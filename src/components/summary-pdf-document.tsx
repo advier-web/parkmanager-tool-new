@@ -696,7 +696,11 @@ const SummaryPdfDocument: React.FC<SummaryPdfDocumentProps> = ({
               {renderLabelValue("Huidig bestuursmodel", currentGovernanceModelTitle, "bp")}
               {businessParkInfo.employeePickupPreference && renderLabelValue(
                 "Deel van de woon-werkreis",
-                businessParkInfo.employeePickupPreference === 'thuis' ? 'Voor de hele reis' : 'Voor het laatste deel van de reis',
+                businessParkInfo.employeePickupPreference === 'thuis'
+                  ? 'Voor de hele reis'
+                  : businessParkInfo.employeePickupPreference === 'locatie'
+                    ? 'Tussen OV-knooppunt of P+R terrein en bedrijventerrein'
+                    : 'Aansluiting bedrijventerrein op OV (als onderdeel hele OV-reis)',
                 "bp"
               )}
             </View>

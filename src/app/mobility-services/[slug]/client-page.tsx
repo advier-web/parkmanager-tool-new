@@ -11,7 +11,7 @@ import { MarkdownWithAccordions } from '@/components/markdown-with-accordions';
 import { Button } from '@/components/ui/button';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 import { getMobilitySolutionsFromContentful, getMobilitySolutionById, getImplementationVariationsForSolution } from '@/services/contentful-service';
-import MobilitySolutionFactsheetButton from '@/components/mobility-solution-factsheet-button'; // Added import
+import MobilitySolutionFactsheetButton from '@/components/mobility-solution-factsheet-button';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/solid'; // Added import
 
 interface MobilityServiceClientPageProps {
@@ -24,6 +24,8 @@ const generateSlug = (title: string): string => {
 };
 
 export default function MobilityServiceClientPage({ solution, variations }: MobilityServiceClientPageProps) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   React.useEffect(() => {
     // Verwijder deze log eventueel ook, of houd hem als nuttig
     // console.log("Variations received in client page:", JSON.stringify(variations, null, 2));
@@ -45,6 +47,38 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
     );
   }
 
+  // Helper: stars renderer like in vergelijkers
+  const StarsRow: React.FC<{ count: number }> = ({ count }) => (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: count }).map((_, i) => (
+        <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-yellow-500">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.801 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.801-2.034a1 1 0 00-1.175 0l-2.801 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.463a1 1 0 00.95-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
+
+  const renderStarsAndText = (raw?: string) => {
+    const value = (raw || '').trim();
+    if (!value) return <span className="text-gray-500">-</span>;
+    const starPrefix = value.match(/^\s*\*+/);
+    if (!starPrefix) {
+      return <div className="prose prose-sm max-w-none text-gray-700"><MarkdownContent content={processMarkdownText(value)} /></div>;
+    }
+    const stars = starPrefix[0].replace(/\s/g, '').length;
+    const text = value.replace(/^\s*\*+\s*/, '').trim();
+    return (
+      <div className="text-gray-700">
+        <StarsRow count={stars} />
+        {text && (
+          <div className="prose prose-sm max-w-none mt-1">
+            <MarkdownContent content={processMarkdownText(text)} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <SiteHeader />
@@ -61,85 +95,92 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             )}
           </div>
 
-          {/* Vuistregels (top meta) in 2 kolommen, gelijk aan popup */}
-          {(
-            solution.wanneerRelevant ||
-            solution.minimaleInvestering ||
-            solution.minimumAantalPersonen ||
-            solution.schaalbaarheid ||
-            solution.moeilijkheidsgraad ||
-            solution.impact ||
-            solution.ruimtebeslag ||
-            solution.afhankelijkheidExternePartijen
-          ) && (
-            <section className="text-sm mb-8 bg-white rounded-lg p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {solution.wanneerRelevant && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Wanneer relevant:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.wanneerRelevant}</div>
-                  </div>
-                )}
-                {solution.minimaleInvestering && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Investering:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.minimaleInvestering}</div>
-                  </div>
-                )}
-                {solution.minimumAantalPersonen && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.minimumAantalPersonen}</div>
-                  </div>
-                )}
-                {solution.schaalbaarheid && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Schaalbaarheid:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.schaalbaarheid}</div>
-                  </div>
-                )}
-                {solution.moeilijkheidsgraad && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Moeilijkheidsgraad:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.moeilijkheidsgraad}</div>
-                  </div>
-                )}
-                {solution.impact && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Impact:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.impact}</div>
-                  </div>
-                )}
-                {solution.ruimtebeslag && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Ruimtebeslag:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.ruimtebeslag}</div>
-                  </div>
-                )}
-                {solution.afhankelijkheidExternePartijen && (
-                  <div>
-                    <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
-                    <div className="text-gray-800 mt-0.5">{solution.afhankelijkheidExternePartijen}</div>
-                  </div>
-                )}
+          {/* Intro + Vuistregels in 2/3 - 1/3 layout */}
+          {(solution.introTekstTool || solution.wanneerRelevant || solution.minimaleInvestering || solution.minimumAantalPersonen || solution.schaalbaarheid || solution.moeilijkheidsgraad || solution.impact || solution.ruimtebeslag || solution.afhankelijkheidExternePartijen) && (
+            <section className="mb-8 bg-white rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                {/* Left: 2/3 Intro */}
+                <div className="md:col-span-2">
+                  {solution.introTekstTool && (
+                    <div>
+                      <h2 className="text-3xl font-semibold mb-3">Introductie</h2>
+                      {/* Ensure normal paragraph size (override parent text-sm) */}
+                      <div className="prose max-w-none text-gray-900 text-[18px] leading-relaxed">
+                        <MarkdownContent content={processMarkdownText(solution.introTekstTool)} />
+                      </div>
+                      {isClient && (
+                        <div className="mt-4">
+                          <MobilitySolutionFactsheetButton 
+                            solution={solution} 
+                            className="px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
+                            buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white"
+                          >
+                            <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                            {`Download factsheet ${solution.title}`}
+                          </MobilitySolutionFactsheetButton>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Right: 1/3 Vuistregels */}
+                <div className="space-y-3 text-sm">
+                  <h2 className="text-3xl font-semibold">Vuistregels</h2>
+                  {solution.wanneerRelevant && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Wanneer relevant:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.wanneerRelevant}</div>
+                    </div>
+                  )}
+                  {solution.minimaleInvestering && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Investering:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.minimaleInvestering}</div>
+                    </div>
+                  )}
+                  {solution.minimumAantalPersonen && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.minimumAantalPersonen}</div>
+                    </div>
+                  )}
+                  {solution.schaalbaarheid && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Schaalbaarheid:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.schaalbaarheid}</div>
+                    </div>
+                  )}
+                  {solution.moeilijkheidsgraad && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Moeilijkheidsgraad:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.moeilijkheidsgraad}</div>
+                    </div>
+                  )}
+                  {solution.impact && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Impact:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.impact}</div>
+                    </div>
+                  )}
+                  {solution.ruimtebeslag && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Ruimtebeslag:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.ruimtebeslag}</div>
+                    </div>
+                  )}
+                  {solution.afhankelijkheidExternePartijen && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.afhankelijkheidExternePartijen}</div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="mt-4 border-b border-gray-200" />
             </section>
           )}
 
-           {/* PDF Download Link for the main solution factsheet */}
-           {(solution.samenvattingLang || solution.description) && ( 
-            <div className="mt-6 mb-10"> {/* Adjusted top margin for more space */}
-              <MobilitySolutionFactsheetButton
-                solution={solution}
-                className="inline-flex items-center text-sm cursor-pointer focus:outline-none" // Removed text color classes from wrapper
-                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm" // New button styling
-              >
-                <DocumentArrowDownIcon className="h-4 w-4 mr-2" /> {/* Adjusted icon size and margin */}
-                {`Download factsheet ${solution.title}`}
-              </MobilitySolutionFactsheetButton>
-            </div>
-          )}
+          
 
           {/* Beschrijving eerst; val terug op samenvatting indien geen description */}
           {solution.description ? (
@@ -205,8 +246,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Controle en flexibiliteit</div>
                   {variations.map((v, idx) => (
-                    <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                      <MarkdownContent content={processMarkdownText(v.controleEnFlexibiliteit || '-')} />
+                    <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                      {renderStarsAndText(v.controleEnFlexibiliteit || '-')}
                     </div>
                   ))}
                 </div>
@@ -215,8 +256,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Maatwerk</div>
                   {variations.map((v, idx) => (
-                    <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                      <MarkdownContent content={processMarkdownText(v.maatwerk || '-')} />
+                    <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                      {renderStarsAndText(v.maatwerk || '-')}
                     </div>
                   ))}
                 </div>
@@ -225,8 +266,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Kosten en schaalvoordelen</div>
                   {variations.map((v, idx) => (
-                    <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                      <MarkdownContent content={processMarkdownText(v.kostenEnSchaalvoordelen || '-')} />
+                    <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                      {renderStarsAndText(v.kostenEnSchaalvoordelen || '-')}
                     </div>
                   ))}
                 </div>
@@ -235,8 +276,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Operationele complexiteit</div>
                   {variations.map((v, idx) => (
-                    <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                      <MarkdownContent content={processMarkdownText(v.operationeleComplexiteit || '-')} />
+                    <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                      {renderStarsAndText(v.operationeleComplexiteit || '-')}
                     </div>
                   ))}
                 </div>
@@ -245,8 +286,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Juridische en compliance risico's</div>
                   {variations.map((v, idx) => (
-                    <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none">
-                      <MarkdownContent content={processMarkdownText(v.juridischeEnComplianceRisicos || '-')} />
+                    <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
+                      {renderStarsAndText(v.juridischeEnComplianceRisicos || '-')}
                     </div>
                   ))}
                 </div>
@@ -255,8 +296,8 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                 <div className="contents">
                   <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Risico van onvoldoende gebruik</div>
                   {variations.map((v, idx) => (
-                    <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 prose prose-sm max-w-none bg-gray-50">
-                      <MarkdownContent content={processMarkdownText(v.risicoVanOnvoldoendeGebruik || '-')} />
+                    <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
+                      {renderStarsAndText(v.risicoVanOnvoldoendeGebruik || '-')}
                     </div>
                   ))}
                 </div>
@@ -270,24 +311,12 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
             <p className="mb-4 text-gray-700">
               Wil u gedetailleerd advies over het implementeren van deze mobiliteitsoplossing binnen uw bedrijfsvereniging?{' '}
               <Link href="/wizard/bedrijventerrein" className="text-blue-600 hover:text-blue-700 underline font-medium">
-                Start de wizard!
+                Start de tool!
               </Link>
             </p>
           </div>
 
-          {/* Add the new Download Factsheet button here, styled as the previous one */}
-          {solution && (
-            <div className="mb-10"> {/* Consistent spacing */}
-              <MobilitySolutionFactsheetButton
-                solution={solution}
-                className="inline-flex items-center text-sm cursor-pointer focus:outline-none"
-                buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
-              >
-                <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
-                {`Download factsheet ${solution.title}`}
-              </MobilitySolutionFactsheetButton>
-            </div>
-          )}
+          
 
           {solution.benefits && solution.benefits.length > 0 && (
             <div className="bg-white rounded-lg p-6 mb-10">

@@ -228,7 +228,8 @@ export default function BusinessParkInfoPage() {
                   >
                     <option value="">Selecteer een optie</option>
                     <option value="thuis">Voor de hele reis</option>
-                    <option value="locatie">Voor het laatste deel van de reis</option>
+                    <option value="locatie">Tussen OV-knooppunt of P+R terrein en bedrijventerrein</option>
+                    <option value="ov">Aansluiting bedrijventerrein op OV (als onderdeel hele OV-reis)</option>
                   </select>
                 </div>
               )}

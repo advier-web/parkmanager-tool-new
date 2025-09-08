@@ -8,6 +8,7 @@ import { MobilityServiceAccordion } from '../components/mobility-service-accordi
 import { GovernanceModelsSection } from '../components/governance-models-section';
 import { BusinessParkReasonsSection } from '../components/business-park-reasons-section';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MobilityServiceButton } from '../components/mobility-service-button';
 
 interface SectionRef {
@@ -62,11 +63,11 @@ export default function Home() {
   
   // Define sections for navigation
   const sections: SectionRef[] = [
-    { id: 'wat-is-collectief-vervoer', title: 'Wat is collectief vervoer?' },
-    { id: 'overzicht', title: 'Overzicht collectieve vervoersoplossingen' },
-    { id: 'bestuursvormen', title: 'Bestuurlijke rechtsvormen' },
-    { id: 'subsidie', title: 'COVER subsidie' },
-    { id: 'best-practices', title: 'Best practices' }
+    { id: 'wat-is-collectief-vervoer', title: 'Wat is gedeeld vervoer?' },
+    { id: 'overzicht', title: 'Soorten gedeelde vervoersopties' },
+    { id: 'bestuursvormen', title: 'Organisatiestructuren' },
+    { id: 'subsidie', title: 'Subsidies' },
+    // { id: 'best-practices', title: 'Succesverhalen' }
   ];
   
   // Scroll to section when clicking anchor link
@@ -109,7 +110,7 @@ export default function Home() {
       
       <main className="container mx-auto max-w-5xl px-4 py-8 pt-16 w-full">
         <div className="mb-4">
-          <h1 className="text-4xl font-bold">Samenwerken in collectieve vervoersoplossingen</h1>
+          <h1 className="text-4xl font-bold">Samenwerken aan slimme vervoersoplossingen</h1>
         </div>
         
         <div className="prose prose-lg max-w-none mb-10 text-lg font-semibold">
@@ -187,12 +188,39 @@ export default function Home() {
         
         {/* Content sections */}
         <section id="wat-is-collectief-vervoer" className="mb-16 pb-8 border-b border-gray-200">
-          <h2 className="text-2xl font-bold mb-6">Wat is collectief vervoer?</h2>
-          <MarkdownContent content={data.watIsCollectiefVervoer} />
+          <h2 className="text-2xl font-bold mb-6">Wat is gedeeld vervoer?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+              <div className="prose prose-lg max-w-none [&_h2]:mt-10">
+                <MarkdownContent content={data.watIsCollectiefVervoer} />
+              </div>
+              <div className="mt-6">
+                <Link 
+                  href="/wizard"
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-md text-center font-medium transition-colors inline-block"
+                >
+                  Start de tool
+                </Link>
+              </div>
+            </div>
+            <figure className="m-0">
+              <Image 
+                src="/bol%20pendeldienst%20shuttle2.jpg"
+                alt="Pendelbusjes van Shuttle2 die medewerkers van en naar het hoofdkantoor van Bol in Utrecht vervoeren"
+                width={1200}
+                height={800}
+                className="rounded-lg w-full h-auto object-cover shadow-sm"
+                priority
+              />
+              <figcaption className="mt-2 text-sm text-gray-600">
+                Pendelbusjes van Shuttle2 die medewerkers van en naar het hoofdkantoor van Bol in Utrecht vervoeren
+              </figcaption>
+            </figure>
+          </div>
         </section>
         
         <section id="overzicht" className="mb-16 pb-8 border-b border-gray-200">
-          <h2 className="text-2xl font-bold mb-6">Overzicht collectieve vervoersoplossingen</h2>
+          <h2 className="text-2xl font-bold mb-6">Soorten gedeelde vervoersopties</h2>
           <MarkdownContent content={data.overzichtCollectieveVervoersoplossingen} />
           
           {isLoadingServices && (
@@ -208,7 +236,7 @@ export default function Home() {
           )}
           
           {mobilityServices && mobilityServices.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
               {mobilityServices.map(service => (
                 <MobilityServiceButton key={service.id} solution={service} />
               ))}
@@ -223,7 +251,7 @@ export default function Home() {
         </section>
         
         <section id="bestuursvormen" className="mb-16 pb-8 border-b border-gray-200">
-          <h2 className="text-2xl font-bold mb-6">Governance modellen</h2>
+          <h2 className="text-2xl font-bold mb-6">Organisatiestructuren</h2>
           <MarkdownContent content={data.bestuurlijkeRechtsvormen} />
           
           {isLoadingGovernance && (
@@ -255,8 +283,75 @@ export default function Home() {
         </section>
         
         <section id="subsidie" className="mb-16 pb-8 border-b border-gray-200">
-          <h2 className="text-2xl font-bold mb-6">COVER subsidie</h2>
-          <MarkdownContent content={data.coverSubsidie} />
+          <div id="cover-subsidie" className="bg-white rounded-lg p-8 shadow-even">
+            <h2 className="text-2xl font-bold mb-4">Subsidie: COVER (Collectieven mkb Verduurzaming Reisgedrag)</h2>
+            <p className="text-gray-700 mb-4">De COVER subsidie is bedoeld voor organisaties die het mkb vertegenwoordigen, zoals parkmanagers. Met behulp van de subsidie kunnen stappen gezet worden naar blijvend duurzaam reisgedrag van werknemers. De subsidie dekt maximaal 75% van de kosten van het project waar de subsidie voor is aangevraagd, met een maximumbedrag van €100.000.
+            Er zitten een aantal voorwaarden aan het aanvragen van de COVER subsidie.</p>
+            <div className="space-y-3 text-gray-800">                
+              <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
+                <summary className="font-medium cursor-pointer select-none">Uw organisatie...</summary>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
+                  <li>Treedt op namens een groep werkgever.</li>
+                  <li>Is een rechtspersoon.</li>
+                  <li>Vertegenwoordigt het mkb - uw achterban bestaat voor minimaal 50% uit werkgevers met minder dan 250 werknemers.</li>
+                  <li>Vraagt minimaal € 10.000 aan voor uw project of activiteit.</li>
+                  <li>Heeft de afgelopen 3 jaar maximaal € 300.000 De-minimissteun (staatssteun) ontvangen.</li>
+                </ul>
+              </details>
+              <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
+                <summary className="font-medium cursor-pointer select-none">Uw project of activiteit...</summary>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
+                  <li>Richt zich op het wegnemen van belemmeringen bij de uitvoer van duurzame werkmobiliteit van werknemers.</li>
+                  <li>Vraagt per kilogram bespaarde CO2 niet meer dan € 0,75 subsidie.</li>
+                  <li>Heeft een berekening hoeveel kilogram CO2 u ermee vermindert.</li>
+                  <li>Heeft een structureel, blijvend resultaat.</li>
+                  <li>Is omschreven in het verplichte format van het projectplan.</li>
+                  <li>Heeft een begroting.</li>
+                  <li>Is afgerond binnen 24 maanden nadat uw subsidie is toegekend.</li>
+                </ul>
+              </details>
+              <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
+                <summary className="font-medium cursor-pointer select-none">Aan te leveren documenten</summary>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700 mt-2">
+                  <p>Voor de aanvraag van de subsidie dient u de volgende documenten ingevuld aan te leveren:</p>
+                  <li>Projectplan COVER</li>
+                  <li>Berekening CO2-besparing COVER</li>
+                  <li>Onderbouwing voor blijvend resultaat</li>
+                  <li>Modelbegroting project/activiteiten</li>
+                  <li>
+                    Voor al deze benodigdheden kunt u formats vinden op de{' '}
+                    <a
+                      className="text-blue-600 underline"
+                      href="https://www.rvo.nl/subsidies-financiering/cover#uw-aanvraag-voorbereiden"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      website van de RVO
+                    </a>
+                    .
+                  </li>
+                </ul>
+              </details>
+            </div>
+           
+            {/* Aanvraag voorbereiden */}
+            <div className="mt-6 pt-4 border-t border-gray-100 text-gray-800">
+              <details className="bg-gray-50 rounded-md border border-gray-200 p-4">
+                <summary className="font-medium cursor-pointer select-none">Aanvraag voorbereiden</summary>
+                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
+                  <li>eHerkenning niveau 2+ (reken op 1–5 werkdagen); intermediair kan namens u aanvragen.</li>
+                  <li>Gegevens aanvrager: naam, adres, wettelijk vertegenwoordiger en KvK-nummer.</li>
+                  <li>De-minimisverklaring over ontvangen steun in de afgelopen 3 jaar.</li>
+                  <li>Projectplan met doel, activiteiten, blijvend resultaat en onderbouwde CO₂-berekening (max € 0,75 subsidie per bespaarde kg CO₂).</li>
+                  <li>Gespecificeerde begroting (kostenposten en onderbouwing).</li>
+                </ul>
+              </details>
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              <p>Meer informatie en actuele voorwaarden: <a className="text-blue-600 underline" href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener">RVO – COVER</a>.</p>
+              <p className="mt-2">Na verlening keert RVO doorgaans 90% voorschot uit; voor projecten &gt; 1 jaar en &gt; € 25.000 is tussentijdse voortgangsrapportage verplicht. Na afloop volgt vaststelling en een prestatieverklaring.</p>
+            </div>
+          </div>
         </section>
         
         {/* <section id="best-practices" className="mb-16">

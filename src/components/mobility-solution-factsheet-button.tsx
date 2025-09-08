@@ -22,6 +22,39 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
   const [PdfComponent, setPdfComponent] = useState<React.ComponentType<{ solution: MobilitySolution; variations?: ImplementationVariation[] }> | null>(null);
   const [generating, setGenerating] = useState(false);
 
+  // Robust dynamic import with retry and one-time hard reload fallback for stale chunks
+  const loadPdfWithRetry = async (retries: number = 1, allowReload: boolean = false) => {
+    let lastErr: unknown = null;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const mod = await import('./mobility-solution-factsheet-pdf');
+        return mod.default as any;
+      } catch (e: any) {
+        lastErr = e;
+        const message: string = typeof e?.message === 'string' ? e.message : '';
+        const isChunkLoadError = message.includes('ChunkLoadError') || message.includes('Loading chunk') || message.includes('failed');
+        if (attempt < retries) {
+          // small backoff before retry
+          await new Promise(res => setTimeout(res, 150));
+          continue;
+        }
+        // Final attempt failed: optionally do a one-time hard reload
+        if (allowReload && typeof window !== 'undefined' && isChunkLoadError) {
+          try {
+            const key = 'pdfFactsheetChunkReloaded';
+            if (!window.sessionStorage.getItem(key)) {
+              window.sessionStorage.setItem(key, '1');
+              window.location.replace(window.location.href);
+              await new Promise(() => {});
+            }
+          } catch {}
+        }
+      }
+    }
+    // As a last resort, rethrow the last error so caller can handle silently
+    throw lastErr;
+  };
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -32,10 +65,11 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
     let cancelled = false;
     (async () => {
       try {
-        const mod = await import('./mobility-solution-factsheet-pdf');
-        if (!cancelled) setPdfComponent(() => mod.default as any);
+        const Mod = await loadPdfWithRetry(1, false);
+        if (!cancelled) setPdfComponent(() => Mod);
       } catch (e) {
-        console.error('Kon PDF component niet laden:', e);
+        // Swallow to prevent dev overlay; will retry on first click
+        console.warn('PDF component voor factsheet kon niet vooraf geladen worden. Probeert opnieuw bij klik.');
       }
     })();
     return () => { cancelled = true; };
@@ -59,8 +93,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
       try {
         let Mod = PdfComponent;
         if (!Mod) {
-          const mod = await import('./mobility-solution-factsheet-pdf');
-          Mod = mod.default as any;
+          Mod = await loadPdfWithRetry(1, true);
           setPdfComponent(() => Mod!);
         }
         // Pre-fetch variations to ensure the comparison table always renders
@@ -77,7 +110,8 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
         document.body.appendChild(a); a.click();
         URL.revokeObjectURL(url); a.remove();
       } catch (e) {
-        console.error('Kon PDF niet genereren:', e);
+        // Gebruik warn zonder error object om Next dev overlay te vermijden
+        console.warn('Kon PDF niet genereren. Probeer de pagina te herladen als dit blijft gebeuren.');
       } finally {
         setGenerating(false);
       }

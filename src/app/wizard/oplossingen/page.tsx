@@ -95,10 +95,15 @@ export default function MobilitySolutionsPage() {
         return includes(txt, 'thuis') || includes(txt, 'hele reis') || includes(txt, 'hele');
       });
     } else if (userPreference === 'locatie') {
-      // Support new content label 'laatste deel' and fallback 'locatie'
+      // Support new content label 'Tussen OV-knooppunt of P+R terrein en bedrijventerrein'
       return solution.ophalen.some(option => {
         const txt = (option || '').toLowerCase();
-        return includes(txt, 'laatste deel') || includes(txt, 'laatste') || includes(txt, 'locatie');
+        return includes(txt, 'ov-knooppunt') || includes(txt, 'ov knooppunt') || includes(txt, 'p+r') || includes(txt, 'locatie') || includes(txt, 'laatste');
+      });
+    } else if (userPreference === 'ov') {
+      return solution.ophalen.some(option => {
+        const txt = (option || '').toLowerCase();
+        return includes(txt, 'aansluiting') && includes(txt, 'ov');
       });
     }
 
