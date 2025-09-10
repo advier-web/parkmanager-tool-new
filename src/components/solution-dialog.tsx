@@ -205,6 +205,12 @@ export function SolutionDialog() {
                       <div className="text-gray-800 mt-0.5">{currentSolution.minimaleInvestering}</div>
                     </div>
                   )}
+                  {currentSolution.bandbreedteKosten && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Bandbreedte kosten:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.bandbreedteKosten}</div>
+                    </div>
+                  )}
                   {currentSolution.minimumAantalPersonen && (
                     <div>
                       <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
@@ -312,7 +318,7 @@ export function SolutionDialog() {
             {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
               <section className="bg-white rounded-lg py-4">
                 <h1 className="text-3xl font-bold mb-1">Vergelijk implementatievarianten</h1>
-                <p className="text-sm text-gray-600 mb-3">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.</p>
+                <p className="text-sm text-gray-600 mb-3">Voor elk van de inkoopvormen is in de onderstaande tabel samengevat in hoeverre elke inkoopvorm scoort op verschillende criteria. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.</p>
                 <div className="overflow-x-auto">
                   <div className="grid rounded-lg min-w-[640px] md:min-w-0" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, minmax(180px, 1fr))` }}>
                   {/* Header row */}

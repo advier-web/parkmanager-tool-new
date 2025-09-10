@@ -213,7 +213,7 @@ export default function Home() {
                 priority
               />
               <figcaption className="mt-2 text-sm text-gray-600">
-                Pendelbusjes van Shuttle2 die medewerkers van en naar het hoofdkantoor van Bol in Utrecht vervoeren
+                Pendelbusjes van Shuttle2 die medewerkers van en naar het hoofdkantoor van Bol in Utrecht vervoeren. Foto: <a href="https://vipre.nl/bol-com-start-met-volledig-elektrische-shuttleservice/" target="_blank" >Vipre</a>.
               </figcaption>
             </figure>
           </div>

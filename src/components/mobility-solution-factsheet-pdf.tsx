@@ -322,7 +322,7 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
       <View style={{ marginBottom: 14 }}>
         <Text style={styles.sectionTitle}>Vergelijk implementatievarianten</Text>
         <Text style={{ fontSize: 9, color: '#374151', marginTop: 2, marginBottom: 6 }}>
-          In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.
+          Voor elk van de inkoopvormen is in de onderstaande tabel samengevat in hoeverre elke inkoopvorm scoort op verschillende criteria. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.
         </Text>
         {/* Header row with variant titles */}
         <View style={styles.compTable}>
@@ -549,26 +549,38 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
             .trim();
         const headers = rows.length > 0 ? rows[0].map(decode) : [];
         const bodyRows = rows.length > 1 ? rows.slice(1).map(r => r.map(decode)) : [];
+        const numCols = headers.length > 0 ? headers.length : (bodyRows[0] ? bodyRows[0].length : 1);
+        const renderBodyRow = (r: string[], ri: number) => (
+          <View key={`tr-${ri}`} style={styles.genRow}>
+            {r.length <= 1 ? (
+              <View style={[styles.genCell, { flexGrow: numCols, flexBasis: 0 }]}> 
+                <Text style={{ fontSize: 9 }}>{r[0] || ''}</Text>
+              </View>
+            ) : (
+              (headers.length > 0 ? headers : r).map((_, ci) => (
+                <View key={`td-${ri}-${ci}`} style={styles.genCell}>
+                  <Text style={{ fontSize: 9 }}>{r[ci] || ''}</Text>
+                </View>
+              ))
+            )}
+          </View>
+        );
         parts.push(
           <View key={`t-${match.index}`} style={styles.genTable}>
-            {headers.length > 0 && (
-              <View style={styles.genHeaderRow}>
-                {headers.map((h, i) => (
-                  <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
-                    <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {bodyRows.map((r, ri) => (
-              <View key={`tr-${ri}`} style={styles.genRow}>
-                {(headers.length > 0 ? headers : r).map((_, ci) => (
-                  <View key={`td-${ri}-${ci}`} style={styles.genCell}>
-                    <Text style={{ fontSize: 9 }}>{r[ci] || ''}</Text>
-                  </View>
-                ))}
-              </View>
-            ))}
+            <View wrap={false}>
+              {headers.length > 0 && (
+                <View style={styles.genHeaderRow}>
+                  {headers.map((h, i) => (
+                    <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
+                      <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {bodyRows[0] && renderBodyRow(bodyRows[0], 0)}
+              {bodyRows[1] && renderBodyRow(bodyRows[1], 1)}
+            </View>
+            {bodyRows.slice(2).map((r, idx) => renderBodyRow(r, idx + 2))}
           </View>
         );
         lastIndex = match.index + match[0].length;
@@ -601,24 +613,36 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
         const cells = line.replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
         return { id: idx, cells };
       });
+      const numCols = headers.length > 0 ? headers.length : (rows[0] ? rows[0].cells.length : 1);
+      const renderBodyRow = (r: { id: number; cells: string[] }) => (
+        <View key={`tr-${r.id}`} style={styles.genRow}>
+          {r.cells.length <= 1 ? (
+            <View style={[styles.genCell, { flexGrow: numCols, flexBasis: 0 }]}> 
+              <Text style={{ fontSize: 9 }}>{r.cells[0] || ''}</Text>
+            </View>
+          ) : (
+            (headers.length > 0 ? headers : r.cells).map((_, i) => (
+              <View key={`td-${r.id}-${i}`} style={styles.genCell}>
+                <Text style={{ fontSize: 9 }}>{r.cells[i] || ''}</Text>
+              </View>
+            ))
+          )}
+        </View>
+      );
       parts.push(
         <View key={`t-${m.index}`} style={styles.genTable}>
-          <View style={styles.genHeaderRow}>
-            {headers.map((h, i) => (
-              <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
-                <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
-              </View>
-            ))}
-          </View>
-          {rows.map(r => (
-            <View key={`tr-${r.id}`} style={styles.genRow}>
-              {headers.map((_, i) => (
-                <View key={`td-${r.id}-${i}`} style={styles.genCell}>
-                  <Text style={{ fontSize: 9 }}>{r.cells[i] || ''}</Text>
+          <View wrap={false}>
+            <View style={styles.genHeaderRow}>
+              {headers.map((h, i) => (
+                <View key={`th-${i}`} style={[styles.genHeaderCell, i === 0 ? {} : { borderLeftWidth: 1, borderLeftColor: '#e5e7eb' }]}>
+                  <Text style={{ fontSize: 9, fontWeight: 'bold' }}>{h}</Text>
                 </View>
               ))}
             </View>
-          ))}
+            {rows[0] && renderBodyRow(rows[0])}
+            {rows[1] && renderBodyRow(rows[1])}
+          </View>
+          {rows.slice(2).map(r => renderBodyRow(r))}
         </View>
       );
       last = m.index + m[0].length;
@@ -710,6 +734,12 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Investering:</Text>
                 <Text style={{ marginTop: 2 }}>{solution.minimaleInvestering}</Text>
+              </View>
+            )}
+            {solution.bandbreedteKosten && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Bandbreedte kosten:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.bandbreedteKosten}</Text>
               </View>
             )}
             {solution.schaalbaarheid && (

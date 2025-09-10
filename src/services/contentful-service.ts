@@ -195,6 +195,7 @@ export async function getMobilitySolutionsFromContentful(options: ContentfulQuer
               // New fields from Contentful
               ophalen: Array.isArray(fields.ophalen) ? fields.ophalen.filter((item: unknown): item is string => typeof item === 'string') : undefined,
               minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
+              bandbreedteKosten: typeof (fields as any).bandbreedteKosten === 'string' ? (fields as any).bandbreedteKosten : undefined,
               minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
               moeilijkheidsgraad: typeof fields.moeilijkheidsgraad === 'string' ? fields.moeilijkheidsgraad : undefined,
               wanneerRelevant: typeof (fields as any).wanneerRelevant === 'string' ? (fields as any).wanneerRelevant : undefined,
@@ -281,6 +282,7 @@ export async function getMobilitySolutionById(id: string, options: ContentfulQue
           // New fields from Contentful
           ophalen: Array.isArray(fields.ophalen) ? fields.ophalen.filter((item: unknown): item is string => typeof item === 'string') : undefined,
           minimaleInvestering: typeof fields.minimaleInvestering === 'string' ? fields.minimaleInvestering : undefined,
+          bandbreedteKosten: typeof (fields as any).bandbreedteKosten === 'string' ? (fields as any).bandbreedteKosten : undefined,
           minimumAantalPersonen: typeof fields.minimumAantalPersonen === 'string' ? fields.minimumAantalPersonen : undefined,
           moeilijkheidsgraad: typeof fields.moeilijkheidsgraad === 'string' ? fields.moeilijkheidsgraad : undefined,
           wanneerRelevant: typeof (fields as any).wanneerRelevant === 'string' ? (fields as any).wanneerRelevant : undefined,
@@ -462,6 +464,7 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       // New fields from Contentful
       ophalen: getStringArrayFieldSafe(fields, 'ophalen'),
       minimaleInvestering: getStringFieldSafe(fields, 'minimaleInvestering'),
+      bandbreedteKosten: getStringFieldSafe(fields, 'bandbreedteKosten'),
       minimumAantalPersonen: getStringFieldSafe(fields, 'minimumAantalPersonen'),
       afstand: getStringFieldSafe(fields, 'afstand'),
        moeilijkheidsgraad: getStringFieldSafe(fields, 'moeilijkheidsgraad'),

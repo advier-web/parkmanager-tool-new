@@ -1,7 +1,6 @@
 import { MobilitySolution, BusinessParkReason, TrafficType, GovernanceModel, ImplementationVariation } from '../domain/models';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, DocumentTextIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { UserGroupIcon, CurrencyEuroIcon, MapPinIcon, EyeIcon } from '@heroicons/react/24/solid';
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { useDialog } from '../contexts/dialog-context';
@@ -20,7 +19,7 @@ interface SolutionCardProps {
   score: number;
   trafficTypeMatchScore: number;
   pickupPreferenceMatch?: boolean;
-  userPickupPreference?: 'thuis' | 'locatie' | null;
+  userPickupPreference?: 'thuis' | 'locatie' | 'ov' | null;
   variationsData?: ImplementationVariation[];
 }
 
@@ -120,8 +119,8 @@ export function SolutionCard({
               <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : scoreForReason >= 4 ? (
-            // Yellow dot remains
-            <div className={`w-3 h-3 rounded-full bg-yellow-400 mt-0.5 flex-shrink-0`}></div>
+            // Amber question mark icon (outline) to match style of check/cross
+            <QuestionMarkCircleIcon className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
           ) : scoreForReason > 0 ? (
             // Red cross
             <svg className="h-4 w-4 text-rose-600 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">

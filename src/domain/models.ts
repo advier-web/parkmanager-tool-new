@@ -122,6 +122,7 @@ export interface MobilitySolution {
   // New fields from Contentful
   ophalen?: string[]; // Array of pickup options
   minimaleInvestering?: string; // Minimum investment required
+  bandbreedteKosten?: string; // Bandbreedte van kosten
   minimumAantalPersonen?: string; // Minimum number of people
   afstand?: string; // Distance information
   // Newly added fields in Contentful (MobilityService)

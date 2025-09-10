@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MobilitySolution, BusinessParkReason, TrafficType } from '../domain/models';
 import { buildNonHeadlessUiOverlayClasses, buildNonHeadlessUiPanelClasses } from '@/components/ui/modal-anim';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 
 interface SolutionComparisonModalProps {
@@ -132,6 +132,24 @@ export function SolutionComparisonModal({
 
   if (!shouldRender) return null;
 
+  const costTooltipText =
+    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
+
+  const InfoTooltip = ({ text }: { text: string }) => (
+    <span className="relative group ml-1 inline-flex">
+      <button
+        type="button"
+        aria-label="Toelichting"
+        className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
+      >
+        <InformationCircleIcon className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute left-0 top-full mt-2 w-80 rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 z-[9999]">
+        {text}
+      </div>
+    </span>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className={overlayClasses} />
@@ -238,6 +256,21 @@ export function SolutionComparisonModal({
                 <div key={`${solution.id}-investment`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
                   <div className="text-sm text-gray-700">
                     {solution.minimaleInvestering || '-'}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bandbreedte kosten Row */}
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+              <div className="flex items-center">
+                <h3 className="font-medium text-gray-900">Bandbreedte kosten</h3>
+                <InfoTooltip text={costTooltipText} />
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-bandbreedte`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
+                  <div className="text-sm text-gray-700">
+                    {solution.bandbreedteKosten || '-'}
                   </div>
                 </div>
               ))}

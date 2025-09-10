@@ -113,7 +113,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                           <MobilitySolutionFactsheetButton 
                             solution={solution} 
                             className="px-4 py-2 rounded-md font-semibold text-sm cursor-pointer shadow-sm"
-                            buttonColorClassName="bg-teal-600 hover:bg-teal-700 text-white"
+                            buttonColorClassName="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
                             {`Download factsheet ${solution.title}`}
@@ -136,6 +136,12 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                     <div>
                       <div className="font-semibold text-gray-900">Investering:</div>
                       <div className="text-gray-800 mt-0.5">{solution.minimaleInvestering}</div>
+                    </div>
+                  )}
+                  {solution.bandbreedteKosten && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Bandbreedte kosten:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.bandbreedteKosten}</div>
                     </div>
                   )}
                   {solution.minimumAantalPersonen && (
@@ -227,7 +233,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
           {variations && variations.length > 0 && (
             <section className="mb-10 bg-white rounded-lg p-6">
               <h2 className="text-3xl font-semibold mb-2">Vergelijk implementatievarianten</h2>
-              <p className="text-sm text-gray-600 mb-4">In de tabel hieronder kunt u de verschillende implementatievarianten met elkaar vergelijken.</p>
+              <p className="text-sm text-gray-600 mb-4">Voor elk van de inkoopvormen is in de onderstaande tabel samengevat in hoeverre elke inkoopvorm scoort op verschillende criteria. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief..</p>
               <div className="grid rounded-lg" style={{ gridTemplateColumns: `160px repeat(${variations.length}, 1fr)` }}>
                 {/* Header row */}
                 <div className="contents">

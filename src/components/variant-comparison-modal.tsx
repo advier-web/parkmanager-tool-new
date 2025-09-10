@@ -1,5 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import {
   MODAL_OVERLAY_BASE,
   MODAL_OVERLAY_ENTER,
@@ -11,7 +11,7 @@ import {
   MODAL_PANEL_LEAVE_FROM,
   MODAL_PANEL_LEAVE_TO,
 } from '@/components/ui/modal-anim';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
 
@@ -68,6 +68,67 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
     );
   };
 
+  const costTooltipText =
+    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u in de factsheet van de implementatievariant. De daadwerkelijke kosten verschillen per situatie.';
+
+  const InfoTooltip = ({ text }: { text: string }) => {
+    const btnRef = useRef<HTMLButtonElement | null>(null);
+    const [visible, setVisible] = useState(false);
+    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    const position = () => {
+      const el = btnRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setPos({ top: rect.bottom + 8 + window.scrollY, left: rect.left + window.scrollX });
+    };
+    const show = () => { position(); setVisible(true); };
+    const hide = () => setVisible(false);
+
+    useEffect(() => {
+      if (!visible) return;
+      const onScroll = () => position();
+      window.addEventListener('scroll', onScroll, true);
+      window.addEventListener('resize', onScroll);
+      return () => {
+        window.removeEventListener('scroll', onScroll, true);
+        window.removeEventListener('resize', onScroll);
+      };
+    }, [visible]);
+
+    return (
+      <>
+        <button
+          ref={btnRef}
+          type="button"
+          aria-label="Toelichting"
+          onMouseEnter={show}
+          onFocus={show}
+          onMouseLeave={hide}
+          onBlur={hide}
+          className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
+        >
+          <InformationCircleIcon className="h-4 w-4" />
+        </button>
+        {visible && (
+          <div
+            style={{ position: 'fixed', top: pos.top, left: pos.left, width: 320, zIndex: 99999 }}
+            className="rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20"
+          >
+            {text}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const LabelWithTooltip = ({ label }: { label: string }) => (
+    <div className="inline-flex items-start gap-1">
+      <h3 className="font-medium text-gray-900">{label}</h3>
+      <InfoTooltip text={costTooltipText} />
+    </div>
+  );
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -104,7 +165,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </button>
                   </div>
                   <p className="mt-2 text-sm text-gray-600">
-                    Bekijk de belangrijkste verschillen tussen de implementatievarianten. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.
+                  Voor elk van de inkoopvormen is in de onderstaande tabel samengevat in hoeverre elke inkoopvorm scoort op verschillende criteria. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.
                   </p>
                 </div>
 
@@ -130,7 +191,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
 
                     {/* Geschatte jaarlijkse kosten Row */}
                     <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Geschatte jaarlijkse kosten</h3></div>
+                      <div className="flex items-start"><LabelWithTooltip label="Geschatte jaarlijkse kosten" /></div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-yearly-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {variation.geschatteJaarlijkseKosten || '-'}
@@ -140,7 +201,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
 
                     {/* Kosten per km per persoon Row */}
                     <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Kosten per km per persoon</h3></div>
+                      <div className="flex items-start"><LabelWithTooltip label="Kosten per km per persoon" /></div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {variation.geschatteKostenPerKmPp || '-'}
@@ -150,7 +211,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
 
                     {/* Kosten per rit Row */}
                     <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><h3 className="font-medium text-gray-900">Kosten per rit</h3></div>
+                      <div className="flex items-start"><LabelWithTooltip label="Kosten per rit" /></div>
                       {variations.map((variation) => (
                         <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
                           {variation.geschatteKostenPerRit || '-'}
