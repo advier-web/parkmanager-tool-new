@@ -97,12 +97,12 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
 
           {/* Intro + Vuistregels in 2/3 - 1/3 layout */}
           {(solution.introTekstTool || solution.wanneerRelevant || solution.minimaleInvestering || solution.minimumAantalPersonen || solution.schaalbaarheid || solution.moeilijkheidsgraad || solution.impact || solution.ruimtebeslag || solution.afhankelijkheidExternePartijen) && (
-            <section className="mb-8 bg-white rounded-lg p-6">
+            <section className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 {/* Left: 2/3 Intro */}
                 <div className="md:col-span-2">
                   {solution.introTekstTool && (
-                    <div>
+                    <div className="bg-white rounded-lg p-6">
                       <h2 className="text-3xl font-semibold mb-3">Introductie</h2>
                       {/* Ensure normal paragraph size (override parent text-sm) */}
                       <div className="prose max-w-none text-gray-900 text-[18px] leading-relaxed">
@@ -124,7 +124,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                   )}
                 </div>
                 {/* Right: 1/3 Vuistregels */}
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-sm bg-blue-100 rounded-lg p-6">
                   <h2 className="text-3xl font-semibold">Vuistregels</h2>
                   {solution.wanneerRelevant && (
                     <div>

@@ -121,6 +121,48 @@ export function ImplementationVariantDialog({ variation, isOpen, onClose }: Impl
 
                       {/* Verantwoordelijkheid, contractvormen, voordelen en nadelen zijn verwijderd uit het content type en worden hier niet meer getoond */}
 
+                      {/* Vuistregels blok met lichtblauwe achtergrond */}
+                      <div className="bg-blue-100 rounded-lg p-4 border border-blue-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {variation.controleEnFlexibiliteit && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Controle en flexibiliteit:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.controleEnFlexibiliteit.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                          {variation.maatwerk && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Maatwerk:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.maatwerk.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                          {variation.kostenEnSchaalvoordelen && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Kosten en schaalvoordelen:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.kostenEnSchaalvoordelen.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                          {variation.operationeleComplexiteit && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Operationele complexiteit:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.operationeleComplexiteit.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                          {variation.juridischeEnComplianceRisicos && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Juridische en compliance-risico’s:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.juridischeEnComplianceRisicos.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                          {variation.risicoVanOnvoldoendeGebruik && (
+                            <div>
+                              <div className="font-semibold text-gray-900">Risico van onvoldoende gebruik:</div>
+                              <div className="text-gray-800 mt-0.5">{variation.risicoVanOnvoldoendeGebruik.replace(/^\s*\*{1,5}\s*/, '')}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       {variation.investering && (
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">Investering</h3>

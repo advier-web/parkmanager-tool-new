@@ -191,7 +191,7 @@ export function SolutionDialog() {
 
             {/* Top meta fields */}
             {!showOnlyCases && (
-              <section className="text-sm">
+              <section className="text-sm bg-blue-100 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {currentSolution.wanneerRelevant && (
                     <div>
@@ -620,9 +620,28 @@ export function SolutionDialog() {
           </div>
           {/* Content Area */}
           <div className="p-6 space-y-6">
-            {/* Top meta fields (aligned with factsheet) */}
-            <section className="text-sm">
+            {/* Top meta fields (aligned met factsheet) - lichtblauwe kaart */}
+            <section className="text-sm bg-blue-100 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Kostenvelden toegevoegd */}
+                {variant.geschatteJaarlijkseKosten && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Geschatte jaarlijkse kosten:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.geschatteJaarlijkseKosten}</div>
+                  </div>
+                )}
+                {variant.geschatteKostenPerKmPp && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Geschatte kosten per km per persoon:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerKmPp}</div>
+                  </div>
+                )}
+                {variant.geschatteKostenPerRit && (
+                  <div>
+                    <div className="font-semibold text-gray-900">Geschatte kosten per rit:</div>
+                    <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerRit}</div>
+                  </div>
+                )}
                 {variant.controleEnFlexibiliteit && (
                   <div>
                     <div className="font-semibold text-gray-900">Controle en flexibiliteit:</div>

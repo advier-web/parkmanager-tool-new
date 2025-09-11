@@ -91,24 +91,45 @@ export function SolutionComparisonModal({
     return true;
   };
 
-  // Helper function to render score indicator
+  // Helper function to render score indicator (icons instead of dots)
   const renderScoreIndicator = (score: number) => {
-    let color = 'bg-gray-400';
     if (score >= 7) {
-      color = 'bg-green-500';
-    } else if (score >= 4) {
-      color = 'bg-orange-500';
-    } else if (score > 0) {
-      color = 'bg-red-500';
+      return (
+        <svg className="inline-block h-4 w-4 text-emerald-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
     }
-    return <span className={`inline-block w-3 h-3 rounded-full ${color} flex-shrink-0 align-middle`}></span>;
+    if (score >= 4) {
+      return (
+        <svg className="inline-block h-4 w-4 text-amber-500 align-middle flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 17h.01" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M8.5 9a3.5 3.5 0 116.52 1.5c-.52.86-1.52 1.22-1.52 2.25v.25" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    if (score > 0) {
+      return (
+        <svg className="inline-block h-4 w-4 text-rose-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    }
+    return <span className="inline-block w-3 h-3 rounded-full bg-gray-400 flex-shrink-0 align-middle"></span>;
   };
 
   // Helper function to render traffic type match
   const renderTrafficTypeMatch = (solution: MobilitySolution, trafficType: TrafficType) => {
     const isMatch = solution.typeVervoer?.includes(trafficType);
-    return (
-      <span className={`inline-block w-2.5 h-2.5 rounded-full ${isMatch ? 'bg-green-500' : 'bg-red-500'} flex-shrink-0 align-middle`}></span>
+    return isMatch ? (
+      <svg className="h-4 w-4 text-emerald-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ) : (
+      <svg className="h-4 w-4 text-rose-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     );
   };
 
@@ -122,8 +143,14 @@ export function SolutionComparisonModal({
         optionMatches = true;
       }
     }
-    return (
-      <span className={`inline-block w-2.5 h-2.5 rounded-full ${optionMatches ? 'bg-green-500' : 'bg-red-500'} flex-shrink-0 align-middle`}></span>
+    return optionMatches ? (
+      <svg className="h-4 w-4 text-emerald-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ) : (
+      <svg className="h-4 w-4 text-rose-600 align-middle flex-shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M6 6l8 8M14 6l-8 8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     );
   };
 
