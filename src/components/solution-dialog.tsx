@@ -41,6 +41,23 @@ export function SolutionDialog() {
   }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
   const ANIMATION_MS = 600;
+  const costTooltipText =
+    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u hieronder op deze pagina onder Exploitatie. De daadwerkelijke kosten verschillen per situatie.';
+
+  const CostInfoTooltip = () => (
+    <span className="relative group ml-1 inline-flex align-middle">
+      <button
+        type="button"
+        aria-label="Toelichting"
+        className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
+      >
+        <InformationCircleIcon className="h-4 w-4" />
+      </button>
+      <div className="pointer-events-none absolute left-0 top-full mt-2 w-80 rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 z-[9999]">
+        {costTooltipText}
+      </div>
+    </span>
+  );
   // Utility: strip any asterisks used as ratings in plain text fields
   const stripAsterisks = (text?: string) => {
     if (!text) return '';
@@ -626,19 +643,19 @@ export function SolutionDialog() {
                 {/* Kostenvelden toegevoegd */}
                 {variant.geschatteJaarlijkseKosten && (
                   <div>
-                    <div className="font-semibold text-gray-900">Geschatte jaarlijkse kosten:</div>
+                    <div className="font-semibold text-gray-900 flex items-center">Geschatte jaarlijkse kosten:<CostInfoTooltip /></div>
                     <div className="text-gray-800 mt-0.5">{variant.geschatteJaarlijkseKosten}</div>
                   </div>
                 )}
                 {variant.geschatteKostenPerKmPp && (
                   <div>
-                    <div className="font-semibold text-gray-900">Geschatte kosten per km per persoon:</div>
+                    <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per km per persoon:<CostInfoTooltip /></div>
                     <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerKmPp}</div>
                   </div>
                 )}
                 {variant.geschatteKostenPerRit && (
                   <div>
-                    <div className="font-semibold text-gray-900">Geschatte kosten per rit:</div>
+                    <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per rit:<CostInfoTooltip /></div>
                     <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerRit}</div>
                   </div>
                 )}
