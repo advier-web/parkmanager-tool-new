@@ -42,7 +42,7 @@ export function SolutionDialog() {
 
   const ANIMATION_MS = 600;
   const costTooltipText =
-    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u hieronder op deze pagina onder Exploitatie. De daadwerkelijke kosten verschillen per situatie.';
+    'Dit zijn geschatte kosten op basis van een voorbeeldberekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
 
   const CostInfoTooltip = () => (
     <span className="relative group ml-1 inline-flex align-middle">
@@ -224,7 +224,7 @@ export function SolutionDialog() {
                   )}
                   {currentSolution.bandbreedteKosten && (
                     <div>
-                      <div className="font-semibold text-gray-900">Bandbreedte kosten:</div>
+                      <div className="font-semibold text-gray-900 flex items-center">Bandbreedte kosten:<CostInfoTooltip /></div>
                       <div className="text-gray-800 mt-0.5">{currentSolution.bandbreedteKosten}</div>
                     </div>
                   )}

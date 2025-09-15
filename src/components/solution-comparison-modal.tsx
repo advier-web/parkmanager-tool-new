@@ -160,7 +160,7 @@ export function SolutionComparisonModal({
   if (!shouldRender) return null;
 
   const costTooltipText =
-    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
+    'Dit zijn geschatte kosten op basis van een voorbeeldberekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
 
   const InfoTooltip = ({ text }: { text: string }) => (
     <span className="relative group ml-1 inline-flex">
@@ -275,7 +275,7 @@ export function SolutionComparisonModal({
             </div>
             
             {/* Minimale investering Row */}
-            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+            {/* <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Minimale investering</h3>
               </div>
@@ -286,10 +286,10 @@ export function SolutionComparisonModal({
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* Bandbreedte kosten Row */}
-            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+            <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
               <div className="flex items-center">
                 <h3 className="font-medium text-gray-900">Bandbreedte kosten</h3>
                 <InfoTooltip text={costTooltipText} />

@@ -69,7 +69,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
   };
 
   const costTooltipText =
-    'Dit zijn geschatte kosten op basis van een fictieve berekening. De volledige berekening vindt u in de factsheet van de implementatievariant. De daadwerkelijke kosten verschillen per situatie.';
+    'Dit zijn geschatte kosten op basis van een voorbeeldberekening. De volledige berekening vindt u in de factsheet van de implementatievariant. De daadwerkelijke kosten verschillen per situatie.';
 
   const InfoTooltip = ({ text }: { text: string }) => {
     const btnRef = useRef<HTMLButtonElement | null>(null);
