@@ -9,7 +9,6 @@ import { FilterPanel } from '../../../components/filter-panel';
 import { MobilitySolution, TrafficType, ImplementationVariation } from '../../../domain/models';
 import { shouldUseContentful } from '../../../utils/env';
 import { useDialog } from '../../../contexts/dialog-context';
-import { useRouter } from 'next/navigation';
 import { WizardChoicesSummary } from '@/components/wizard-choices-summary';
 import { SolutionComparisonModal } from '@/components/solution-comparison-modal';
 import { SolutionComparisonBanner } from '@/components/solution-comparison-banner';
@@ -42,7 +41,6 @@ export default function MobilitySolutionsPage() {
   const { data: allVariations, isLoading: isLoadingVariations, error: variationsError } = useImplementationVariations();
   
   const { openSolutionDialog } = useDialog();
-  const router = useRouter();
   
   useEffect(() => {
     if (selectedReasons && selectedReasons.length > 0) {

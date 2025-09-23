@@ -16,7 +16,7 @@ interface SolutionComparisonModalProps {
   reasonsData: BusinessParkReason[];
   activeReasonFilters: string[];
   activeTrafficTypes: TrafficType[];
-  userPickupPreference?: 'thuis' | 'locatie' | null;
+  userPickupPreference?: 'thuis' | 'locatie' | 'ov' | null;
   contributingReasons: { [solutionId: string]: { [reasonId: string]: number } };
 }
 
