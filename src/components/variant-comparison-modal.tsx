@@ -39,6 +39,16 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
 
   // (Voorheen) helper voor komma-gescheiden lijsten is verwijderd omdat de betreffende velden niet meer worden vergeleken
 
+  // Helper: bepaalt of er voor een gegeven veld ten minste één niet-lege waarde is
+  const hasAnyNonEmpty = (field: keyof ImplementationVariation): boolean => {
+    return variations.some((v) => {
+      const raw = (v as Record<string, unknown>)[field];
+      if (raw == null) return false;
+      if (typeof raw === 'string') return raw.trim() !== '';
+      return Boolean(raw);
+    });
+  };
+
   // Helper: zet leading asterisks om in sterren, tekst eronder
   const renderStarsAndText = (raw: string) => {
     const source = typeof raw === 'string' ? raw : String(raw ?? '');
@@ -190,108 +200,126 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     </div>
 
                     {/* Geschatte jaarlijkse kosten Row */}
-                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><LabelWithTooltip label="Geschatte jaarlijkse kosten" /></div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-yearly-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {variation.geschatteJaarlijkseKosten || '-'}
-                        </div>
-                      ))}
-                    </div>
+                    {hasAnyNonEmpty('geschatteJaarlijkseKosten') && (
+                      <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start"><LabelWithTooltip label="Geschatte jaarlijkse kosten" /></div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-yearly-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {variation.geschatteJaarlijkseKosten || '-'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Kosten per km per persoon Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><LabelWithTooltip label="Kosten per km per persoon" /></div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {variation.geschatteKostenPerKmPp || '-'}
-                        </div>
-                      ))}
-                    </div>
+                    {hasAnyNonEmpty('geschatteKostenPerKmPp') && (
+                      <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start"><LabelWithTooltip label="Kosten per km per persoon" /></div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {variation.geschatteKostenPerKmPp || '-'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Kosten per rit Row */}
-                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start"><LabelWithTooltip label="Kosten per rit" /></div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {variation.geschatteKostenPerRit || '-'}
-                        </div>
-                      ))}
-                    </div>
+                    {hasAnyNonEmpty('geschatteKostenPerRit') && (
+                      <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start"><LabelWithTooltip label="Kosten per rit" /></div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {variation.geschatteKostenPerRit || '-'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Verantwoordelijkheid, Contractvormen, Voordelen en Nadelen zijn verwijderd uit de vergelijking */}
 
                     {/* Controle en flexibiliteit Row */}
-                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Controle en flexibiliteit</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.controleEnFlexibiliteit || '-')}
+                    {hasAnyNonEmpty('controleEnFlexibiliteit') && (
+                      <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Controle en flexibiliteit</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.controleEnFlexibiliteit || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Maatwerk Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Maatwerk</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.maatwerk || '-')}
+                    {hasAnyNonEmpty('maatwerk') && (
+                      <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Maatwerk</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.maatwerk || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Kosten en schaalvoordelen Row */}
-                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Kosten en schaalvoordelen</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.kostenEnSchaalvoordelen || '-')}
+                    {hasAnyNonEmpty('kostenEnSchaalvoordelen') && (
+                      <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Kosten en schaalvoordelen</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.kostenEnSchaalvoordelen || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Operationele complexiteit Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Operationele complexiteit</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.operationeleComplexiteit || '-')}
+                    {hasAnyNonEmpty('operationeleComplexiteit') && (
+                      <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Operationele complexiteit</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.operationeleComplexiteit || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Juridische en compliance risico's Row */}
-                    <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Juridische en compliance risico's</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.juridischeEnComplianceRisicos || '-')}
+                    {hasAnyNonEmpty('juridischeEnComplianceRisicos') && (
+                      <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Juridische en compliance risico's</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.juridischeEnComplianceRisicos || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Risico van onvoldoende gebruik Row */}
-                    <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
-                      <div className="flex items-start">
-                        <h3 className="font-medium text-gray-900">Risico van onvoldoende gebruik</h3>
-                      </div>
-                      {variations.map((variation) => (
-                        <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                          {renderStarsAndText(variation.risicoVanOnvoldoendeGebruik || '-')}
+                    {hasAnyNonEmpty('risicoVanOnvoldoendeGebruik') && (
+                      <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
+                        <div className="flex items-start">
+                          <h3 className="font-medium text-gray-900">Risico van onvoldoende gebruik</h3>
                         </div>
-                      ))}
-                    </div>
+                        {variations.map((variation) => (
+                          <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
+                            {renderStarsAndText(variation.risicoVanOnvoldoendeGebruik || '-')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     
 

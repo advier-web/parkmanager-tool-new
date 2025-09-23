@@ -357,7 +357,7 @@ export default function MobilitySolutionsPage() {
             <div className="bg-white rounded-lg p-8 shadow-even">
               <h2 className="text-2xl font-bold mb-4">Oplossingen</h2>
               <p className="mb-6">
-                Op basis van de door u geselecteerde aanleidingen zijn onderstaande collectieve vervoersoplossingen gesorteerd. Om verder te gaan selecteert u één collectieve vervoersoplossing.
+                Op basis van de door u geselecteerde aanleidingen zijn onderstaande collectieve vervoersoplossingen gesorteerd. Om verder te gaan selecteert u één collectieve vervoersoplossing. Oplossingen komen ook terug in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 5.
               </p>
   
               {processedSolutions.filtered.length > 0 && (

@@ -133,6 +133,7 @@ export interface MobilitySolution {
   impact?: string;
   ruimtebeslag?: string;
   afhankelijkheidExternePartijen?: string;
+  rolParkmanager?: string; // Role of the park manager (guidelines)
 
   // Toelichtingen (Explanations) - keep these if they are generic
   parkeerBereikbaarheidsproblemenToelichting?: string;

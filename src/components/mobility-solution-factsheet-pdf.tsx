@@ -764,6 +764,12 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
         </View>
 
         {/* Divider onder vuistregels */}
+        {solution.rolParkmanager && (
+          <View style={{ marginTop: 6, marginBottom: 6 }}>
+            <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Rol parkmanager:</Text>
+            <Text style={{ marginTop: 2 }}>{solution.rolParkmanager}</Text>
+          </View>
+        )}
         <View style={styles.divider} />
 
 

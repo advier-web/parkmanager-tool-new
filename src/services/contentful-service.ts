@@ -203,6 +203,7 @@ export async function getMobilitySolutionsFromContentful(options: ContentfulQuer
               impact: typeof (fields as any).impact === 'string' ? (fields as any).impact : undefined,
               ruimtebeslag: typeof (fields as any).ruimtebeslag === 'string' ? (fields as any).ruimtebeslag : undefined,
               afhankelijkheidExternePartijen: typeof (fields as any).afhankelijkheidExternePartijen === 'string' ? (fields as any).afhankelijkheidExternePartijen : undefined,
+              rolParkmanager: typeof (fields as any).rolParkmanager === 'string' ? (fields as any).rolParkmanager : undefined,
               
               implementationVariations: undefined,
               pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,
@@ -290,6 +291,7 @@ export async function getMobilitySolutionById(id: string, options: ContentfulQue
           impact: typeof (fields as any).impact === 'string' ? (fields as any).impact : undefined,
           ruimtebeslag: typeof (fields as any).ruimtebeslag === 'string' ? (fields as any).ruimtebeslag : undefined,
           afhankelijkheidExternePartijen: typeof (fields as any).afhankelijkheidExternePartijen === 'string' ? (fields as any).afhankelijkheidExternePartijen : undefined,
+          rolParkmanager: typeof (fields as any).rolParkmanager === 'string' ? (fields as any).rolParkmanager : undefined,
           
           implementationVariations: undefined,
           pdfLink: typeof fields.pdfLink === 'string' ? fields.pdfLink : undefined,

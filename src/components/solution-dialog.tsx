@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/modal-anim';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { MarkdownWithAccordions } from './markdown-with-accordions';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { BiDollar } from 'react-icons/bi';
 import { GovernanceModel } from '@/domain/models';
@@ -44,20 +44,62 @@ export function SolutionDialog() {
   const costTooltipText =
     'Dit zijn geschatte kosten op basis van een voorbeeldberekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
 
-  const CostInfoTooltip = () => (
-    <span className="relative group ml-1 inline-flex align-middle">
-      <button
-        type="button"
-        aria-label="Toelichting"
-        className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
-      >
-        <InformationCircleIcon className="h-4 w-4" />
-      </button>
-      <div className="pointer-events-none absolute left-0 top-full mt-2 w-80 rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 z-[9999]">
-        {costTooltipText}
-      </div>
-    </span>
-  );
+  const CostInfoTooltip = () => {
+    const btnRef = useRef<HTMLButtonElement | null>(null);
+    const [visible, setVisible] = useState(false);
+    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    const position = () => {
+      const el = btnRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const tooltipWidth = 320;
+      const padding = 8;
+      const rawLeft = rect.left;
+      const maxLeft = Math.max(0, window.innerWidth - tooltipWidth - padding);
+      const clampedLeft = Math.min(Math.max(padding, rawLeft), maxLeft);
+      const top = rect.bottom + padding; // viewport-relative for position: fixed
+      setPos({ top, left: clampedLeft });
+    };
+    const show = () => { position(); setVisible(true); };
+    const hide = () => setVisible(false);
+
+    useEffect(() => {
+      if (!visible) return;
+      const onScroll = () => position();
+      window.addEventListener('scroll', onScroll, true);
+      window.addEventListener('resize', onScroll);
+      return () => {
+        window.removeEventListener('scroll', onScroll, true);
+        window.removeEventListener('resize', onScroll);
+      };
+    }, [visible]);
+
+    return (
+      <span className="ml-1 inline-flex align-middle">
+        <button
+          ref={btnRef}
+          type="button"
+          aria-label="Toelichting"
+          onMouseEnter={show}
+          onFocus={show}
+          onMouseLeave={hide}
+          onBlur={hide}
+          className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
+        >
+          <InformationCircleIcon className="h-4 w-4" />
+        </button>
+        {visible && (
+          <div
+            style={{ position: 'fixed', top: pos.top, left: pos.left, width: 320, zIndex: 99999 }}
+            className="rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20"
+          >
+            {costTooltipText}
+          </div>
+        )}
+      </span>
+    );
+  };
   // Utility: strip any asterisks used as ratings in plain text fields
   const stripAsterisks = (text?: string) => {
     if (!text) return '';
@@ -262,6 +304,12 @@ export function SolutionDialog() {
                     <div>
                       <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
                       <div className="text-gray-800 mt-0.5">{currentSolution.afhankelijkheidExternePartijen}</div>
+                    </div>
+                  )}
+                  {currentSolution.rolParkmanager && (
+                    <div className="md:col-span-2">
+                      <div className="font-semibold text-gray-900">Rol parkmanager:</div>
+                      <div className="text-gray-800 mt-0.5">{currentSolution.rolParkmanager}</div>
                     </div>
                   )}
                 </div>
