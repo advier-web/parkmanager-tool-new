@@ -139,6 +139,29 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
     </div>
   );
 
+  // Parse values like "€1,94 ... [tooltip text here]" into main text + tooltip
+  const parseValueAndTooltip = (raw?: string): { main: string; tip?: string } => {
+    const source = typeof raw === 'string' ? raw : '';
+    if (!source) return { main: '' };
+    const bracketMatch = source.match(/\[([\s\S]*?)\]/);
+    if (!bracketMatch) {
+      return { main: source.trim() };
+    }
+    const tip = bracketMatch[1]?.trim();
+    const main = source.replace(/\[[\s\S]*?\]/g, '').trim();
+    return { main, tip };
+  };
+
+  const ValueWithOptionalTooltip = ({ value }: { value?: string }) => {
+    const { main, tip } = parseValueAndTooltip(value);
+    return (
+      <div className="flex items-start gap-1 text-[15px] leading-snug">
+        <span>{main || '-'}</span>
+        {tip ? <InfoTooltip text={tip} /> : null}
+      </div>
+    );
+  };
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -215,11 +238,11 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     {hasAnyNonEmpty('geschatteKostenPerKmPp') && (
                       <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                         <div className="flex items-start"><LabelWithTooltip label="Kosten per km per persoon" /></div>
-                        {variations.map((variation) => (
-                          <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {variation.geschatteKostenPerKmPp || '-'}
-                          </div>
-                        ))}
+                    {variations.map((variation) => (
+                      <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4">
+                        <ValueWithOptionalTooltip value={variation.geschatteKostenPerKmPp} />
+                      </div>
+                    ))}
                       </div>
                     )}
 
@@ -227,11 +250,11 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                     {hasAnyNonEmpty('geschatteKostenPerRit') && (
                       <div className="grid bg-white rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${variations.length}, minmax(180px, 1fr))` }}>
                         <div className="flex items-start"><LabelWithTooltip label="Kosten per rit" /></div>
-                        {variations.map((variation) => (
-                          <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {variation.geschatteKostenPerRit || '-'}
-                          </div>
-                        ))}
+                    {variations.map((variation) => (
+                      <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4">
+                        <ValueWithOptionalTooltip value={variation.geschatteKostenPerRit} />
+                      </div>
+                    ))}
                       </div>
                     )}
 

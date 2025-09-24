@@ -100,6 +100,89 @@ export function SolutionDialog() {
       </span>
     );
   };
+
+  // Tooltip component with dynamic text, positioned near the trigger
+  const InlineInfoTooltip = ({ text }: { text: string }) => {
+    const btnRef = useRef<HTMLButtonElement | null>(null);
+    const [visible, setVisible] = useState(false);
+    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    const position = () => {
+      const el = btnRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const tooltipWidth = 320;
+      const padding = 8;
+      const rawLeft = rect.left;
+      const maxLeft = Math.max(0, window.innerWidth - tooltipWidth - padding);
+      const clampedLeft = Math.min(Math.max(padding, rawLeft), maxLeft);
+      const top = rect.bottom + padding;
+      setPos({ top, left: clampedLeft });
+    };
+    const show = () => { position(); setVisible(true); };
+    const hide = () => setVisible(false);
+
+    useEffect(() => {
+      if (!visible) return;
+      const onScroll = () => position();
+      window.addEventListener('scroll', onScroll, true);
+      window.addEventListener('resize', onScroll);
+      return () => {
+        window.removeEventListener('scroll', onScroll, true);
+        window.removeEventListener('resize', onScroll);
+      };
+    }, [visible]);
+
+    return (
+      <span className="ml-1 inline-flex align-middle">
+        <button
+          ref={btnRef}
+          type="button"
+          aria-label="Toelichting"
+          onMouseEnter={show}
+          onFocus={show}
+          onMouseLeave={hide}
+          onBlur={hide}
+          className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
+        >
+          <InformationCircleIcon className="h-4 w-4" />
+        </button>
+        {visible && (
+          <div
+            style={{ position: 'fixed', top: pos.top, left: pos.left, width: 320, zIndex: 99999 }}
+            className="rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20"
+          >
+            {text}
+          </div>
+        )}
+      </span>
+    );
+  };
+
+  // Parse value text like: "€0,50 ... [tooltip text]" into main + tooltip text
+  const parseValueAndTooltip = (raw?: string): { main: string; tip?: string } => {
+    const source = typeof raw === 'string' ? raw : '';
+    if (!source) return { main: '' };
+    const bracketMatch = source.match(/\[([\s\S]*?)\]/);
+    if (!bracketMatch) {
+      return { main: source.trim() };
+    }
+    const tip = bracketMatch[1]?.trim();
+    const main = source.replace(/\[[\s\S]*?\]/g, '').trim();
+    return { main, tip };
+  };
+
+  const ValueWithOptionalTooltip = ({ value }: { value?: string }) => {
+    const { main, tip } = parseValueAndTooltip(value);
+    return (
+      <div className="flex items-start gap-1">
+        <span>{main || '-'}</span>
+        {tip ? <InlineInfoTooltip text={tip} /> : null}
+      </div>
+    );
+  };
+
+  const Divider = () => <div className="h-px bg-gray-200" />;
   // Utility: strip any asterisks used as ratings in plain text fields
   const stripAsterisks = (text?: string) => {
     if (!text) return '';
@@ -328,6 +411,7 @@ export function SolutionDialog() {
                 </div>
               </section>
             )}
+            {!showOnlyCases && description && (<Divider />)}
 
             {/* Uitvoering */}
             {!showOnlyCases && uitvoering && (
@@ -336,6 +420,7 @@ export function SolutionDialog() {
                 <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={uitvoering} /></div></div>
               </section>
             )}
+            {!showOnlyCases && uitvoering && (<Divider />)}
 
             {/* Input Business Case */}
             {!showOnlyCases && inputBusinesscase && (
@@ -344,6 +429,7 @@ export function SolutionDialog() {
                 <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={inputBusinesscase} /></div></div>
               </section>
             )}
+            {!showOnlyCases && inputBusinesscase && (<Divider />)}
 
             {/* Uitdagingen en Aanleidingen verwijderd op verzoek */}
 
@@ -378,6 +464,7 @@ export function SolutionDialog() {
                 <div className="overflow-x-auto"><div className="min-w-full"><MarkdownWithAccordions content={collectiefVsIndiviueel} /></div></div>
               </section>
             )}
+            {!showOnlyCases && collectiefVsIndiviueel && (<Divider />)}
 
             {/* Vergelijk implementatievarianten - table inside popup before cases */}
             {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
@@ -460,6 +547,7 @@ export function SolutionDialog() {
                 </div>
               </section>
             )}
+            {!showOnlyCases && currentVariations && currentVariations.length > 0 && (<Divider />)}
 
             {/* ADDED Casebeschrijving section AT THE BOTTOM of content */}
             {showOnlyCases && currentSolution.casebeschrijving && (
@@ -468,6 +556,7 @@ export function SolutionDialog() {
                 <MarkdownWithAccordions content={currentSolution.casebeschrijving} /> 
               </section>
             )}
+            {showOnlyCases && currentSolution.casebeschrijving && (<Divider />)}
 
             {/* Uitgecommenteerde secties */}
             {/*
@@ -698,13 +787,13 @@ export function SolutionDialog() {
                 {variant.geschatteKostenPerKmPp && (
                   <div>
                     <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per km per persoon:<CostInfoTooltip /></div>
-                    <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerKmPp}</div>
+                    <div className="text-gray-800 mt-0.5"><ValueWithOptionalTooltip value={variant.geschatteKostenPerKmPp} /></div>
                   </div>
                 )}
                 {variant.geschatteKostenPerRit && (
                   <div>
                     <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per rit:<CostInfoTooltip /></div>
-                    <div className="text-gray-800 mt-0.5">{variant.geschatteKostenPerRit}</div>
+                    <div className="text-gray-800 mt-0.5"><ValueWithOptionalTooltip value={variant.geschatteKostenPerRit} /></div>
                   </div>
                 )}
                 {variant.controleEnFlexibiliteit && (
@@ -761,12 +850,14 @@ export function SolutionDialog() {
                 })()}
               </section>
             )}
+            {variant.samenvatting && (<Divider />)}
             {variant.investering && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Exploitatie</h1>
                 <MarkdownContent variant="modal" content={variant.investering} />
               </section>
             )}
+            {variant.investering && (<Divider />)}
             {/* {variant.realisatieplan && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Realisatieplan</h1>
@@ -779,24 +870,28 @@ export function SolutionDialog() {
                 <MarkdownContent variant="modal" content={variant.realisatieplanLeveranciers} />
               </section>
             )}
+            {variant.realisatieplanLeveranciers && (<Divider />)}
             {variant.realisatieplanContractvormen && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Contractvormen</h1>
                 <MarkdownContent variant="modal" content={variant.realisatieplanContractvormen} />
               </section>
             )}
+            {variant.realisatieplanContractvormen && (<Divider />)}
             {variant.realisatieplanKrachtenveld && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Krachtenveld</h1>
                 <MarkdownContent variant="modal" content={variant.realisatieplanKrachtenveld} />
               </section>
             )}
+            {variant.realisatieplanKrachtenveld && (<Divider />)}
             {variant.realisatieplanVoorsEnTegens && (
               <section>
                 <h1 className="text-3xl font-bold mb-2">Voors en Tegens</h1>
                 <MarkdownContent variant="modal" content={variant.realisatieplanVoorsEnTegens} />
               </section>
             )}
+            {variant.realisatieplanVoorsEnTegens && (<Divider />)}
             {/* Aandachtspunten tijdelijk verborgen op verzoek */}
             {variant.realisatieplanChecklist && (
               <section>
@@ -804,6 +899,7 @@ export function SolutionDialog() {
                 <MarkdownContent variant="modal" content={variant.realisatieplanChecklist} />
               </section>
             )}
+            {variant.realisatieplanChecklist && (<Divider />)}
           </div>
           {/* Footer */}
           <div className="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end">
