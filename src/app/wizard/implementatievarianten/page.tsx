@@ -103,7 +103,7 @@ export default function SelectImplementationVariantPage() {
           <div className="bg-white rounded-lg p-8 shadow-even">
             <h2 className="text-2xl font-bold mb-4">Implementatievarianten</h2>
               <p className="mb-6">
-                Voor de door u geselecteerde vervoersoplossing zijn onderstaande implementatievarianten beschikbaar. Om verder te gaan selecteert u één implementatievariant. Implementatievarianten komen ook terug in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 5 en 6.2.
+                Voor de door u geselecteerde vervoersoplossing zijn onderstaande implementatievarianten beschikbaar. Om verder te gaan selecteert u één implementatievariant. Indien u COVER-subsidie aanvraagt: de implementatievariant wordt gevraagd in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 5 en 6.2.
               </p>
 
             {!isLoading && !error && allVariations.length >= 2 && (

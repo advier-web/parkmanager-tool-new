@@ -131,7 +131,7 @@ export default function BusinessParkInfoPage() {
             <h2 className="text-2xl font-bold mb-4">Informatie over uw bedrijvenvereniging</h2>
             <p className="mb-6">
               Voordat we beginnen, heb ik wat basisinformatie nodig over het bedrijventerrein 
-              waarvoor u het advies wilt opstellen. Locatiekenmerken en het bestuursmodel komen ook terug in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 2.
+              waarvoor u het advies wilt opstellen. Indien u COVER-subsidie aanvraagt: locatiekenmerken en uw huidige bestuursmodel worden  gevraagd in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 2.
             </p>
             
             <div className="space-y-6">

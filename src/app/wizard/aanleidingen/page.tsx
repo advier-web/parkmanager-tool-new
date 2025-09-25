@@ -112,7 +112,7 @@ export default function Step1Page() {
             <h2 className="text-2xl font-bold mb-4">Aanleidingen</h2>
             <p className="mb-6">
               Selecteer de redenen waarom u de mobiliteit op uw bedrijventerrein wilt verbeteren. 
-              U kunt meerdere redenen selecteren, maar dit is niet verplicht. Aanleidingen komen ook terug in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 3 en 4.
+              U kunt meerdere redenen selecteren, maar dit is niet verplicht. Indien u COVER-subsidie aanvraagt: aanleidingen worden gevraagd in de <a href="https://www.rvo.nl/subsidies-financiering/cover" target="_blank" rel="noreferrer noopener" className="text-blue-600 underline">COVER-subsidie aanvraag</a> in deel 3 en 4.
             </p>
           </div>
 
