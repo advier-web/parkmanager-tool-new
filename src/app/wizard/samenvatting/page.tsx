@@ -38,7 +38,7 @@ export default function SummaryPage() {
     _hasHydrated
   } = useWizardStore();
   
-  // --- REMOVED DEBUG LOG --- 
+        // intentionally silent
 
   const { data: reasons } = useBusinessParkReasons();
   const { data: models } = useGovernanceModels();
@@ -81,7 +81,7 @@ export default function SummaryPage() {
           govModelPromise
         ]);
         
-        // --- REMOVED DEBUG LOGS --- 
+        // intentionally silent
 
         const fetchedVariations = variationResults.filter((v): v is ImplementationVariation => v !== null);
         const fetchedSolutions = solutionResults.reduce((acc, sol) => {
@@ -89,7 +89,7 @@ export default function SummaryPage() {
           return acc;
         }, {} as Record<string, MobilitySolution>);
         
-        // --- REMOVED DEBUG LOGS --- 
+        // intentionally silent
 
         setSelectedVariationsData(fetchedVariations);
         setSelectedSolutionsData(fetchedSolutions);
@@ -351,7 +351,7 @@ export default function SummaryPage() {
                               const explanationFieldName = reason.identifier ? snakeToCamel(reason.identifier) + 'Toelichting' : '';
                               const explanationText = explanationFieldName ? (solution as any)[explanationFieldName] : undefined;
 
-                              console.log(`[SummaryPage] Reason: ${reason.title}, Identifier: ${reason.identifier}, FieldName: ${explanationFieldName}, TextFound: ${explanationText ? 'YES' : 'NO'}`, explanationText);
+                              // dev logging removed
 
                               return (
                                 <div key={reason.id}>
@@ -461,7 +461,7 @@ export default function SummaryPage() {
       </div>
       
       <WizardNavigation
-        previousStep="/wizard/stap-4"
+        previousStep="/wizard/governance-modellen"
       />
     </div>
   );

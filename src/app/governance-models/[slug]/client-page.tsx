@@ -37,8 +37,6 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
     );
   }
 
-  console.log('Rendering governance model:', model);
-
   const contentfulFields = model.fields as Record<string, any> || {};
   
   // Get advantages/disadvantages data - add types if possible
@@ -75,9 +73,7 @@ export default function GovernanceModelClientPage({ model }: GovernanceModelClie
   const voordelen = getFieldData('voordelen');
   const nadelen = getFieldData('nadelen');
 
-  // Debug logs - PLEASE CHECK YOUR BROWSER CONSOLE FOR THESE
-  console.log('[Debug] getFieldData("voordelen") returned:', voordelen, "| type:", typeof voordelen);
-  console.log('[Debug] getFieldData("nadelen") returned:', nadelen, "| type:", typeof nadelen);
+  // debug logs removed for production cleanliness
 
   // Get lead time data
   const doorlooptijd: string = model.doorlooptijdLang || 

@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { GovernanceModel } from '../domain/models';
 import { Accordion } from './accordion';
 import { MarkdownContent, processMarkdownText } from './markdown-content';
-import PdfDownloadButtonContentful from './pdf-download-button-contentful';
+import GovernanceModelFactsheetButton from './governance-model-factsheet-button';
 
 interface GovernanceModelAccordionProps {
   model: GovernanceModel;
@@ -14,11 +14,11 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Ensure advantages and disadvantages are arrays or convert them
-  const advantages = Array.isArray(model.advantages) ? model.advantages : 
-                    (model.advantages ? [String(model.advantages)] : []);
+  const advantages = Array.isArray((model as any).advantages) ? (model as any).advantages as string[] : 
+                    ((model as any).advantages ? [String((model as any).advantages)] : []);
   
-  const disadvantages = Array.isArray(model.disadvantages) ? model.disadvantages : 
-                       (model.disadvantages ? [String(model.disadvantages)] : []);
+  const disadvantages = Array.isArray((model as any).disadvantages) ? (model as any).disadvantages as string[] : 
+                       ((model as any).disadvantages ? [String((model as any).disadvantages)] : []);
 
   return (
     <Accordion title={model.title}>
@@ -89,10 +89,12 @@ export function GovernanceModelAccordion({ model }: GovernanceModelAccordionProp
           </p>
         </div>
         
-        <PdfDownloadButtonContentful
-          mobilityServiceId={model.id}
-          fileName={`${model.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.pdf`}
-          contentType="governanceModel"
+        <GovernanceModelFactsheetButton
+          governanceModel={model as any}
+          selectedVariations={[]}
+          governanceTitleToFieldName={(t) => t}
+          stripSolutionPrefixFromVariantTitle={(t) => t}
+          buttonColorClassName="bg-blue-600 hover:bg-blue-700 text-white"
         />
       </div>
     </Accordion>

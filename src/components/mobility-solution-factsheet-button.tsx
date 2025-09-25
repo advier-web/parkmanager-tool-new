@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { Button } from '@/components/ui/button';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
@@ -77,17 +77,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
 
   const fileName = useMemo(() => `Factsheet_${(solution?.title || 'oplossing').replace(/[^a-z0-9]/gi, '_')}.pdf`, [solution?.title]);
 
-  if (!solution) {
-    return (
-      <Button variant="default" disabled className={`${className} ${buttonColorClassName} opacity-50`}>
-        <DocumentTextIcon className="h-4 w-4" />
-        Factsheet Oplossing (niet beschikbaar)
-      </Button>
-    );
-  }
-
-  const handleGenerate = useMemo(() => {
-    return async () => {
+  const handleGenerate = useCallback(async () => {
       if (!isClient || !solution) return;
       setGenerating(true);
       try {
@@ -115,11 +105,10 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
       } finally {
         setGenerating(false);
       }
-    };
   }, [PdfComponent, isClient, solution, fileName]);
 
   return (
-    <Button onClick={handleGenerate} variant="default" className={`${className} ${buttonColorClassName}`} disabled={!isClient || generating}>
+    <Button onClick={solution ? handleGenerate : undefined} variant="default" className={`${className} ${buttonColorClassName}`} disabled={!isClient || generating || !solution}>
       {generating ? (
         <>
           <DocumentTextIcon className="h-4 w-4" />
@@ -131,7 +120,7 @@ const MobilitySolutionFactsheetButtonComponent: React.FC<MobilitySolutionFactshe
         ) : (
           <>
             <DocumentTextIcon className="h-4 w-4" />
-            {`Download factsheet ${solution.title}`}
+            {solution ? `Download factsheet ${solution.title}` : 'Factsheet Oplossing (niet beschikbaar)'}
           </>
         )
       )}

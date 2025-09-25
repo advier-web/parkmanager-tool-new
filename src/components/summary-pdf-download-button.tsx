@@ -145,7 +145,7 @@ export default function SummaryPdfDownloadButton(props: SummaryPdfDownloadButton
       )}
       fileName={fileName}
     >
-      {({ loading, url }: { loading: boolean; url?: string }) => (
+      {({ loading, url }: { loading: boolean; url?: string | null }) => (
         <>
           <AutoDownloader loading={loading} url={url} />
           {asLink ? (

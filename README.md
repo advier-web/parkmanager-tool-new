@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Parkmanager Tool – Overzicht
 
-## Getting Started
+Next.js app (App Router) met Contentful-integratie, wizard-flow, vergelijkers en PDF-factsheets (React-PDF). Stijlen met Tailwind. State via Zustand.
 
-First, run the development server:
+## Installatie & Development
 
+1) Dependencies installeren:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2) Env-variabelen instellen in `.env.local`:
+```bash
+NEXT_PUBLIC_USE_CONTENTFUL=true           # of false voor mock data
+CONTENTFUL_SPACE_ID=...
+CONTENTFUL_ENVIRONMENT=master
+CONTENTFUL_DELIVERY_TOKEN=...
+CONTENTFUL_PREVIEW_TOKEN=...
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3) Dev server starten:
+```bash
+npm run dev
+# Tip: bij poort-conflict
+npm run dev -- --hostname 127.0.0.1 --port 3001
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4) Cache wissen (optioneel bij rare build issues):
+```bash
+npm run clear-cache
+```
 
-## Learn More
+## Architectuur
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app`: pagina’s (App Router), incl. wizard-stappen en dynamische routes.
+- `src/components`: herbruikbare UI, modals en secties.
+- `src/services`: Contentful fetchers en mocks.
+- `src/transforms`: mapping van Contentful respons naar domeinmodellen.
+- `src/domain`: TypeScript domeinmodellen (Solution, Variation, Governance, ...).
+- `src/store`: Zustand store voor wizard-keuzes.
+- `src/utils`: gedeelde helpers (wizard-helpers, env, etc.).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Belangrijke UI-modules:
+- Tooltips: `components/ui/tooltip.tsx` (Radix UI) + vaste positie varianten: `components/solution-dialog/FixedInfoTooltip.tsx`
+- Sterrenrenderer: `components/ui/stars.tsx` met `StarsWithText` (interpreteert leidende `*`)
+- Vergelijkingstabel varianten: `components/solution-variant-comparison-table.tsx`
+- Dialog structuur: `components/solution-dialog.tsx` opgesplitst in subcomponenten in `components/solution-dialog/*`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contentful toggles
 
-## Deploy on Vercel
+- `NEXT_PUBLIC_USE_CONTENTFUL=false`: app draait volledig op mock data (`src/services/mock-service.ts`).
+- `NEXT_PUBLIC_USE_CONTENTFUL=true`: live Contentful-API (`src/services/contentful-service.ts` + `src/lib/contentful/client.ts`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Migrations staan in `migrations/*`; typegeneratie scripts in `scripts/generate-contentful-types.*`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tooltipconventie (bracket-tooltips)
+
+- Tekstvelden kunnen inline toelichting bevatten tussen vierkante haken. Voorbeeld:
+  `€0,50 per km [Excl. BTW; indicatief op basis van aanbieder X]`
+- Parser: `parseValueAndTooltip` (export in `src/lib/utils.ts`), UI: `ValueWithTooltip` (`components/ui/tooltip.tsx`).
+- In modals waar Radix overlay clipping gaf, gebruiken we fixed-position varianten: `InlineFixedTooltip`/`CostInfoTooltip`.
+
+## Sterrenconventie in tekstvelden
+
+- Leidende `*` (1–5) geven relatieve score en worden als sterren gerenderd; resterende tekst eronder.
+- Renderer: `StarsWithText` (`components/ui/stars.tsx`).
+
+## Implementatievarianten – titel en sortering
+
+- Varianten tonen zonder oplossingsprefix via `stripSolutionPrefixFromVariantTitle(...)` (`utils/wizard-helpers.ts`).
+- Kolomvolgorde is centraal vastgelegd in `desiredImplementationOrder`; sorteer met `orderImplementationVariations(...)`.
+
+## Factsheets (PDF)
+
+- Oplossing: `components/mobility-solution-factsheet-pdf.tsx`
+- Implementatievariant: `components/implementation-variant-factsheet-pdf.tsx`
+- Governance model: `components/governance-model-factsheet-pdf.tsx`
+- Downloadknoppen: `*factsheet-button.tsx`
+
+React-PDF tips:
+- Beperk Html-rendering; grote tabellen worden lichter gerenderd via custom table logic.
+- Geen afbeeldingen/scripts in inline HTML; fonts via CDN (Open Sans) zijn geregistreerd.
+
+## Build & Deploy
+
+Build lokaal:
+```bash
+npm run build
+```
+
+Vercel: auto-deploy op push naar `main` (controleer repo-koppeling, GitHub App permissies en webhooks). Bij uitblijven van builds, check Vercel Project Settings → Git.
+
+## Troubleshooting
+
+- Poort bezet (EADDRINUSE):
+```bash
+lsof -ti tcp:3000 | xargs -r kill -9
+npm run dev -- --hostname 127.0.0.1 --port 3001
+```
+- Vastgelopen build: `npm run clear-cache`
+- Contentful timeouts: zet tijdelijk `NEXT_PUBLIC_USE_CONTENTFUL=false` voor lokale ontwikkeling.
+

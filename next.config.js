@@ -17,12 +17,12 @@ const nextConfig = {
     'pdfjs-dist'
   ],
   eslint: {
-    // Tijdelijk uitgeschakeld tot alle linting issues zijn opgelost
-    ignoreDuringBuilds: true,
+    // Lint tijdens build
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Tijdelijk uitgeschakeld tot alle type issues zijn opgelost
-    ignoreBuildErrors: true,
+    // Type errors blokkeren de build
+    ignoreBuildErrors: false,
   },
   webpack: (config) => {
     // svg behandeling

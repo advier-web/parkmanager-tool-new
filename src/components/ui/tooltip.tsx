@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+import { InformationCircleIcon } from "@heroicons/react/24/outline"
 
 import { cn } from "@/lib/utils"
 
@@ -46,7 +47,7 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-2 text-sm text-balance",
           className
         )}
         {...props}
@@ -59,3 +60,26 @@ function TooltipContent({
 }
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+
+export function ValueWithTooltip({ value }: { value?: string }) {
+  const [main, tip] = React.useMemo(() => {
+    const src = typeof value === 'string' ? value : ''
+    const m = src.match(/\[([\s\S]*?)\]/)
+    if (!m) return [src, undefined] as const
+    return [src.replace(/\[[\s\S]*?\]/g, '').trim(), m[1]?.trim()] as const
+  }, [value])
+  if (!tip) return <span>{main || '-'}</span>
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-start gap-1">
+          <span>{main || '-'}</span>
+          <InformationCircleIcon className="h-6 w-6 shrink-0 text-blue-600" />
+        </span>
+      </TooltipTrigger>
+      <TooltipContent sideOffset={6} className="max-w-xs bg-black text-white">
+        {tip}
+      </TooltipContent>
+    </Tooltip>
+  )
+}

@@ -251,8 +251,8 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
     if (linesForTableCheck.length >= 1) {
       let currentLineIndex = 0;
       // Get the first line and trim it for processing
-      let firstLineInspected = linesForTableCheck[currentLineIndex];
-      let firstLineContent = firstLineInspected.trim();
+      const firstLineInspected = linesForTableCheck[currentLineIndex];
+      const firstLineContent = firstLineInspected.trim();
 
       if (tableRowRegex.test(firstLineContent)) {
         // Potential start of a table
@@ -273,8 +273,8 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
 
           // Check for separator line immediately after the first line
           if (currentLineIndex < linesForTableCheck.length) {
-            let separatorLineInspected = linesForTableCheck[currentLineIndex];
-            let separatorLineContent = separatorLineInspected.trim();
+            const separatorLineInspected = linesForTableCheck[currentLineIndex];
+            const separatorLineContent = separatorLineInspected.trim();
             if (tableSeparatorRegex.test(separatorLineContent)) {
               hasHeader = true;
               consumedTableLength += separatorLineInspected.length + 1; // Consume original length
@@ -300,8 +300,8 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
 
           // Process subsequent rows
           while (currentLineIndex < linesForTableCheck.length) {
-            let subsequentLineInspected = linesForTableCheck[currentLineIndex];
-            let subsequentLineContent = subsequentLineInspected.trim();
+            const subsequentLineInspected = linesForTableCheck[currentLineIndex];
+            const subsequentLineContent = subsequentLineInspected.trim();
 
             if (subsequentLineContent === '') { // Skip empty lines
               consumedTableLength += subsequentLineInspected.length + 1; // Consume original length
@@ -386,7 +386,7 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
 
     // 5. Paragraph (default) (was 4)
     const lines = remainingText.split('\n');
-    let paragraphBuffer: string[] = [];
+    const paragraphBuffer: string[] = [];
     let consumedLength = 0;
 
     for (let i = 0; i < lines.length; i++) {

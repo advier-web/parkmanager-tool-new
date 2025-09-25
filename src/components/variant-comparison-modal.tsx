@@ -12,8 +12,10 @@ import {
   MODAL_PANEL_LEAVE_TO,
 } from '@/components/ui/modal-anim';
 import { XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ValueWithTooltip } from '@/components/ui/tooltip';
 import { ImplementationVariation } from '@/domain/models';
 import { MarkdownContent, processMarkdownText } from '@/components/markdown-content';
+import { StarsWithText } from '@/components/ui/stars';
 
 interface VariantComparisonModalProps {
   variations: ImplementationVariation[];
@@ -42,7 +44,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
   // Helper: bepaalt of er voor een gegeven veld ten minste één niet-lege waarde is
   const hasAnyNonEmpty = (field: keyof ImplementationVariation): boolean => {
     return variations.some((v) => {
-      const raw = (v as Record<string, unknown>)[field];
+      const raw = (v as unknown as Record<string, unknown>)[field];
       if (raw == null) return false;
       if (typeof raw === 'string') return raw.trim() !== '';
       return Boolean(raw);
@@ -118,7 +120,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
           onBlur={hide}
           className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
         >
-          <InformationCircleIcon className="h-4 w-4" />
+          <InformationCircleIcon className="h-6 w-6 shrink-0" />
         </button>
         {visible && (
           <div
@@ -139,28 +141,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
     </div>
   );
 
-  // Parse values like "€1,94 ... [tooltip text here]" into main text + tooltip
-  const parseValueAndTooltip = (raw?: string): { main: string; tip?: string } => {
-    const source = typeof raw === 'string' ? raw : '';
-    if (!source) return { main: '' };
-    const bracketMatch = source.match(/\[([\s\S]*?)\]/);
-    if (!bracketMatch) {
-      return { main: source.trim() };
-    }
-    const tip = bracketMatch[1]?.trim();
-    const main = source.replace(/\[[\s\S]*?\]/g, '').trim();
-    return { main, tip };
-  };
-
-  const ValueWithOptionalTooltip = ({ value }: { value?: string }) => {
-    const { main, tip } = parseValueAndTooltip(value);
-    return (
-      <div className="flex items-start gap-1 text-[15px] leading-snug">
-        <span>{main || '-'}</span>
-        {tip ? <InfoTooltip text={tip} /> : null}
-      </div>
-    );
-  };
+  // replaced with shared ValueWithTooltip
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -240,7 +221,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <div className="flex items-start"><LabelWithTooltip label="Kosten per km per persoon" /></div>
                     {variations.map((variation) => (
                       <div key={`${variation.id}-km-costs`} className="border-l border-gray-200 pl-4">
-                        <ValueWithOptionalTooltip value={variation.geschatteKostenPerKmPp} />
+                        <div className="text-[15px] leading-snug"><ValueWithTooltip value={variation.geschatteKostenPerKmPp} /></div>
                       </div>
                     ))}
                       </div>
@@ -252,7 +233,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         <div className="flex items-start"><LabelWithTooltip label="Kosten per rit" /></div>
                     {variations.map((variation) => (
                       <div key={`${variation.id}-trip-costs`} className="border-l border-gray-200 pl-4">
-                        <ValueWithOptionalTooltip value={variation.geschatteKostenPerRit} />
+                        <div className="text-[15px] leading-snug"><ValueWithTooltip value={variation.geschatteKostenPerRit} /></div>
                       </div>
                     ))}
                       </div>
@@ -268,7 +249,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-control-flex`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.controleEnFlexibiliteit || '-')}
+                        <StarsWithText raw={variation.controleEnFlexibiliteit || '-'} />
                           </div>
                         ))}
                       </div>
@@ -282,7 +263,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-maatwerk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.maatwerk || '-')}
+                        <StarsWithText raw={variation.maatwerk || '-'} />
                           </div>
                         ))}
                       </div>
@@ -296,7 +277,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-cost-scale`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.kostenEnSchaalvoordelen || '-')}
+                        <StarsWithText raw={variation.kostenEnSchaalvoordelen || '-'} />
                           </div>
                         ))}
                       </div>
@@ -310,7 +291,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-operational-complexity`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.operationeleComplexiteit || '-')}
+                        <StarsWithText raw={variation.operationeleComplexiteit || '-'} />
                           </div>
                         ))}
                       </div>
@@ -324,7 +305,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-legal-compliance-risks`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.juridischeEnComplianceRisicos || '-')}
+                        <StarsWithText raw={variation.juridischeEnComplianceRisicos || '-'} />
                           </div>
                         ))}
                       </div>
@@ -338,7 +319,7 @@ export function VariantComparisonModal({ variations, isOpen, onClose }: VariantC
                         </div>
                         {variations.map((variation) => (
                           <div key={`${variation.id}-underutilization-risk`} className="border-l border-gray-200 pl-4 text-[15px] leading-snug">
-                            {renderStarsAndText(variation.risicoVanOnvoldoendeGebruik || '-')}
+                        <StarsWithText raw={variation.risicoVanOnvoldoendeGebruik || '-'} />
                           </div>
                         ))}
                       </div>
