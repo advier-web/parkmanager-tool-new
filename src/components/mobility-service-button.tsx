@@ -48,7 +48,6 @@ export function MobilityServiceButton({ solution }: MobilityServiceButtonProps) 
   const slug = solution.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   
   // Log de slug voor debugging
-  console.log(`Generated slug for Contentful solution ${solution.id}:`, slug);
   
   // Bepaal de kleur en afbeelding voor deze oplossing
   const bgColor = getCategoryColor(solution.category);

@@ -197,7 +197,7 @@ export function PdfDownloadButton({ contentRef, fileName, title, onBeforeDownloa
       
       // Calculate position
       const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      let imgY = 25; // Start below the title
+      const imgY = 25; // Start below the title
       
       try {
         // Add the image to the PDF with error handling

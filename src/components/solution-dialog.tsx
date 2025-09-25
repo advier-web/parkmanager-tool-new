@@ -19,7 +19,14 @@ import { MarkdownContent, processMarkdownText } from './markdown-content';
 import { MarkdownWithAccordions } from './markdown-with-accordions';
 import { useEffect, useRef, useState } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { ValueWithTooltip } from '@/components/ui/tooltip';
 import { BiDollar } from 'react-icons/bi';
+import { Divider } from '@/components/ui/divider';
+import { SolutionTopMeta } from '@/components/solution-dialog/SolutionTopMeta';
+import { SolutionComparisonSection } from '@/components/solution-dialog/SolutionComparisonSection';
+import { VariantTopMeta } from '@/components/solution-dialog/VariantTopMeta';
+import { StarsWithText } from '@/components/ui/stars';
+import { InlineFixedTooltip, CostInfoTooltip } from '@/components/solution-dialog/FixedInfoTooltip';
 import { GovernanceModel } from '@/domain/models';
 import { stripSolutionPrefixFromVariantTitle } from '@/utils/wizard-helpers';
 
@@ -28,136 +35,12 @@ export function SolutionDialog() {
 
   // Debug logs for troubleshooting
   useEffect(() => {
-    if (dialogType === 'solution' && currentSolution) {
-      console.log('Current Solution:', currentSolution);
-      console.log('Compatible Governance Models:', compatibleGovernanceModels);
-      console.log('Current Variations:', currentVariations);
-      
-      // Debug all available compatible governance models
-      if (Array.isArray(compatibleGovernanceModels)) {
-        console.log('ALL COMPATIBLE MODELS:', compatibleGovernanceModels.map(model => ({ id: model.id, title: model.title })));
-      }
-    }
+    // intentionally left empty; previously contained dev logging
   }, [dialogType, currentSolution, compatibleGovernanceModels, currentVariations]);
 
   const ANIMATION_MS = 600;
-  const costTooltipText =
-    'Dit zijn geschatte kosten op basis van een voorbeeldberekening. De volledige berekening vindt u in de factsheet van de implementatievariant in de volgende stap van de tool. De daadwerkelijke kosten verschillen per situatie.';
 
-  const CostInfoTooltip = () => {
-    const btnRef = useRef<HTMLButtonElement | null>(null);
-    const [visible, setVisible] = useState(false);
-    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-
-    const position = () => {
-      const el = btnRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const tooltipWidth = 320;
-      const padding = 8;
-      const rawLeft = rect.left;
-      const maxLeft = Math.max(0, window.innerWidth - tooltipWidth - padding);
-      const clampedLeft = Math.min(Math.max(padding, rawLeft), maxLeft);
-      const top = rect.bottom + padding; // viewport-relative for position: fixed
-      setPos({ top, left: clampedLeft });
-    };
-    const show = () => { position(); setVisible(true); };
-    const hide = () => setVisible(false);
-
-    useEffect(() => {
-      if (!visible) return;
-      const onScroll = () => position();
-      window.addEventListener('scroll', onScroll, true);
-      window.addEventListener('resize', onScroll);
-      return () => {
-        window.removeEventListener('scroll', onScroll, true);
-        window.removeEventListener('resize', onScroll);
-      };
-    }, [visible]);
-
-    return (
-      <span className="ml-1 inline-flex align-middle">
-        <button
-          ref={btnRef}
-          type="button"
-          aria-label="Toelichting"
-          onMouseEnter={show}
-          onFocus={show}
-          onMouseLeave={hide}
-          onBlur={hide}
-          className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
-        >
-          <InformationCircleIcon className="h-4 w-4" />
-        </button>
-        {visible && (
-          <div
-            style={{ position: 'fixed', top: pos.top, left: pos.left, width: 320, zIndex: 99999 }}
-            className="rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20"
-          >
-            {costTooltipText}
-          </div>
-        )}
-      </span>
-    );
-  };
-
-  // Tooltip component with dynamic text, positioned near the trigger
-  const InlineInfoTooltip = ({ text }: { text: string }) => {
-    const btnRef = useRef<HTMLButtonElement | null>(null);
-    const [visible, setVisible] = useState(false);
-    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-
-    const position = () => {
-      const el = btnRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const tooltipWidth = 320;
-      const padding = 8;
-      const rawLeft = rect.left;
-      const maxLeft = Math.max(0, window.innerWidth - tooltipWidth - padding);
-      const clampedLeft = Math.min(Math.max(padding, rawLeft), maxLeft);
-      const top = rect.bottom + padding;
-      setPos({ top, left: clampedLeft });
-    };
-    const show = () => { position(); setVisible(true); };
-    const hide = () => setVisible(false);
-
-    useEffect(() => {
-      if (!visible) return;
-      const onScroll = () => position();
-      window.addEventListener('scroll', onScroll, true);
-      window.addEventListener('resize', onScroll);
-      return () => {
-        window.removeEventListener('scroll', onScroll, true);
-        window.removeEventListener('resize', onScroll);
-      };
-    }, [visible]);
-
-    return (
-      <span className="ml-1 inline-flex align-middle">
-        <button
-          ref={btnRef}
-          type="button"
-          aria-label="Toelichting"
-          onMouseEnter={show}
-          onFocus={show}
-          onMouseLeave={hide}
-          onBlur={hide}
-          className="mt-0.5 text-blue-600 hover:text-blue-700 focus:outline-none"
-        >
-          <InformationCircleIcon className="h-4 w-4" />
-        </button>
-        {visible && (
-          <div
-            style={{ position: 'fixed', top: pos.top, left: pos.left, width: 320, zIndex: 99999 }}
-            className="rounded-md bg-black text-white px-3 py-2 text-sm leading-snug shadow-2xl ring-1 ring-black/20"
-          >
-            {text}
-          </div>
-        )}
-      </span>
-    );
-  };
+  // replaced with InlineFixedTooltip component
 
   // Parse value text like: "€0,50 ... [tooltip text]" into main + tooltip text
   const parseValueAndTooltip = (raw?: string): { main: string; tip?: string } => {
@@ -177,45 +60,18 @@ export function SolutionDialog() {
     return (
       <div className="flex items-start gap-1">
         <span>{main || '-'}</span>
-        {tip ? <InlineInfoTooltip text={tip} /> : null}
+        {tip ? <InlineFixedTooltip text={tip} /> : null}
       </div>
     );
   };
 
-  const Divider = () => <div className="h-px bg-gray-200" />;
   // Utility: strip any asterisks used as ratings in plain text fields
   const stripAsterisks = (text?: string) => {
     if (!text) return '';
     return text.replace(/\*/g, '').trim();
   };
   // Helper to render leading '*' as stars and the rest of the text below
-  const renderStarsAndText = (raw: string) => {
-    const source = typeof raw === 'string' ? raw : String(raw ?? '');
-    const m = source.match(/^\s*(\*{1,5})\s*([\s\S]*)$/);
-    if (!m) {
-      return (
-        <div className="prose prose-sm max-w-none">
-          <MarkdownContent content={processMarkdownText(source || '-')} />
-        </div>
-      );
-    }
-    const starsCount = m[1].length;
-    const remainingText = m[2] || '';
-    return (
-      <div className="space-y-1">
-        <div className="flex items-center gap-0.5">
-          {Array.from({ length: starsCount }).map((_, i) => (
-            <svg key={i} className="h-4 w-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.802 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10.95 13.93a1 1 0 00-1.175 0L6.615 16.281c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-        <div className="prose prose-sm max-w-none">
-          <MarkdownContent content={processMarkdownText(remainingText)} />
-        </div>
-      </div>
-    );
-  };
+  const renderStarsAndText = (raw: string) => <StarsWithText raw={raw} />;
   if (!isOpen) return null;
 
   // Show business park reason information dialog
@@ -280,15 +136,15 @@ export function SolutionDialog() {
     const showOnlyCases = dialogType === 'solution-cases';
 
     // Enforce fixed column order for implementation variations in the comparison table
-    const normalize = (s: string) => (s || '').toLowerCase().trim();
-    const desiredOrder = [
-      'zelf aanschaffen door bedrijfsvereniging',
-      'inkoop door één aangesloten organisatie met deelname van anderen',
-      'aanbevolen serviceprovider door de bedrijfsvereniging',
-      'centrale inkoop door de bedrijfsvereniging via één serviceprovider',
-    ];
-    const getVariantKey = (v: any) => normalize(stripSolutionPrefixFromVariantTitle(v?.title || ''));
     const variationsForTable = (currentVariations || []).slice().sort((a: any, b: any) => {
+      const normalize = (s: string) => (s || '').toLowerCase().trim();
+      const getVariantKey = (v: any) => normalize(stripSolutionPrefixFromVariantTitle(v?.title || ''));
+      const desiredOrder = [
+        'zelf aanschaffen door bedrijfsvereniging',
+        'inkoop door één aangesloten organisatie met deelname van anderen',
+        'aanbevolen serviceprovider door de bedrijfsvereniging',
+        'centrale inkoop door de bedrijfsvereniging via één serviceprovider',
+      ];
       const ai = desiredOrder.indexOf(getVariantKey(a));
       const bi = desiredOrder.indexOf(getVariantKey(b));
       const as = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
@@ -333,71 +189,18 @@ export function SolutionDialog() {
 
             {/* Top meta fields */}
             {!showOnlyCases && (
-              <section className="text-sm bg-blue-100 rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentSolution.wanneerRelevant && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Wanneer relevant:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.wanneerRelevant}</div>
-                    </div>
-                  )}
-                  {currentSolution.minimaleInvestering && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Investering:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.minimaleInvestering}</div>
-                    </div>
-                  )}
-                  {currentSolution.bandbreedteKosten && (
-                    <div>
-                      <div className="font-semibold text-gray-900 flex items-center">Bandbreedte kosten:<CostInfoTooltip /></div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.bandbreedteKosten}</div>
-                    </div>
-                  )}
-                  {currentSolution.minimumAantalPersonen && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Minimum aantal personen:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.minimumAantalPersonen}</div>
-                    </div>
-                  )}
-                  {currentSolution.schaalbaarheid && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Schaalbaarheid:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.schaalbaarheid}</div>
-                    </div>
-                  )}
-                  {currentSolution.moeilijkheidsgraad && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Moeilijkheidsgraad:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.moeilijkheidsgraad}</div>
-                    </div>
-                  )}
-                  {currentSolution.impact && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Impact:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.impact}</div>
-                    </div>
-                  )}
-                  {currentSolution.ruimtebeslag && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Ruimtebeslag:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.ruimtebeslag}</div>
-                    </div>
-                  )}
-                  {currentSolution.afhankelijkheidExternePartijen && (
-                    <div>
-                      <div className="font-semibold text-gray-900">Afhankelijkheid externe partijen:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.afhankelijkheidExternePartijen}</div>
-                    </div>
-                  )}
-                  {currentSolution.rolParkmanager && (
-                    <div className="md:col-span-2">
-                      <div className="font-semibold text-gray-900">Rol parkmanager:</div>
-                      <div className="text-gray-800 mt-0.5">{currentSolution.rolParkmanager}</div>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4 border-b border-gray-200" />
-              </section>
+              <SolutionTopMeta
+                wanneerRelevant={currentSolution.wanneerRelevant}
+                minimaleInvestering={currentSolution.minimaleInvestering}
+                bandbreedteKosten={currentSolution.bandbreedteKosten}
+                minimumAantalPersonen={currentSolution.minimumAantalPersonen}
+                schaalbaarheid={currentSolution.schaalbaarheid}
+                moeilijkheidsgraad={currentSolution.moeilijkheidsgraad}
+                impact={currentSolution.impact}
+                ruimtebeslag={currentSolution.ruimtebeslag}
+                afhankelijkheidExternePartijen={currentSolution.afhankelijkheidExternePartijen}
+                rolParkmanager={currentSolution.rolParkmanager}
+              />
             )}
 
             {/* Beschrijving */}
@@ -468,84 +271,7 @@ export function SolutionDialog() {
 
             {/* Vergelijk implementatievarianten - table inside popup before cases */}
             {!showOnlyCases && currentVariations && currentVariations.length > 0 && (
-              <section className="bg-white rounded-lg py-4">
-                <h1 className="text-3xl font-bold mb-1">Vergelijk implementatievarianten</h1>
-                <p className="text-sm text-gray-600 mb-3">Voor elk van de inkoopvormen is in de onderstaande tabel samengevat in hoeverre elke inkoopvorm scoort op verschillende criteria. De sterren geven aan hoe de implementatievariant zich verhoudt tot de andere varianten, waarbij 1 ster negatief is en 5 sterren positief.</p>
-                <div className="overflow-x-auto">
-                  <div className="grid rounded-lg min-w-[640px] md:min-w-0" style={{ gridTemplateColumns: `160px repeat(${currentVariations.length}, minmax(180px, 1fr))` }}>
-                  {/* Header row */}
-                  <div className="contents">
-                    <div className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">Categorie</div>
-                    {variationsForTable.map((v, idx) => {
-                      const title = stripSolutionPrefixFromVariantTitle(v.title);
-                      return (
-                        <div key={`vh-${v.id || idx}`} className="bg-gray-50 border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-900">{title}</div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Controle en flexibiliteit */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Controle en flexibiliteit</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`cf-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
-                        {renderStarsAndText(v.controleEnFlexibiliteit || '-')}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Maatwerk */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Maatwerk</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`mw-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
-                        {renderStarsAndText(v.maatwerk || '-')}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Kosten en schaalvoordelen */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Kosten en schaalvoordelen</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`ks-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
-                        {renderStarsAndText(v.kostenEnSchaalvoordelen || '-')}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Operationele complexiteit */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Operationele complexiteit</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`oc-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
-                        {renderStarsAndText(v.operationeleComplexiteit || '-')}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Juridische en compliance risico's */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium">Juridische en compliance risico's</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`jr-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700">
-                        {renderStarsAndText(v.juridischeEnComplianceRisicos || '-')}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Risico van onvoldoende gebruik */}
-                  <div className="contents">
-                    <div className="border-l border-b border-r border-gray-200 px-3 py-3 text-sm font-medium bg-gray-50">Risico van onvoldoende gebruik</div>
-                    {variationsForTable.map((v, idx) => (
-                      <div key={`rg-${v.id || idx}`} className="border-b border-r border-gray-200 px-3 py-3 text-sm text-gray-700 bg-gray-50">
-                        {renderStarsAndText(v.risicoVanOnvoldoendeGebruik || '-')}
-                      </div>
-                    ))}
-                  </div>
-                  </div>
-                </div>
-              </section>
+              <SolutionComparisonSection variations={variationsForTable} />
             )}
             {!showOnlyCases && currentVariations && currentVariations.length > 0 && (<Divider />)}
 
@@ -786,14 +512,14 @@ export function SolutionDialog() {
                 )}
                 {variant.geschatteKostenPerKmPp && (
                   <div>
-                    <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per km per persoon:<CostInfoTooltip /></div>
-                    <div className="text-gray-800 mt-0.5"><ValueWithOptionalTooltip value={variant.geschatteKostenPerKmPp} /></div>
+            <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per km per persoon:<CostInfoTooltip /></div>
+            <div className="text-gray-800 mt-0.5"><ValueWithTooltip value={variant.geschatteKostenPerKmPp} /></div>
                   </div>
                 )}
                 {variant.geschatteKostenPerRit && (
                   <div>
-                    <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per rit:<CostInfoTooltip /></div>
-                    <div className="text-gray-800 mt-0.5"><ValueWithOptionalTooltip value={variant.geschatteKostenPerRit} /></div>
+            <div className="font-semibold text-gray-900 flex items-center">Geschatte kosten per rit:<CostInfoTooltip /></div>
+            <div className="text-gray-800 mt-0.5"><ValueWithTooltip value={variant.geschatteKostenPerRit} /></div>
                   </div>
                 )}
                 {variant.controleEnFlexibiliteit && (

@@ -330,9 +330,7 @@ const cleanText = (text: any): string => {
 const renderInlineFormattingNoLinks = (line: string, keyPrefix: string) => {
   // Split by bold/italic markers, keeping the delimiters
   const parts = line.split(/(\*\*.*?\*\*|\*.*?\*|__.*?__|_.*?_)/g).filter(part => part);
-  let isBold = false;
-  let isItalic = false;
-  
+
   return parts.map((part, index) => {
     const key = `${keyPrefix}-inline-${index}`;
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -398,7 +396,7 @@ const renderRichText = (text: string | null | undefined, baseKey: string) => {
   if (!text) return null;
   const cleanedText = cleanText(text);
   const blocks = cleanedText.split(/\n{2,}/); // Split into blocks by double+ newlines
-  let elementKey = 0;
+  // Removed unused elementKey counter
 
   const elements = blocks.reduce<React.ReactElement[]>((acc, block, blockIndex) => {
     const blockKey = `${baseKey}-block-${blockIndex}`;
@@ -409,7 +407,6 @@ const renderRichText = (text: string | null | undefined, baseKey: string) => {
     // --- Handle Other Block Types (Headings, Lists, Paragraphs) ---
     const renderedLines = lines.map((line, lineIndex) => {
       const lineKey = `${blockKey}-line-${lineIndex}`;
-      elementKey++;
       
       // Headings
       if (line.startsWith('### ')) {

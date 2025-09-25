@@ -82,7 +82,7 @@ export const useWizardStore = create<WizardStore>()(
       setSelectedSolutions: (solutions) => set({ selectedSolutions: solutions }),
       toggleSolution: (solutionId) => set((state) => {
         const isSelected = state.selectedSolutions.includes(solutionId);
-        let updatedSelectedVariants = { ...state.selectedVariants };
+        const updatedSelectedVariants = { ...state.selectedVariants };
         const selectedSolutions = isSelected
           ? state.selectedSolutions.filter(id => id !== solutionId)
           : [...state.selectedSolutions, solutionId];
@@ -106,7 +106,7 @@ export const useWizardStore = create<WizardStore>()(
           ...state.selectedVariants,
           [solutionId]: variant
         };
-        console.log('[Store] Updated selected variants:', updatedSelectedVariants);
+        // dev logging removed
         return {
           selectedVariants: updatedSelectedVariants
         };

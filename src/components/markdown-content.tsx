@@ -152,7 +152,7 @@ export function processMarkdownText(text: string): string {
   }
   
   // Normalize line endings
-  let processed = text.replace(/\r\n/g, '\n');
+    let processed = text.replace(/\r\n/g, '\n');
   
   // Remove ONLY the :::variant tags, keeping the content inside
   processed = processed.replace(/:::variant\[.*?\]\s*([\s\S]*?)\s*:::/g, '$1'); // Replace match with content (group 1)
@@ -244,7 +244,7 @@ function preprocessTables(text: string): string {
     // Splitsen op regels
     const lines = processed.split('\n');
     let inTable = false;
-    let tableRows: string[] = [];
+    const tableRows: string[] = [];
     let currentTable: string[] = [];
     
     // Voor elke regel controleren of het onderdeel is van een tabel

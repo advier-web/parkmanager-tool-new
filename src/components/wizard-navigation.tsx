@@ -18,23 +18,23 @@ export function WizardNavigation({
   const router = useRouter();
 
   // Log de state bij elke render voor debugging
-  console.log("[WizardNavigation] Props:", { previousStep, nextStep, isNextDisabled });
+  // dev logging removed
 
   const handlePrevious = () => {
-    console.log("[WizardNavigation] handlePrevious called. previousStep:", previousStep);
+    // dev logging removed
     if (previousStep) {
-      console.log("[WizardNavigation] Attempting router.push to previous:", previousStep);
+      // dev logging removed
       router.push(previousStep);
     } else {
-      console.log("[WizardNavigation] No previous step defined, not navigating.");
+      // dev logging removed
     }
   };
 
   const handleNext = () => {
-    console.log("[WizardNavigation] handleNext called, isNextDisabled:", isNextDisabled);
+    // dev logging removed
     
     if (isNextDisabled) {
-      console.log("[WizardNavigation] Navigatie geblokkeerd omdat isNextDisabled true is");
+      // dev logging removed
       return;
     }
     
@@ -43,7 +43,7 @@ export function WizardNavigation({
     }
     
     if (nextStep) {
-      console.log("[WizardNavigation] Navigeren naar:", nextStep);
+      // dev logging removed
       setTimeout(() => {
          router.push(nextStep);
       }, 100);

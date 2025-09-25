@@ -158,7 +158,7 @@ const basicMarkdownToHtml = (markdownText: string): string[] => {
         matched = true; continue;
     }
     const lines = remainingText.split('\n');
-    let paragraphBuffer: string[] = [];
+    const paragraphBuffer: string[] = [];
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const nextLineIsBlockStart = (i + 1 < lines.length) && (lines[i+1].match(headerRegex) || lines[i+1].match(listRegex) || lines[i+1].match(preformattedRegex) || lines[i+1].match(horizontalRuleRegex));

@@ -1,11 +1,5 @@
 import { Entry /*, EntryCollection, EntrySkeletonType*/ } from 'contentful';
 import { getContentfulClient, handleContentfulError, ContentfulError } from '../lib/contentful/client';
-import {
-  IBusinessParkReason,
-  IMobilityService,
-  IGovernanceModel,
-  IImplementationvariations // Corrected casing
-} from '../types/contentful-types.generated';
 import { BusinessParkReason, MobilitySolution, GovernanceModel, ImplementationVariation, TrafficType } from '../domain/models';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { BLOCKS, Document as ContentfulDocument } from '@contentful/rich-text-types';

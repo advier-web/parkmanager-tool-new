@@ -468,7 +468,7 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
       // Ordered list
       if (/^\s*\d+\.\s+/.test(line)) {
         const items: string[] = [];
-        let startNum = parseInt((line.match(/^(\s*)(\d+)/) || [0, '', '1'])[2], 10) || 1;
+        const startNum = parseInt((line.match(/^(\s*)(\d+)/) || [0, '', '1'])[2], 10) || 1;
         while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
           items.push(lines[i].replace(/^\s*\d+\.\s+/, ''));
           i++;

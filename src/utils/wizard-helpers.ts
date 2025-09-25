@@ -217,6 +217,34 @@ export const stripSolutionPrefixFromVariantTitle = (fullVariantTitle: string | u
   return fullVariantTitle; // Return original if separator not found
 };
 
+// Centralized desired ordering of implementation variants (normalized titles)
+export const desiredImplementationOrder: string[] = [
+  'zelf aanschaffen door bedrijfsvereniging',
+  'inkoop door één aangesloten organisatie met deelname van anderen',
+  'aanbevolen serviceprovider door de bedrijfsvereniging',
+  'centrale inkoop door de bedrijfsvereniging via één serviceprovider',
+];
+
+function normalizeTitle(value: string): string {
+  return (value || '').toLowerCase().trim();
+}
+
+// Centralized sorter for implementation variations
+export function orderImplementationVariations<T extends { title: string }>(
+  variations: T[] | undefined
+): T[] {
+  if (!variations || variations.length === 0) return [] as T[];
+  const getKey = (v: T) => normalizeTitle(stripSolutionPrefixFromVariantTitle(v?.title || ''));
+  return variations.slice().sort((a, b) => {
+    const ai = desiredImplementationOrder.indexOf(getKey(a));
+    const bi = desiredImplementationOrder.indexOf(getKey(b));
+    const as = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+    const bs = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+    if (as !== bs) return as - bs;
+    return getKey(a).localeCompare(getKey(b));
+  });
+}
+
 // Helper function to find an implementation variation by ID
 export function findVariationById(variations: ImplementationVariation[] | undefined, id: string | null): ImplementationVariation | undefined {
   if (!variations || !id) return undefined;

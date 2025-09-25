@@ -128,23 +128,25 @@ export const mockGovernanceModels: GovernanceModel[] = [
     id: 'governance-1',
     title: 'Parkmanagement Vereniging',
     description: 'Een vereniging van bedrijven op het bedrijfsterrein die samen mobiliteitsoplossingen beheren en financieren.',
-    advantages: ['Democratische structuur', 'Gedeelde kosten', 'Sterke betrokkenheid'],
-    disadvantages: ['Langere besluitvorming', 'Vrijwillige basis'],
+    voordelen: ['Democratische structuur', 'Gedeelde kosten', 'Sterke betrokkenheid'],
+    nadelen: ['Langere besluitvorming', 'Vrijwillige basis'],
     applicableScenarios: ['Middelgrote bedrijfsterreinen', 'Heterogene bedrijvenpopulatie'],
     organizationalStructure: 'Vereniging met bestuur en ledenvergadering',
     legalForm: 'Vereniging',
-    stakeholders: ['Bedrijven', 'Gemeente', 'Vervoerders']
+    stakeholders: ['Bedrijven', 'Gemeente', 'Vervoerders'],
+    voorbeeldContracten: []
   },
   {
     id: 'governance-2',
     title: 'Mobiliteitscoördinator',
     description: 'Een aangestelde coördinator die mobiliteitsoplossingen beheert namens alle bedrijven.',
-    advantages: ['Slagvaardig', 'Professioneel', 'Duidelijk aanspreekpunt'],
-    disadvantages: ['Kosten coördinator', 'Minder betrokkenheid bedrijven'],
+    voordelen: ['Slagvaardig', 'Professioneel', 'Duidelijk aanspreekpunt'],
+    nadelen: ['Kosten coördinator', 'Minder betrokkenheid bedrijven'],
     applicableScenarios: ['Kleinere bedrijfsterreinen', 'Homogene bedrijvenpopulatie'],
     organizationalStructure: 'Centrale coördinator met stuurgroep',
     legalForm: 'Dienstverband of ZZP',
-    stakeholders: ['Bedrijven', 'Coördinator', 'Gemeente']
+    stakeholders: ['Bedrijven', 'Coördinator', 'Gemeente'],
+    voorbeeldContracten: []
   }
 ];
 
