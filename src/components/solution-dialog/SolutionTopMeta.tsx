@@ -13,6 +13,7 @@ interface Props {
   impact?: string;
   ruimtebeslag?: string;
   afhankelijkheidExternePartijen?: string;
+  dekkingsmogelijkheid?: string;
   rolParkmanager?: string;
 }
 
@@ -27,6 +28,7 @@ export function SolutionTopMeta(props: Props) {
     impact,
     ruimtebeslag,
     afhankelijkheidExternePartijen,
+    dekkingsmogelijkheid,
     rolParkmanager,
   } = props;
 
@@ -49,6 +51,12 @@ export function SolutionTopMeta(props: Props) {
           <div>
             <div className="font-semibold text-gray-900 flex items-center">Bandbreedte kosten:<CostInfoTooltip /></div>
             <div className="text-gray-800 mt-0.5">{bandbreedteKosten}</div>
+          </div>
+        )}
+        {dekkingsmogelijkheid && (
+          <div>
+            <div className="font-semibold text-gray-900">Dekkingsmogelijkheid:</div>
+            <div className="text-gray-800 mt-0.5">{dekkingsmogelijkheid}</div>
           </div>
         )}
         {minimumAantalPersonen && (

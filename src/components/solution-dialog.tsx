@@ -193,6 +193,7 @@ export function SolutionDialog() {
                 wanneerRelevant={currentSolution.wanneerRelevant}
                 minimaleInvestering={currentSolution.minimaleInvestering}
                 bandbreedteKosten={currentSolution.bandbreedteKosten}
+                dekkingsmogelijkheid={currentSolution.dekkingsmogelijkheid}
                 minimumAantalPersonen={currentSolution.minimumAantalPersonen}
                 schaalbaarheid={currentSolution.schaalbaarheid}
                 moeilijkheidsgraad={currentSolution.moeilijkheidsgraad}

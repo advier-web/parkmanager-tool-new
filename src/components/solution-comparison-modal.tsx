@@ -301,6 +301,20 @@ export function SolutionComparisonModal({
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Dekkingsmogelijkheid Row */}
+            <div className="grid bg-gray-50 rounded-lg p-3 min-w-[720px] md:min-w-0" style={{ gridTemplateColumns: `180px repeat(${visibleSolutions.length}, minmax(180px, 1fr))` }}>
+              <div className="flex items-center">
+                <h3 className="font-medium text-gray-900">Dekkingsmogelijkheid</h3>
+              </div>
+              {visibleSolutions.map((solution) => (
+                <div key={`${solution.id}-dekkingsmogelijkheid`} className="border-l border-gray-200 pl-4 flex items-center min-w-[180px]">
+                  <div className="text-sm text-gray-700">
+                    {solution.dekkingsmogelijkheid || '-'}
+                  </div>
+                </div>
+              ))}
             </div>            
 
             {/* Minimum aantal personen Row */}

@@ -96,7 +96,7 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
           </div>
 
           {/* Intro + Vuistregels in 2/3 - 1/3 layout */}
-          {(solution.introTekstTool || solution.wanneerRelevant || solution.minimaleInvestering || solution.minimumAantalPersonen || solution.schaalbaarheid || solution.moeilijkheidsgraad || solution.impact || solution.ruimtebeslag || solution.afhankelijkheidExternePartijen) && (
+          {(solution.introTekstTool || solution.wanneerRelevant || solution.minimaleInvestering || solution.bandbreedteKosten || solution.dekkingsmogelijkheid || solution.minimumAantalPersonen || solution.schaalbaarheid || solution.moeilijkheidsgraad || solution.impact || solution.ruimtebeslag || solution.afhankelijkheidExternePartijen) && (
             <section className="mb-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                 {/* Left: 2/3 Intro */}
@@ -142,6 +142,12 @@ export default function MobilityServiceClientPage({ solution, variations }: Mobi
                     <div>
                       <div className="font-semibold text-gray-900">Bandbreedte kosten:</div>
                       <div className="text-gray-800 mt-0.5">{solution.bandbreedteKosten}</div>
+                    </div>
+                  )}
+                  {solution.dekkingsmogelijkheid && (
+                    <div>
+                      <div className="font-semibold text-gray-900">Dekkingsmogelijkheid:</div>
+                      <div className="text-gray-800 mt-0.5">{solution.dekkingsmogelijkheid}</div>
                     </div>
                   )}
                   {solution.minimumAantalPersonen && (

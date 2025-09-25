@@ -63,6 +63,7 @@ export interface ImobilityServiceFields {
   paspoort?: string | undefined;
   description?: string | undefined;
   uitvoering?: string | undefined;
+  dekkingsmogelijkheid?: string | undefined;
   uitdagingenEnAanleidingen?: string | undefined;
   collectiefVsIndiviueel?: string | undefined;
   casebeschrijving?: string | undefined;

@@ -727,6 +727,12 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
                 <Text style={{ marginTop: 2 }}>{solution.ruimtebeslag}</Text>
               </View>
             )}
+            {solution.schaalbaarheid && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Schaalbaarheid:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.schaalbaarheid}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.twoColRight}>
@@ -742,10 +748,10 @@ const MobilitySolutionFactsheetPdfComponent: React.FC<MobilitySolutionFactsheetP
                 <Text style={{ marginTop: 2 }}>{solution.bandbreedteKosten}</Text>
               </View>
             )}
-            {solution.schaalbaarheid && (
+            {solution.dekkingsmogelijkheid && (
               <View style={{ marginBottom: 8 }}>
-                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Schaalbaarheid:</Text>
-                <Text style={{ marginTop: 2 }}>{solution.schaalbaarheid}</Text>
+                <Text style={{ fontSize: 10, fontWeight: 'bold' }}>Dekkingsmogelijkheid:</Text>
+                <Text style={{ marginTop: 2 }}>{solution.dekkingsmogelijkheid}</Text>
               </View>
             )}
             {solution.impact && (

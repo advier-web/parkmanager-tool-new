@@ -197,6 +197,7 @@ export async function getMobilitySolutionsFromContentful(options: ContentfulQuer
               impact: typeof (fields as any).impact === 'string' ? (fields as any).impact : undefined,
               ruimtebeslag: typeof (fields as any).ruimtebeslag === 'string' ? (fields as any).ruimtebeslag : undefined,
               afhankelijkheidExternePartijen: typeof (fields as any).afhankelijkheidExternePartijen === 'string' ? (fields as any).afhankelijkheidExternePartijen : undefined,
+              dekkingsmogelijkheid: typeof (fields as any).dekkingsmogelijkheid === 'string' ? (fields as any).dekkingsmogelijkheid : undefined,
               rolParkmanager: typeof (fields as any).rolParkmanager === 'string' ? (fields as any).rolParkmanager : undefined,
               
               implementationVariations: undefined,
@@ -285,6 +286,7 @@ export async function getMobilitySolutionById(id: string, options: ContentfulQue
           impact: typeof (fields as any).impact === 'string' ? (fields as any).impact : undefined,
           ruimtebeslag: typeof (fields as any).ruimtebeslag === 'string' ? (fields as any).ruimtebeslag : undefined,
           afhankelijkheidExternePartijen: typeof (fields as any).afhankelijkheidExternePartijen === 'string' ? (fields as any).afhankelijkheidExternePartijen : undefined,
+          dekkingsmogelijkheid: typeof (fields as any).dekkingsmogelijkheid === 'string' ? (fields as any).dekkingsmogelijkheid : undefined,
           rolParkmanager: typeof (fields as any).rolParkmanager === 'string' ? (fields as any).rolParkmanager : undefined,
           
           implementationVariations: undefined,
@@ -488,6 +490,7 @@ export async function getMobilitySolutionForPdf(id: string, options: { preview?:
       milieuverordeningToelichting: getStringFieldSafe(fields, 'milieuverordeningToelichting'),
       bedrijfsverhuizingToelichting: getStringFieldSafe(fields, 'bedrijfsverhuizingToelichting'),
       energiebalansToelichting: getStringFieldSafe(fields, 'energiebalansToelichting'),
+      
       implementationVariations: [], // Fetch separately if needed
     };
     return solution;
